@@ -145,7 +145,7 @@ export const WeeklyPlannerPage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs text-purple-400 hover:text-purple-300"
+                className="h-8 text-xs text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold"
                 onClick={() => setSelectedWeekNum(stats.currentWeek)}
               >
                 Jump to Current
@@ -434,7 +434,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                             {colStatus !== 'In Progress' && (
                               <button
                                 onClick={() => updateTask(task.id, { status: 'In Progress' })}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
+                                className="text-[9px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-300 font-semibold"
                               >
                                 In Prog
                               </button>
@@ -499,7 +499,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                       <span className="text-[9px] text-amber-400 font-semibold block mt-1">Buffer</span>
                     )}
                     {isCurrent && (
-                      <span className="text-[9px] text-purple-400 font-bold block mt-1">Current</span>
+                      <span className="text-[9px] text-purple-700 dark:text-purple-300 font-bold block mt-1">Current</span>
                     )}
                   </button>
                 );

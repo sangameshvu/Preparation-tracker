@@ -25,6 +25,7 @@ import {
 import { Textarea } from '../components/ui/textarea';
 import { Input } from '../components/ui/input';
 import { PrepGuideSection } from '../types';
+import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
 
 export const PrepGuidePage: React.FC = () => {
   const { guideSections, updateGuideSection, profile } = useAppData();
@@ -91,8 +92,8 @@ export const PrepGuidePage: React.FC = () => {
                 </Button>
               )}
             </CardHeader>
-            <CardContent className="pt-4 text-xs leading-relaxed text-muted-foreground whitespace-pre-line font-sans">
-              {sec.contentMarkdown}
+            <CardContent className="pt-4 text-xs">
+              <MarkdownRenderer content={sec.contentMarkdown} />
             </CardContent>
           </Card>
         ))}

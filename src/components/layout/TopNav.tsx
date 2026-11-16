@@ -41,7 +41,7 @@ export const TopNav: React.FC<TopNavProps> = () => {
             <span className="text-xs font-medium text-foreground tracking-tight hidden sm:inline-block">
               {formattedDate}
             </span>
-            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20">
               Week {stats.currentWeek} of 52
             </span>
           </div>
@@ -92,11 +92,11 @@ export const TopNav: React.FC<TopNavProps> = () => {
           {/* AI Coach Quick Shortcut */}
           <Link
             to="/ai-coach"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-purple-500/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 transition-colors"
             title="Ask AI Study Coach"
           >
-            <Bot className="h-3.5 w-3.5 text-purple-400" />
-            <span className="hidden md:inline font-medium">Coach</span>
+            <Bot className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            <span className="hidden md:inline font-semibold">Coach</span>
           </Link>
 
           {/* Theme Toggle */}

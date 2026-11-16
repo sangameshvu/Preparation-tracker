@@ -670,17 +670,17 @@ export const HomePage: React.FC = () => {
             {/* Quick Visual Exam Structure */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl border border-border/80 bg-muted/20">
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-purple-400">Total Duration & Format</span>
+                <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">Total Duration & Format</span>
                 <p className="text-sm font-bold text-foreground">120 Minutes (2 Hours)</p>
                 <p className="text-xs text-muted-foreground">3 sequential sections • 40 min each</p>
               </div>
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-emerald-400">Question Proportions</span>
+                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Question Proportions</span>
                 <p className="text-sm font-bold text-foreground">68 Total Questions</p>
                 <p className="text-xs text-muted-foreground">49 MCQs • 17 Non-MCQ TITA</p>
               </div>
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-amber-400">Marking Scheme</span>
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Marking Scheme</span>
                 <p className="text-sm font-bold text-foreground">+3 Correct / -1 Wrong</p>
                 <p className="text-xs text-muted-foreground">Zero negative marking on TITA</p>
               </div>
@@ -689,7 +689,7 @@ export const HomePage: React.FC = () => {
             {/* 90% Target Strategy Box */}
             <div className="p-4 rounded-xl border border-border/80 bg-background/50">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400">
                   Target Score Benchmarks for 90%+ (PDF Recommended Bare Minimum)
                 </h4>
                 <span className="text-[10px] text-muted-foreground">Document-derived target guidelines</span>
@@ -720,31 +720,31 @@ export const HomePage: React.FC = () => {
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-center text-xs">
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-400 block text-[11px]">Mon</strong>
+                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Mon</strong>
                   <span className="text-[10px] text-muted-foreground">Arith + DILR + RC</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-400 block text-[11px]">Tue</strong>
+                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Tue</strong>
                   <span className="text-[10px] text-muted-foreground">Alg + DILR + VA</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-400 block text-[11px]">Wed</strong>
+                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Wed</strong>
                   <span className="text-[10px] text-muted-foreground">Arith + DILR + RC</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-400 block text-[11px]">Thu</strong>
+                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Thu</strong>
                   <span className="text-[10px] text-muted-foreground">Geo + DILR + VA</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-400 block text-[11px]">Fri</strong>
+                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Fri</strong>
                   <span className="text-[10px] text-muted-foreground">NumSys + DILR + RC</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-emerald-400 block text-[11px]">Sat</strong>
+                  <strong className="text-emerald-700 dark:text-emerald-400 block text-[11px]">Sat</strong>
                   <span className="text-[10px] text-muted-foreground">Mixed QA + Sectionals</span>
                 </div>
                 <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-amber-400 block text-[11px]">Sun</strong>
+                  <strong className="text-amber-700 dark:text-amber-400 block text-[11px]">Sun</strong>
                   <span className="text-[10px] text-muted-foreground">Mock + 3h Analysis</span>
                 </div>
               </div>

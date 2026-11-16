@@ -322,7 +322,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg border border-border/80 bg-muted/20">
                 <div>
-                  <span className="text-[11px] font-semibold text-purple-400 block mb-1">VARC</span>
+                  <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-400 block mb-1">VARC</span>
                   <div className="space-y-1">
                     <Input
                       type="number"
@@ -384,7 +384,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <div className="flex items-center justify-between text-xs font-mono px-1">
                 <span>Total Attempts: <strong className="text-foreground">{Number(varcAttempts) + Number(dilrAttempts) + Number(qaAttempts)}</strong></span>
-                <span>Total Score: <strong className="text-purple-400 font-bold">{Number(varcScore) + Number(dilrScore) + Number(qaScore)}</strong></span>
+                <span>Total Score: <strong className="text-purple-700 dark:text-purple-300 font-bold">{Number(varcScore) + Number(dilrScore) + Number(qaScore)}</strong></span>
               </div>
 
               <div>

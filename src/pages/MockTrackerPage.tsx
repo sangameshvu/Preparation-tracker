@@ -207,7 +207,7 @@ export const MockTrackerPage: React.FC = () => {
         <Card className="p-4">
           <span className="text-xs text-muted-foreground font-medium block">Best Total Score</span>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-purple-400">
+            <span className="text-2xl font-bold font-mono text-purple-700 dark:text-purple-300">
               {totalMocksTaken > 0 ? bestScore : '–'}
             </span>
             <span className="text-xs text-muted-foreground font-mono">pts</span>
@@ -339,7 +339,7 @@ export const MockTrackerPage: React.FC = () => {
                       <td className="py-2.5 px-3 text-center font-mono font-bold">
                         {hasScore ? mock.totalAttempts : '–'}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-extrabold text-purple-400 text-sm">
+                      <td className="py-2.5 px-3 text-center font-mono font-extrabold text-purple-700 dark:text-purple-300 text-sm">
                         {hasScore ? mock.totalScore : '–'}
                       </td>
                       <td className="py-2.5 px-3 text-center font-mono text-muted-foreground">
@@ -485,7 +485,7 @@ export const MockTrackerPage: React.FC = () => {
 
             <div className="flex items-center justify-between text-xs font-mono p-2.5 rounded-lg bg-background border">
               <span>Total Attempts: <strong>{Number(varcAttempts) + Number(dilrAttempts) + Number(qaAttempts)}</strong></span>
-              <span>Total Score: <strong className="text-purple-400 text-sm">{Number(varcScore) + Number(dilrScore) + Number(qaScore)}</strong></span>
+              <span>Total Score: <strong className="text-purple-700 dark:text-purple-300 text-sm">{Number(varcScore) + Number(dilrScore) + Number(qaScore)}</strong></span>
             </div>
 
             <div>

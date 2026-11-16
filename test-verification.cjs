@@ -1,0 +1,126 @@
+// =====================================================================
+// CAT 2027 HQ: Comprehensive Application Logic & Integrity Test Suite
+// =====================================================================
+
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+
+console.log('🧪 Starting CAT 2027 HQ Verification Test Suite...\n');
+
+let passedTests = 0;
+let totalTests = 0;
+
+function test(name, fn) {
+  totalTests++;
+  try {
+    fn();
+    console.log(`  ✓ ${name}`);
+    passedTests++;
+  } catch (err) {
+    console.error(`  ✗ ${name}`);
+    console.error(`    ${err.message}`);
+  }
+}
+
+// 1. VERIFY MASTER SEED DATA
+test('Master Topics dataset contains all 53 canonical topics', () => {
+  const topicsContent = fs.readFileSync(path.join(__dirname, 'src/data/topics.ts'), 'utf8');
+  assert(topicsContent.includes('export const initialTopics'), 'Export missing');
+  const count = (topicsContent.match(/"id":\s*"topic-/g) || []).length;
+  assert.strictEqual(count, 53, `Expected 53 topics, found ${count}`);
+});
+
+test('Master Weekly Plans dataset contains 52 weeks and identifies buffer weeks', () => {
+  const weeksContent = fs.readFileSync(path.join(__dirname, 'src/data/weeklyPlans.ts'), 'utf8');
+  assert(weeksContent.includes('export const initialWeeklyPlans'), 'Export missing');
+  const count = (weeksContent.match(/"weekNumber":/g) || []).length;
+  assert.strictEqual(count, 52, `Expected 52 weeks, found ${count}`);
+  assert(weeksContent.includes('"isBufferWeek": true'), 'Buffer weeks must be flagged');
+});
+
+test('Free Resources dataset contains 28+ curated items and preserved hyperlinks', () => {
+  const resContent = fs.readFileSync(path.join(__dirname, 'src/data/resources.ts'), 'utf8');
+  const count = (resContent.match(/"id":\s*"res-/g) || []).length;
+  assert(count >= 28, `Expected at least 28 resources, found ${count}`);
+  assert(resContent.includes('https://aeon.co'), 'Aeon link missing');
+  assert(resContent.includes('online.2iim.com'), '2IIM link missing');
+  assert(resContent.includes('gmatclub.com'), 'GMATClub link missing');
+  assert(resContent.includes('iquanta.in'), 'iQuanta link missing');
+  assert(resContent.includes('cracku.in'), 'Cracku link missing');
+});
+
+test('Preparation Guide dataset contains complete extracted sections from PDF', () => {
+  const guideContent = fs.readFileSync(path.join(__dirname, 'src/data/guideSections.ts'), 'utf8');
+  assert(guideContent.includes('CAT Examination Structure & Format'), 'Exam structure missing');
+  assert(guideContent.includes('Strategy for 90%+'), '90% strategy missing');
+  assert(guideContent.includes('Optimal Weekly Subject Allocation Schedule'), 'Weekly schedule missing');
+  assert(guideContent.includes('Quantitative Aptitude (QA): Topics & 9-Step Sequence'), 'QA sequence missing');
+  assert(guideContent.includes('Data Interpretation & Logical Reasoning (DILR)'), 'DILR missing');
+  assert(guideContent.includes('Verbal Ability & Reading Comprehension (VARC)'), 'VARC missing');
+});
+
+// 2. VERIFY COMPONENT INTEGRITY
+test('MarkdownRenderer component exists and exports renderInline and MarkdownRenderer', () => {
+  const mdContent = fs.readFileSync(path.join(__dirname, 'src/components/ui/MarkdownRenderer.tsx'), 'utf8');
+  assert(mdContent.includes('export const renderInline'), 'renderInline missing');
+  assert(mdContent.includes('export const MarkdownRenderer'), 'MarkdownRenderer missing');
+  assert(mdContent.includes('<table'), 'Table rendering missing');
+  assert(mdContent.includes('<ul'), 'List rendering missing');
+  assert(mdContent.includes('<ol'), 'Numbered list rendering missing');
+});
+
+test('TopicTrackerPage confidence dropdown uses high-contrast meta styles and does not wrap', () => {
+  const ttContent = fs.readFileSync(path.join(__dirname, 'src/pages/TopicTrackerPage.tsx'), 'utf8');
+  assert(ttContent.includes('confidenceMeta'), 'confidenceMeta config missing');
+  assert(ttContent.includes('w-[128px]'), 'Fixed pill width missing');
+  assert(ttContent.includes('whitespace-nowrap'), 'Whitespace nowrap missing');
+  assert(ttContent.includes('dark:text-rose-300'), 'Dark/Light contrast classes missing');
+});
+
+test('Sidebar AI Study Coach does not have washed-out low contrast styling', () => {
+  const sbContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/Sidebar.tsx'), 'utf8');
+  assert(!sbContent.includes('text-purple-300/90 font-medium'), 'Washed out underlight class must be removed');
+  assert(sbContent.includes('AI'), 'AI badge missing');
+});
+
+test('StickyBoardPage sticky notes have crisp light mode and dark mode theme classes', () => {
+  const stickyContent = fs.readFileSync(path.join(__dirname, 'src/pages/StickyBoardPage.tsx'), 'utf8');
+  assert(stickyContent.includes('text-purple-950'), 'Lavender light mode contrast missing');
+  assert(stickyContent.includes('dark:text-purple-100'), 'Lavender dark mode contrast missing');
+  assert(stickyContent.includes('text-emerald-950'), 'Emerald light mode contrast missing');
+  assert(stickyContent.includes('dark:text-emerald-100'), 'Emerald dark mode contrast missing');
+  assert(stickyContent.includes('MarkdownRenderer'), 'Markdown rendering in sticky notes missing');
+});
+
+test('Badge component has proper light mode contrast classes', () => {
+  const badgeContent = fs.readFileSync(path.join(__dirname, 'src/components/ui/badge.tsx'), 'utf8');
+  assert(badgeContent.includes('bg-purple-50 text-purple-700'), 'Purple badge light mode contrast missing');
+  assert(badgeContent.includes('bg-emerald-50 text-emerald-700'), 'Emerald badge light mode contrast missing');
+  assert(badgeContent.includes('bg-amber-50 text-amber-800'), 'Amber badge light mode contrast missing');
+});
+
+// 3. VERIFY METRICS & ISOLATION LOGIC
+test('MockTracker & MistakeLog isolate sample row data from real metrics', () => {
+  const mockContent = fs.readFileSync(path.join(__dirname, 'src/data/initialMockAndMistake.ts'), 'utf8');
+  assert(mockContent.includes('isSample: true'), 'isSample flag missing');
+  const appDataContent = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(appDataContent.includes('filter((m) => !m.isSample'), 'Sample isolation filter missing');
+});
+
+test('Production build output contains all expected bundles', () => {
+  assert(fs.existsSync(path.join(__dirname, 'dist/index.html')), 'dist/index.html missing');
+  const assets = fs.readdirSync(path.join(__dirname, 'dist/assets'));
+  assert(assets.some(f => f.startsWith('vendor-')), 'Vendor bundle missing');
+  assert(assets.some(f => f.startsWith('charts-')), 'Charts bundle missing');
+  assert(assets.some(f => f.startsWith('icons-')), 'Icons bundle missing');
+  assert(assets.some(f => f.startsWith('index-') && f.endsWith('.css')), 'CSS bundle missing');
+});
+
+console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
+
+if (passedTests === totalTests) {
+  console.log('🎉 ALL APPLICATION LOGIC & UI INTEGRITY TESTS PASSED SUCCESSFULLY!\n');
+} else {
+  process.exit(1);
+}

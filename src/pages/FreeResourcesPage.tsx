@@ -101,11 +101,11 @@ export const FreeResourcesPage: React.FC = () => {
       <Card className="border-purple-500/30 bg-gradient-to-r from-purple-950/20 via-card to-card p-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 shrink-0">
               <Play className="h-5 w-5 fill-current" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Featured Orientation</span>
+              <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 tracking-wider">Featured Orientation</span>
               <h3 className="text-sm font-bold text-foreground">
                 How to Crack CAT Without Coaching Using Only Free Resources
               </h3>

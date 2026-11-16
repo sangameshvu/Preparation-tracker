@@ -398,7 +398,7 @@ export const MistakeLogPage: React.FC = () => {
                         <td className="py-2.5 px-3 text-muted-foreground text-[11px] leading-relaxed">
                           {m.whatWentWrong}
                         </td>
-                        <td className="py-2.5 px-3 text-purple-300 font-medium text-[11px] leading-relaxed">
+                        <td className="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-semibold text-[11px] leading-relaxed">
                           {m.ruleForNextTime}
                         </td>
                         <td className="py-2.5 px-3 text-center font-mono whitespace-nowrap">

@@ -23,6 +23,7 @@ import {
   DialogFooter
 } from '../components/ui/dialog';
 import { StickyNoteItem } from '../types';
+import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
 
 export const StickyBoardPage: React.FC = () => {
   const { stickyNotes, addStickyNote, updateStickyNote, deleteStickyNote, topics } = useAppData();
@@ -37,12 +38,36 @@ export const StickyBoardPage: React.FC = () => {
   const [linkedTopicId, setLinkedTopicId] = useState('');
 
   const colors = [
-    { name: 'lavender', hex: '#8B5CF6', bg: 'bg-purple-950/40 border-purple-500/40 text-purple-200' },
-    { name: 'emerald', hex: '#10B981', bg: 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200' },
-    { name: 'amber', hex: '#F59E0B', bg: 'bg-amber-950/40 border-amber-500/40 text-amber-200' },
-    { name: 'rose', hex: '#F43F5E', bg: 'bg-rose-950/40 border-rose-500/40 text-rose-200' },
-    { name: 'cyan', hex: '#06B6D4', bg: 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200' },
-    { name: 'charcoal', hex: '#27272A', bg: 'bg-zinc-900 border-zinc-700 text-zinc-200' },
+    {
+      name: 'lavender',
+      hex: '#8B5CF6',
+      bg: 'bg-purple-50/95 border-purple-200/90 text-purple-950 dark:bg-purple-950/40 dark:border-purple-500/30 dark:text-purple-100 shadow-sm',
+    },
+    {
+      name: 'emerald',
+      hex: '#10B981',
+      bg: 'bg-emerald-50/95 border-emerald-200/90 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/30 dark:text-emerald-100 shadow-sm',
+    },
+    {
+      name: 'amber',
+      hex: '#F59E0B',
+      bg: 'bg-amber-50/95 border-amber-200/90 text-amber-950 dark:bg-amber-950/40 dark:border-amber-500/30 dark:text-amber-100 shadow-sm',
+    },
+    {
+      name: 'rose',
+      hex: '#F43F5E',
+      bg: 'bg-rose-50/95 border-rose-200/90 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/30 dark:text-rose-100 shadow-sm',
+    },
+    {
+      name: 'cyan',
+      hex: '#06B6D4',
+      bg: 'bg-cyan-50/95 border-cyan-200/90 text-cyan-950 dark:bg-cyan-950/40 dark:border-cyan-500/30 dark:text-cyan-100 shadow-sm',
+    },
+    {
+      name: 'charcoal',
+      hex: '#27272A',
+      bg: 'bg-zinc-100 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100 shadow-sm',
+    },
   ] as const;
 
   const getColorClass = (col: StickyNoteItem['color']) => {
@@ -144,32 +169,32 @@ export const StickyBoardPage: React.FC = () => {
             return (
               <div
                 key={note.id}
-                className={`p-4 rounded-xl border shadow-sm transition-all flex flex-col justify-between min-h-[180px] hover:scale-[1.02] ${getColorClass(
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between min-h-[190px] hover:scale-[1.02] ${getColorClass(
                   note.color
                 )}`}
               >
                 <div>
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                    <span className="text-[10px] font-mono opacity-70">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-current/15">
+                    <span className="text-[10px] font-mono opacity-75">
                       {note.createdAt ? new Date(note.createdAt).toLocaleDateString() : 'Pinned'}
                     </span>
                     <button
                       onClick={() => updateStickyNote(note.id, { isPinned: !note.isPinned })}
-                      className="text-white/70 hover:text-white transition-opacity"
+                      className="opacity-75 hover:opacity-100 transition-opacity p-0.5 rounded cursor-pointer"
                       title={note.isPinned ? 'Unpin note' : 'Pin note'}
                     >
-                      <Pin className={`h-3.5 w-3.5 ${note.isPinned ? 'fill-current text-purple-300' : ''}`} />
+                      <Pin className={`h-3.5 w-3.5 ${note.isPinned ? 'fill-current text-purple-600 dark:text-purple-400' : ''}`} />
                     </button>
                   </div>
 
-                  <p className="text-xs leading-relaxed whitespace-pre-line font-medium">
-                    {note.content}
-                  </p>
+                  <div className="text-xs leading-relaxed font-medium">
+                    <MarkdownRenderer content={note.content} />
+                  </div>
                 </div>
 
-                <div className="pt-3 mt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                <div className="pt-3 mt-2 border-t border-current/15 flex items-center justify-between text-[10px]">
                   {linkedTopic ? (
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-black/20 border-white/20 text-white truncate max-w-[120px]">
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-current/10 border-current/25 text-current truncate max-w-[130px] font-medium">
                       {linkedTopic.topicName}
                     </Badge>
                   ) : (
@@ -179,14 +204,14 @@ export const StickyBoardPage: React.FC = () => {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleOpenEdit(note)}
-                      className="p-1 hover:bg-white/10 rounded transition-colors text-white/70 hover:text-white"
+                      className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors opacity-75 hover:opacity-100 cursor-pointer"
                       title="Edit note"
                     >
                       <Edit2 className="h-3 w-3" />
                     </button>
                     <button
                       onClick={() => deleteStickyNote(note.id)}
-                      className="p-1 hover:bg-red-500/20 rounded transition-colors text-white/70 hover:text-red-300"
+                      className="p-1 hover:bg-red-500/20 rounded transition-colors opacity-75 hover:opacity-100 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
                       title="Delete note"
                     >
                       <Trash2 className="h-3 w-3" />

@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
           {!collapsed && (
             <div className="flex flex-col truncate">
               <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5">
-                CAT 2027 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold border border-purple-500/30">HQ</span>
+                CAT 2027 <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-500/30">HQ</span>
               </span>
               <span className="text-[11px] text-muted-foreground truncate">AI Command Centre</span>
             </div>
@@ -93,25 +93,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
                 cn(
                   'group flex items-center gap-3 rounded-lg px-2.5 py-2 text-xs font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-purple-500/15 text-purple-400 font-semibold shadow-sm border border-purple-500/25'
+                    ? 'bg-purple-100/80 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300 font-semibold shadow-xs border border-purple-200 dark:border-purple-500/25'
                     : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
-                  item.highlight && !isActive && 'text-purple-300/90 font-medium',
                   collapsed && 'justify-center px-0'
                 )
               }
               title={collapsed ? item.name : undefined}
             >
-              <Icon className={cn('h-4 w-4 shrink-0 transition-transform group-hover:scale-110', item.highlight && 'text-purple-400')} />
+              <Icon
+                className={cn(
+                  'h-4 w-4 shrink-0 transition-transform group-hover:scale-110',
+                  item.highlight ? 'text-purple-600 dark:text-purple-400' : ''
+                )}
+              />
 
               {!collapsed && (
                 <>
                   <span className="truncate flex-1">{item.name}</span>
+                  {item.highlight && (
+                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                      AI
+                    </span>
+                  )}
                   {item.badge && (
                     <span
                       className={cn(
                         'ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded-full font-semibold',
                         item.badgeVariant === 'destructive'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
+                          ? 'bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 animate-pulse'
                           : 'bg-muted/80 text-muted-foreground'
                       )}
                     >
@@ -145,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
         <div className="p-3 m-2 border border-border/70 rounded-xl bg-card/60 backdrop-blur-sm">
           <div className="flex items-center justify-between text-[11px] mb-1.5">
             <span className="text-muted-foreground font-medium">Preparation Status</span>
-            <span className="font-mono font-bold text-purple-400">{stats.overallCompletionPct}%</span>
+            <span className="font-mono font-bold text-purple-700 dark:text-purple-300">{stats.overallCompletionPct}%</span>
           </div>
           <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
             <div

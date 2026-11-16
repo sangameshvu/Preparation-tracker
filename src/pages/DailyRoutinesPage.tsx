@@ -144,7 +144,7 @@ export const DailyRoutinesPage: React.FC = () => {
                 className="flex items-center justify-between p-3 rounded-xl border border-border/70 bg-card hover:bg-muted/20 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-28 font-mono text-xs font-semibold text-purple-400 flex items-center gap-1.5">
+                  <div className="w-28 font-mono text-xs font-semibold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5" />
                     <span>{block.timeRange}</span>
                   </div>

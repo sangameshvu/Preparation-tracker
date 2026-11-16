@@ -13,21 +13,21 @@ const badgeVariants = cva(
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
           'border-transparent bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30',
-        outline: 'text-foreground',
+        outline: 'text-foreground border-border',
         success:
-          'border-transparent bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+          'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300',
         warning:
-          'border-transparent bg-amber-500/15 text-amber-400 border-amber-500/30',
+          'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300',
         purple:
-          'border-transparent bg-purple-500/15 text-purple-400 border-purple-500/30',
+          'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/15 dark:text-purple-300',
         blue:
-          'border-transparent bg-blue-500/15 text-blue-400 border-blue-500/30',
+          'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-300',
         quant:
-          'border-purple-500/30 bg-purple-500/10 text-purple-300 font-medium',
+          'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-300 font-semibold',
         dilr:
-          'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-medium',
+          'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 font-semibold',
         varc:
-          'border-amber-500/30 bg-amber-500/10 text-amber-300 font-medium',
+          'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 font-semibold',
       },
     },
     defaultVariants: {

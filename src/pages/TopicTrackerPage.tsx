@@ -19,6 +19,7 @@ import { Badge } from '../components/ui/badge';
 import { Checkbox } from '../components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { SectionType, ConfidenceScore } from '../types';
+import { cn } from '../lib/utils';
 
 export const TopicTrackerPage: React.FC = () => {
   const { topics, topicProgress, updateTopicProgress } = useAppData();
@@ -69,39 +70,45 @@ export const TopicTrackerPage: React.FC = () => {
     }
   };
 
-  const getConfidenceBadge = (level: ConfidenceScore) => {
-    switch (level) {
-      case 1:
-        return (
-          <Badge className="bg-red-500/15 text-red-400 border border-red-500/30 text-[10px] font-mono">
-            L1: Unfamiliar
-          </Badge>
-        );
-      case 2:
-        return (
-          <Badge className="bg-orange-500/15 text-orange-400 border border-orange-500/30 text-[10px] font-mono">
-            L2: Weak
-          </Badge>
-        );
-      case 3:
-        return (
-          <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-mono">
-            L3: Average
-          </Badge>
-        );
-      case 4:
-        return (
-          <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">
-            L4: Good
-          </Badge>
-        );
-      case 5:
-        return (
-          <Badge className="bg-sky-500/15 text-sky-400 border border-sky-500/30 text-[10px] font-mono">
-            L5: Mastered
-          </Badge>
-        );
-    }
+  const confidenceMeta: Record<
+    ConfidenceScore,
+    { label: string; short: string; dot: string; triggerClass: string }
+  > = {
+    1: {
+      label: '1: Unfamiliar',
+      short: 'L1 · Unfamiliar',
+      dot: 'bg-rose-500',
+      triggerClass:
+        'bg-rose-50 text-rose-700 border-rose-200/90 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-500/30',
+    },
+    2: {
+      label: '2: Weak',
+      short: 'L2 · Weak',
+      dot: 'bg-amber-500',
+      triggerClass:
+        'bg-amber-50 text-amber-700 border-amber-200/90 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500/30',
+    },
+    3: {
+      label: '3: Average',
+      short: 'L3 · Average',
+      dot: 'bg-yellow-500',
+      triggerClass:
+        'bg-yellow-50 text-yellow-800 border-yellow-200/90 hover:bg-yellow-100 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-500/30',
+    },
+    4: {
+      label: '4: Good',
+      short: 'L4 · Good',
+      dot: 'bg-blue-500',
+      triggerClass:
+        'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-500/30',
+    },
+    5: {
+      label: '5: Mastered',
+      short: 'L5 · Mastered',
+      dot: 'bg-emerald-500',
+      triggerClass:
+        'bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-500/30',
+    },
   };
 
   return (
@@ -177,7 +184,7 @@ export const TopicTrackerPage: React.FC = () => {
                   <th className="py-3 px-3 text-center">Concept</th>
                   <th className="py-3 px-3 text-center">Practice</th>
                   <th className="py-3 px-3 text-center">PYQs</th>
-                  <th className="py-3 px-3 text-center cursor-pointer" onClick={() => toggleSort('confidence')}>
+                  <th className="py-3 px-3 w-[140px] min-w-[140px] text-center cursor-pointer" onClick={() => toggleSort('confidence')}>
                     <div className="flex items-center justify-center gap-1">
                       <span>Confidence</span>
                       <ArrowUpDown className="h-3 w-3" />
@@ -257,22 +264,33 @@ export const TopicTrackerPage: React.FC = () => {
                         </td>
                         {/* Confidence 1-5 */}
                         <td className="py-2.5 px-3 text-center">
-                          <div className="flex items-center justify-center gap-1">
+                          <div className="flex items-center justify-center">
                             <Select
                               value={String(tp.confidence)}
                               onValueChange={(val) =>
                                 updateTopicProgress(topic.id, { confidence: parseInt(val, 10) as ConfidenceScore })
                               }
                             >
-                              <SelectTrigger className="h-6 text-[10px] px-2 w-[110px]">
-                                <SelectValue>{getConfidenceBadge(tp.confidence)}</SelectValue>
+                              <SelectTrigger
+                                className={cn(
+                                  'h-7 w-[128px] px-2.5 py-0 rounded-full border text-[11px] font-semibold flex items-center justify-between gap-1 shadow-xs transition-colors shrink-0',
+                                  confidenceMeta[tp.confidence].triggerClass
+                                )}
+                              >
+                                <span className="flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
+                                  <span className={cn('h-2 w-2 rounded-full shrink-0', confidenceMeta[tp.confidence].dot)} />
+                                  <span className="truncate">{confidenceMeta[tp.confidence].short}</span>
+                                </span>
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="1">1: Unfamiliar</SelectItem>
-                                <SelectItem value="2">2: Weak</SelectItem>
-                                <SelectItem value="3">3: Average</SelectItem>
-                                <SelectItem value="4">4: Good</SelectItem>
-                                <SelectItem value="5">5: Mastered</SelectItem>
+                              <SelectContent className="w-[145px]">
+                                {([1, 2, 3, 4, 5] as ConfidenceScore[]).map((level) => (
+                                  <SelectItem key={level} value={String(level)} className="text-xs cursor-pointer py-1.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className={cn('h-2 w-2 rounded-full shrink-0', confidenceMeta[level].dot)} />
+                                      <span className="font-medium text-foreground">{confidenceMeta[level].label}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>

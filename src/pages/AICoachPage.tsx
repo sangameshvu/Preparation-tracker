@@ -20,6 +20,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
 
 interface ChatMessage {
   id: string;
@@ -243,17 +244,21 @@ export const AICoachPage: React.FC = () => {
                     className={`p-3.5 rounded-2xl ${
                       msg.sender === 'user'
                         ? 'bg-purple-600 text-white rounded-br-none shadow-sm'
-                        : 'bg-muted/40 border border-border/80 text-foreground rounded-bl-none leading-relaxed'
+                        : 'bg-card border border-border/80 text-foreground rounded-bl-none leading-relaxed shadow-xs'
                     }`}
                   >
-                    <div className="whitespace-pre-line text-xs font-sans">{msg.text}</div>
+                    {msg.sender === 'ai' ? (
+                      <MarkdownRenderer content={msg.text} />
+                    ) : (
+                      <div className="whitespace-pre-line text-xs font-sans">{msg.text}</div>
+                    )}
                   </div>
 
                   {/* Non-Destructive Action Proposal Card */}
                   {msg.actionProposal && (
-                    <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-500/10 text-xs space-y-2">
+                    <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-50 dark:bg-purple-950/20 text-xs space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-purple-300 text-[11px] flex items-center gap-1">
+                        <span className="font-bold text-purple-700 dark:text-purple-300 text-[11px] flex items-center gap-1">
                           <Target className="h-3.5 w-3.5" /> Action Proposal
                         </span>
                         <Badge variant="purple" className="text-[9px]">Requires Confirmation</Badge>
@@ -415,7 +420,7 @@ export const AICoachPage: React.FC = () => {
 
             {/* Target 90% Blueprint Reminder */}
             <div className="p-3 rounded-xl border border-purple-500/20 bg-purple-500/5 space-y-1 text-[11px]">
-              <strong className="text-purple-300 block">PDF Blueprint Target 90%+:</strong>
+              <strong className="text-purple-700 dark:text-purple-300 block">PDF Blueprint Target 90%+:</strong>
               <p className="text-muted-foreground">
                 • VARC: 15–20 net score<br />
                 • DILR: 10 net score<br />
