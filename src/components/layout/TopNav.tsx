@@ -38,6 +38,9 @@ export const TopNav: React.FC<TopNavProps> = () => {
         {/* Left: Date & Status */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 sm:hidden items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 p-1 shadow-xs">
+              <img src="/logo.png" alt="CAT 2027 HQ Logo" className="h-full w-full object-contain brightness-0 invert" />
+            </div>
             <span className="text-xs font-medium text-foreground tracking-tight hidden sm:inline-block">
               {formattedDate}
             </span>

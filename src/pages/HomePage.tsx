@@ -182,6 +182,9 @@ export const HomePage: React.FC = () => {
 
             <div>
               <div className="flex items-center gap-2 mb-1">
+                <div className="flex h-5 w-5 items-center justify-center rounded bg-purple-600 p-0.5 shadow-xs">
+                  <img src="/logo.png" alt="CAT 2027 HQ Logo" className="h-full w-full object-contain brightness-0 invert" />
+                </div>
                 <Badge variant="purple" className="font-mono text-[10px] uppercase font-bold">
                   Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}
                 </Badge>
@@ -189,11 +192,11 @@ export const HomePage: React.FC = () => {
                   Week {stats.currentWeek} / 52
                 </Badge>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 CAT 2027 Command Centre
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Target Date: 28 Nov 2027 • <strong className="text-purple-400 font-mono">{stats.daysRemaining} days</strong> remaining
+                Target Date: 28 Nov 2027 • <strong className="text-purple-700 dark:text-purple-400 font-mono">{stats.daysRemaining} days</strong> remaining
               </p>
             </div>
           </div>

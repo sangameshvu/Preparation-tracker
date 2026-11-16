@@ -54,8 +54,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       {/* Brand Header */}
       <div className="flex h-14 items-center justify-between px-3 border-b border-border/60">
         <div className={cn('flex items-center gap-2.5 overflow-hidden', collapsed && 'justify-center w-full')}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 text-white shadow-md shadow-purple-500/20 shrink-0">
-            <GraduationCap className="h-5 w-5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 p-1.5 shadow-md shadow-purple-500/20 shrink-0">
+            <img src="/logo.png" alt="CAT 2027 HQ Logo" className="h-full w-full object-contain brightness-0 invert" />
           </div>
           {!collapsed && (
             <div className="flex flex-col truncate">
