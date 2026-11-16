@@ -185,6 +185,30 @@ export interface StickyNoteItem {
   createdAt: string;
 }
 
+export type NoteCategoryType = 'Notes' | 'QA' | 'Quick Ref';
+
+export interface NoteImageItem {
+  id: string;
+  url: string;
+  name: string;
+  caption?: string;
+  uploadedAt: string;
+}
+
+export interface StudyNoteItem {
+  id: string;
+  title: string;
+  content: string;
+  section: SectionType;
+  noteType: NoteCategoryType;
+  topic: string;
+  topicId?: string;
+  createdAt: string;
+  updatedAt: string;
+  images: NoteImageItem[];
+  isPinned?: boolean;
+}
+
 export interface PrepGuideSection {
   id: string;
   sectionKey: string;

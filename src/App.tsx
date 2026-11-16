@@ -15,6 +15,7 @@ import { FreeResourcesPage } from './pages/FreeResourcesPage';
 import { DailyRoutinesPage } from './pages/DailyRoutinesPage';
 import { PrepGuidePage } from './pages/PrepGuidePage';
 import { AICoachPage } from './pages/AICoachPage';
+import { NotesPage } from './pages/NotesPage';
 import { StickyBoardPage } from './pages/StickyBoardPage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { AdminPanelPage } from './pages/AdminPanelPage';
@@ -35,6 +36,7 @@ export const App: React.FC = () => {
               <Route path="routines" element={<DailyRoutinesPage />} />
               <Route path="guide" element={<PrepGuidePage />} />
               <Route path="ai-coach" element={<AICoachPage />} />
+              <Route path="notes" element={<NotesPage />} />
               <Route path="sticky-board" element={<StickyBoardPage />} />
               <Route path="settings" element={<ProfileSettingsPage />} />
               <Route path="admin" element={<AdminPanelPage />} />

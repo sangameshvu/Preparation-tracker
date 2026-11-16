@@ -6,14 +6,25 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-// Inline parser for bold, italic, inline code, and links
+// Inline parser for bold, italic, inline code, links, and inline images
 export const renderInline = (text: string): React.ReactNode[] => {
-  // Regex to split by markdown tokens: **bold**, *italic*, `code`, [text](url)
-  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))/g;
+  // Regex to split by markdown tokens: ![img](url), **bold**, *italic*, `code`, [text](url)
+  const regex = /(!\[.*?\]\(.*?\)|\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))/g;
   const parts = text.split(regex);
 
   return parts.map((part, index) => {
     if (!part) return null;
+
+    if (part.startsWith('![') && part.includes('](') && part.endsWith(')')) {
+      const imgMatch = part.match(/!\[(.*?)\]\((.*?)\)/);
+      if (imgMatch) {
+        return (
+          <span key={index} className="inline-block my-2 max-w-full rounded-lg overflow-hidden border border-border/70 shadow-xs">
+            <img src={imgMatch[2]} alt={imgMatch[1]} className="max-h-80 object-contain rounded" />
+          </span>
+        );
+      }
+    }
 
     if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
       return (
@@ -79,6 +90,32 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     if (!trimmed) {
       i++;
       continue;
+    }
+
+    // 0. Standalone Image Block Check: ![alt](src)
+    if (trimmed.startsWith('![') && trimmed.includes('](') && trimmed.endsWith(')')) {
+      const match = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+      if (match) {
+        const alt = match[1];
+        const src = match[2];
+        elements.push(
+          <figure key={`fig-${i}`} className="my-4 overflow-hidden rounded-xl border border-border/80 bg-muted/20 shadow-sm max-w-3xl">
+            <img
+              src={src}
+              alt={alt}
+              className="w-full max-h-[500px] object-contain rounded-t-xl bg-black/5 dark:bg-black/40"
+              loading="lazy"
+            />
+            {alt && (
+              <figcaption className="text-[11px] text-muted-foreground italic px-3.5 py-2 text-center bg-muted/40 border-t border-border/40 font-medium">
+                {alt}
+              </figcaption>
+            )}
+          </figure>
+        );
+        i++;
+        continue;
+      }
     }
 
     // 1. Markdown Table Check (lines starting and ending with |)

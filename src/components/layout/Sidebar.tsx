@@ -10,6 +10,7 @@ import {
   Clock,
   Compass,
   Bot,
+  FileText,
   StickyNote,
   Settings,
   ShieldCheck,
@@ -27,7 +28,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse }) => {
-  const { stats } = useAppData();
+  const { stats, studyNotes, stickyNotes } = useAppData();
 
   const navItems = [
     { name: 'Home / Dashboard', path: '/', icon: LayoutDashboard },
@@ -39,7 +40,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
     { name: 'Daily Routines', path: '/routines', icon: Clock },
     { name: 'CAT Preparation Guide', path: '/guide', icon: Compass },
     { name: 'AI Study Coach', path: '/ai-coach', icon: Bot, highlight: true },
-    { name: 'Notes & Sticky Board', path: '/sticky-board', icon: StickyNote },
+    { name: 'Study Notes & Q&A', path: '/notes', icon: FileText, badge: `${studyNotes.length}` },
+    { name: 'Sticky Board', path: '/sticky-board', icon: StickyNote, badge: `${stickyNotes.length}` },
     { name: 'Profile & Settings', path: '/settings', icon: Settings },
     { name: 'Admin Panel', path: '/admin', icon: ShieldCheck },
   ];

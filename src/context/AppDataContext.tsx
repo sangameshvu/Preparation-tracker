@@ -10,6 +10,7 @@ import {
   ResourceItem,
   DailyRoutineTemplate,
   StickyNoteItem,
+  StudyNoteItem,
   PrepGuideSection,
   DashboardStats,
   TaskStatus,
@@ -21,6 +22,7 @@ import { initialWeeklyPlans } from '../data/weeklyPlans';
 import { initialResources } from '../data/resources';
 import { initialRoutines } from '../data/routines';
 import { initialGuideSections } from '../data/guideSections';
+import { initialStudyNotes } from '../data/initialNotes';
 import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake';
 import { addDays, differenceInCalendarDays, parseISO, format } from 'date-fns';
 
@@ -73,6 +75,10 @@ interface AppDataContextType {
   addStickyNote: (note: Omit<StickyNoteItem, 'id' | 'createdAt'>) => void;
   updateStickyNote: (id: string, updates: Partial<StickyNoteItem>) => void;
   deleteStickyNote: (id: string) => void;
+  studyNotes: StudyNoteItem[];
+  addStudyNote: (note: Omit<StudyNoteItem, 'id' | 'updatedAt'> & { id?: string }) => void;
+  updateStudyNote: (id: string, updates: Partial<StudyNoteItem>) => void;
+  deleteStudyNote: (id: string) => void;
   guideSections: PrepGuideSection[];
   updateGuideSection: (id: string, updates: Partial<PrepGuideSection>) => void;
   stats: DashboardStats;
@@ -201,6 +207,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     ])
   );
 
+  const [studyNotes, setStudyNotes] = useState<StudyNoteItem[]>(() =>
+    getInitialState('studyNotes', initialStudyNotes)
+  );
+
   const [guideSections, setGuideSections] = useState<PrepGuideSection[]>(() =>
     getInitialState('guideSections', initialGuideSections)
   );
@@ -241,6 +251,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'stickyNotes', JSON.stringify(stickyNotes));
   }, [stickyNotes]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_PREFIX + 'studyNotes', JSON.stringify(studyNotes));
+  }, [studyNotes]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'guideSections', JSON.stringify(guideSections));
@@ -452,6 +466,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setStickyNotes((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const addStudyNote = (note: Omit<StudyNoteItem, 'id' | 'updatedAt'> & { id?: string }) => {
+    const newNote: StudyNoteItem = {
+      ...note,
+      id: note.id || `study-note-${Date.now()}`,
+      createdAt: note.createdAt || new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString()
+    };
+    setStudyNotes((prev) => [newNote, ...prev]);
+  };
+
+  const updateStudyNote = (id: string, updates: Partial<StudyNoteItem>) => {
+    setStudyNotes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: new Date().toISOString() } : n))
+    );
+  };
+
+  const deleteStudyNote = (id: string) => {
+    setStudyNotes((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const updateGuideSection = (id: string, updates: Partial<PrepGuideSection>) => {
     setGuideSections((prev) =>
       prev.map((g) => (g.id === id ? { ...g, ...updates } : g))
@@ -484,6 +518,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setResources(initialResources);
     setRoutines(initialRoutines);
     setStickyNotes([]);
+    setStudyNotes(initialStudyNotes);
     setGuideSections(initialGuideSections);
   };
 
@@ -613,6 +648,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         addStickyNote,
         updateStickyNote,
         deleteStickyNote,
+        studyNotes,
+        addStudyNote,
+        updateStudyNote,
+        deleteStudyNote,
         guideSections,
         updateGuideSection,
         stats,

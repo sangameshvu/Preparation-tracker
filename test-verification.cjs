@@ -100,7 +100,29 @@ test('Badge component has proper light mode contrast classes', () => {
   assert(badgeContent.includes('bg-amber-50 text-amber-800'), 'Amber badge light mode contrast missing');
 });
 
-// 3. VERIFY METRICS & ISOLATION LOGIC
+// 3. VERIFY STUDY NOTES & SEPARATE SECTIONS
+test('Study Notes dataset contains Notes, QA, and Quick Ref categories', () => {
+  const notesContent = fs.readFileSync(path.join(__dirname, 'src/data/initialNotes.ts'), 'utf8');
+  assert(notesContent.includes("noteType: 'QA'"), 'QA note type missing');
+  assert(notesContent.includes("noteType: 'Notes'"), 'Notes concept type missing');
+  assert(notesContent.includes("noteType: 'Quick Ref'"), 'Quick Ref type missing');
+});
+
+test('Sidebar separates Study Notes and Sticky Board into distinct navigation items', () => {
+  const sbContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/Sidebar.tsx'), 'utf8');
+  assert(sbContent.includes("path: '/notes'"), 'Notes route missing in sidebar');
+  assert(sbContent.includes("path: '/sticky-board'"), 'Sticky board route missing in sidebar');
+  assert(sbContent.includes('Study Notes & Q&A'), 'Study Notes label missing in sidebar');
+  assert(sbContent.includes('Sticky Board'), 'Sticky Board label missing in sidebar');
+});
+
+test('MarkdownRenderer component parses and renders images', () => {
+  const mdContent = fs.readFileSync(path.join(__dirname, 'src/components/ui/MarkdownRenderer.tsx'), 'utf8');
+  assert(mdContent.includes('!['), 'Image token missing');
+  assert(mdContent.includes('<img'), 'Img tag missing');
+});
+
+// 4. VERIFY METRICS & ISOLATION LOGIC
 test('MockTracker & MistakeLog isolate sample row data from real metrics', () => {
   const mockContent = fs.readFileSync(path.join(__dirname, 'src/data/initialMockAndMistake.ts'), 'utf8');
   assert(mockContent.includes('isSample: true'), 'isSample flag missing');
