@@ -5,7 +5,7 @@ import { AppDataProvider } from './context/AppDataContext';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 
-// 12 Navigation Pages
+// Navigation Pages
 import { HomePage } from './pages/HomePage';
 import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage';
 import { TopicTrackerPage } from './pages/TopicTrackerPage';
@@ -30,18 +30,24 @@ export const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<AppShell />}>
               <Route index element={<HomePage />} />
+              {/* Canonical Hub Routes */}
+              <Route path="plan" element={<WeeklyPlannerPage />} />
+              <Route path="practice" element={<MockTrackerPage />} />
+              <Route path="insights" element={<AnalyticsPage />} />
+              <Route path="notes" element={<NotesPage />} />
+
+              {/* Preserved Sub-routes & Legacy Redirects */}
               <Route path="planner" element={<WeeklyPlannerPage />} />
               <Route path="topics" element={<TopicTrackerPage />} />
               <Route path="mocks" element={<MockTrackerPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="history" element={<HistoryPage />} />
               <Route path="mistakes" element={<MistakeLogPage />} />
+              <Route path="sticky-board" element={<StickyBoardPage />} />
               <Route path="resources" element={<FreeResourcesPage />} />
               <Route path="routines" element={<DailyRoutinesPage />} />
               <Route path="guide" element={<PrepGuidePage />} />
               <Route path="ai-coach" element={<AICoachPage />} />
-              <Route path="notes" element={<NotesPage />} />
-              <Route path="sticky-board" element={<StickyBoardPage />} />
               <Route path="settings" element={<ProfileSettingsPage />} />
               <Route path="admin" element={<AdminPanelPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

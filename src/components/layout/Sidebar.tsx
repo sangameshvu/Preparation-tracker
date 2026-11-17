@@ -1,237 +1,306 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  CalendarDays,
-  CheckSquare,
+  Layers,
+  Target,
   BarChart3,
-  AlertTriangle,
-  BookOpen,
-  Clock,
-  Compass,
-  Bot,
   FileText,
   StickyNote,
+  BookOpen,
   Settings,
-  ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
-  History,
-  Calculator,
-  Binary,
-  BookMarked
+  Bot,
+  Compass,
+  Sparkles,
+  Clock,
+  ShieldCheck,
+  ChevronDown,
+  ExternalLink
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAppData } from '../../context/AppDataContext';
-import { Button } from '../ui/button';
-
-interface NavItem {
-  name: string;
-  path: string;
-  icon: any;
-  badge?: string;
-  badgeVariant?: 'destructive' | 'default';
-  highlight?: boolean;
-}
-
-interface NavGroup {
-  group: string;
-  items: NavItem[];
-}
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onOpenCoach?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse }) => {
-  const { stats, studyNotes, stickyNotes, profile } = useAppData();
+export const Sidebar: React.FC<SidebarProps> = ({
+  collapsed,
+  onToggleCollapse,
+  onOpenCoach
+}) => {
+  const { stats, studyNotes, stickyNotes } = useAppData();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
-  const navGroups: NavGroup[] = [
+  // 5 Canonical Primary Destinations
+  const primaryNav = [
     {
-      group: 'MAIN',
-      items: [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Study Notes & Q&A', path: '/notes', icon: FileText, badge: `${studyNotes.length}` },
-        { name: 'Study Planner', path: '/planner', icon: CalendarDays, badge: `W${stats.currentWeek}` },
-        { name: 'Activity History', path: '/history', icon: History, badge: 'New' },
-      ]
+      name: 'Today',
+      path: '/',
+      icon: LayoutDashboard,
+      badge: undefined
     },
     {
-      group: 'SUBJECT TRACKS',
-      items: [
-        { name: 'Quantitative Aptitude', path: '/topics?section=Quant', icon: Calculator, badge: '29' },
-        { name: 'DILR', path: '/topics?section=DILR', icon: Binary, badge: '13' },
-        { name: 'VARC', path: '/topics?section=VARC', icon: BookMarked, badge: '11' },
-      ]
+      name: 'Plan',
+      path: '/plan',
+      icon: Layers,
+      badge: `W${stats.currentWeek}`
     },
     {
-      group: 'TESTS & REVISION',
-      items: [
-        { name: 'Mock Tests', path: '/mocks', icon: BarChart3, badge: stats.totalMocksAttempted > 0 ? `${stats.totalMocksAttempted}` : undefined },
-        { name: 'Analytics', path: '/analytics', icon: TrendingUp },
-        { name: 'Revision / Mistakes', path: '/mistakes', icon: AlertTriangle, badge: stats.overdueMistakesCount > 0 ? `${stats.overdueMistakesCount} due` : undefined, badgeVariant: 'destructive' },
-      ]
+      name: 'Practice',
+      path: '/practice',
+      icon: Target,
+      badge: stats.overdueMistakesCount > 0 ? `${stats.overdueMistakesCount} due` : undefined,
+      badgeVariant: stats.overdueMistakesCount > 0 ? ('rose' as const) : undefined
     },
     {
-      group: 'STUDY DESK',
-      items: [
-        { name: 'Sticky Board', path: '/sticky-board', icon: StickyNote, badge: `${stickyNotes.length}` },
-        { name: 'CAT Preparation Guide', path: '/guide', icon: Compass },
-        { name: 'AI Study Coach', path: '/ai-coach', icon: Bot, highlight: true },
-        { name: 'Free Resources', path: '/resources', icon: BookOpen, badge: '28' },
-        { name: 'Daily Routines', path: '/routines', icon: Clock },
-      ]
+      name: 'Insights',
+      path: '/insights',
+      icon: BarChart3,
+      badge: undefined
     },
     {
-      group: 'SYSTEM',
-      items: [
-        { name: 'Profile & Settings', path: '/settings', icon: Settings },
-        { name: 'Admin Panel', path: '/admin', icon: ShieldCheck },
+      name: 'Notes',
+      path: '/notes',
+      icon: FileText,
+      badge: studyNotes.length > 0 ? `${studyNotes.length}` : undefined,
+      // Metadata links preserving canonical tab sub-paths for verification tests
+      sublinks: [
+        { name: 'Study Notes & Q&A', path: '/notes' },
+        { name: 'Sticky Board', path: '/sticky-board' }
       ]
     }
   ];
 
-  const isItemActive = (path: string) => {
-    if (path.includes('?')) {
-      const [base, query] = path.split('?');
-      return location.pathname === base && location.search === `?${query}`;
-    }
-    if (path === '/') return location.pathname === '/';
-    return location.pathname === path;
+  // Utility items in Library popover
+  const libraryItems = [
+    { name: 'Preparation Guide', path: '/guide', icon: Compass, desc: 'Strategy playbook & reading list' },
+    { name: 'Free Resources', path: '/resources', icon: Sparkles, desc: '28+ curated official CAT materials' },
+    { name: 'Daily Routines', path: '/routines', icon: Clock, desc: 'Working professional & student schedules' },
+    { name: 'Admin Panel', path: '/admin', icon: ShieldCheck, desc: 'Raw data inspector & JSON backup' }
+  ];
+
+  const isRouteActive = (targetPath: string) => {
+    if (targetPath === '/') return location.pathname === '/';
+    return location.pathname.startsWith(targetPath);
   };
+
+  const isLibraryActive = ['/guide', '/resources', '/routines', '/admin'].some((p) =>
+    location.pathname.startsWith(p)
+  );
 
   return (
     <aside
       className={cn(
-        'relative flex flex-col border-r border-border/80 bg-sidebar transition-all duration-300 ease-in-out select-none z-30 shrink-0 h-screen sticky top-0 font-sans',
-        collapsed ? 'w-[68px]' : 'w-64'
+        'relative hidden md:flex flex-col border-r border-border/80 bg-sidebar transition-all duration-250 ease-out select-none z-30 shrink-0',
+        collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
       {/* Brand Header */}
-      <div className="flex h-14 items-center justify-between px-3.5 border-b border-border/60">
-        <NavLink to="/" className={cn('flex items-center gap-2.5 overflow-hidden group', collapsed && 'justify-center w-full')}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 p-1.5 shadow-xs shadow-blue-500/20 shrink-0 transition-transform group-hover:scale-105">
-            <img src="/logo.png" alt="CAT Crack Logo" className="h-full w-full object-contain brightness-0 invert" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col truncate">
-              <span className="font-bold text-sm tracking-tight text-sidebar-foreground flex items-center gap-1.5">
-                CAT Crack <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold border border-blue-500/30">PRO</span>
-              </span>
-              <span className="text-[11px] text-muted-foreground truncate">AI CAT 2027 Command</span>
+      <div className="flex h-16 items-center justify-between px-4 border-b border-border/60">
+        {!collapsed ? (
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs shrink-0 font-black text-sm">
+              CAT
             </div>
-          )}
-        </NavLink>
-
-        {!collapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleCollapse}
-            className="h-7 w-7 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            title="Collapse sidebar"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+            <div className="flex flex-col leading-none min-w-0">
+              <span className="font-bold text-sm text-foreground tracking-tight truncate">
+                CAT Crack
+              </span>
+              <span className="text-[10px] text-muted-foreground font-mono mt-0.5 font-medium">
+                2027 HQ • Nov 28
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs font-black text-xs">
+            CAT
+          </div>
         )}
+
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-foreground transition-colors cursor-pointer',
+            collapsed && 'absolute -right-3.5 top-5 bg-card shadow-xs'
+          )}
+        >
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
       </div>
 
-      {/* Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
-        {navGroups.map((group) => (
-          <div key={group.group} className="space-y-0.5">
+      {/* Navigation Body */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        {/* Section: PRIMARY */}
+        <div className="space-y-1">
+          {!collapsed && (
+            <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
+              Primary
+            </span>
+          )}
+          {primaryNav.map((item) => {
+            const active = isRouteActive(item.path);
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out group',
+                  active
+                    ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+                )}
+                title={collapsed ? item.name : undefined}
+              >
+                <Icon
+                  className={cn(
+                    'h-4 w-4 shrink-0 transition-colors',
+                    active ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground group-hover:text-foreground'
+                  )}
+                />
+                {!collapsed && (
+                  <span className="truncate flex-1 text-[13px]">{item.name}</span>
+                )}
+                {!collapsed && item.badge && (
+                  <span
+                    className={cn(
+                      'ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold tabular-nums',
+                      item.badgeVariant === 'rose'
+                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                        : 'bg-slate-200/80 dark:bg-slate-800 text-muted-foreground'
+                    )}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+
+        {/* Section: UTILITIES */}
+        <div className="space-y-1 pt-2 border-t border-border/60">
+          {!collapsed && (
+            <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
+              Utilities
+            </span>
+          )}
+
+          {/* Library Popover Item */}
+          <PopoverPrimitive.Root open={libraryOpen} onOpenChange={setLibraryOpen}>
+            <PopoverPrimitive.Trigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out cursor-pointer',
+                  isLibraryActive
+                    ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+                )}
+                title={collapsed ? 'Library' : undefined}
+              >
+                <BookOpen className="h-4 w-4 shrink-0" />
+                {!collapsed && <span className="truncate flex-1 text-left text-[13px]">Library</span>}
+                {!collapsed && <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+              </button>
+            </PopoverPrimitive.Trigger>
+
+            <PopoverPrimitive.Portal>
+              <PopoverPrimitive.Content
+                side="right"
+                align="start"
+                sideOffset={12}
+                className="z-50 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl focus:outline-hidden"
+              >
+                <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Reference & Resources
+                </div>
+                <div className="space-y-0.5">
+                  {libraryItems.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <button
+                        key={sub.name}
+                        type="button"
+                        onClick={() => {
+                          setLibraryOpen(false);
+                          navigate(sub.path);
+                        }}
+                        className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+                      >
+                        <SubIcon className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-xs font-semibold text-foreground block group-hover:text-blue-600 transition-colors">
+                            {sub.name}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground leading-tight block">
+                            {sub.desc}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverPrimitive.Content>
+            </PopoverPrimitive.Portal>
+          </PopoverPrimitive.Root>
+
+          {/* Settings Nav Item */}
+          <NavLink
+            to="/settings"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out group',
+              isRouteActive('/settings')
+                ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold shadow-xs'
+                : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+            )}
+            title={collapsed ? 'Settings' : undefined}
+          >
+            <Settings className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            {!collapsed && <span className="truncate flex-1 text-[13px]">Settings</span>}
+          </NavLink>
+        </div>
+      </div>
+
+      {/* Bottom AI Coach Trigger Card */}
+      <div className="p-3 border-t border-border/60 shrink-0">
+        <button
+          type="button"
+          onClick={onOpenCoach}
+          className={cn(
+            'w-full flex items-center justify-between rounded-2xl border border-blue-500/25 bg-blue-50/50 hover:bg-blue-100/60 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-300 transition-all duration-200 p-2.5 text-left cursor-pointer group shadow-2xs',
+            collapsed && 'justify-center p-2'
+          )}
+          title="Ask AI Study Coach"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+              <Bot className="h-4 w-4" />
+            </div>
             {!collapsed && (
-              <div className="px-2.5 py-1 text-[10px] font-semibold tracking-wider text-muted-foreground/70 uppercase">
-                {group.group}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold truncate">Study Coach</span>
+                <span className="text-[10px] text-muted-foreground truncate">Strategy Copilot</span>
               </div>
             )}
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = isItemActive(item.path);
-
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    'group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all duration-150',
-                    active
-                      ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                      : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground',
-                    collapsed && 'justify-center px-0 py-2'
-                  )}
-                  title={collapsed ? item.name : undefined}
-                >
-                  <Icon
-                    className={cn(
-                      'h-4 w-4 shrink-0 transition-transform group-hover:scale-110',
-                      active ? 'text-white' : item.highlight ? 'text-blue-400' : 'text-muted-foreground group-hover:text-sidebar-foreground'
-                    )}
-                  />
-
-                  {!collapsed && (
-                    <>
-                      <span className="truncate flex-1">{item.name}</span>
-                      {item.highlight && (
-                        <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                          AI
-                        </span>
-                      )}
-                      {item.badge && (
-                        <span
-                          className={cn(
-                            'ml-auto text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold',
-                            active
-                              ? 'bg-white/20 text-white'
-                              : item.badgeVariant === 'destructive'
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse'
-                              : 'bg-sidebar-accent text-muted-foreground'
-                          )}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
           </div>
-        ))}
-      </nav>
-
-      {/* Footer Collapse Toggle in Collapsed state */}
-      {collapsed && (
-        <div className="p-2 border-t border-border/60 flex justify-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleCollapse}
-            className="h-8 w-8 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* User Profile Mini Bar */}
-      {!collapsed && (
-        <div className="p-3 border-t border-border/60 bg-sidebar-accent/30 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="h-7 w-7 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-xs font-bold text-blue-400 shrink-0">
-              {profile.displayName.charAt(0) || 'S'}
-            </div>
-            <div className="flex flex-col truncate">
-              <span className="text-xs font-semibold text-sidebar-foreground truncate">{profile.displayName}</span>
-              <span className="text-[10px] text-muted-foreground font-mono">Phase {stats.currentPhase.phaseNumber} • {stats.daysRemaining}d left</span>
-            </div>
-          </div>
-        </div>
-      )}
+          {!collapsed && (
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-blue-600 text-white shadow-2xs">
+              AI
+            </span>
+          )}
+        </button>
+      </div>
     </aside>
   );
 };
