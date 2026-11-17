@@ -280,7 +280,7 @@ export const NotesPage: React.FC = () => {
             className="h-9 gap-1.5 text-xs shadow-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold"
           >
             <Plus className="h-4 w-4" />
-            <span>+ Create New Note</span>
+            <span>Create New Note</span>
           </Button>
         </div>
       </div>
@@ -329,7 +329,7 @@ export const NotesPage: React.FC = () => {
             title="Create a new Google Doc in your Google account"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>+ Draft in Google Docs</span>
+            <span>Draft in Google Docs</span>
           </Button>
         </div>
       </div>
@@ -457,7 +457,7 @@ export const NotesPage: React.FC = () => {
           </p>
           <Button onClick={handleOpenCreateModal} variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
             <Plus className="h-4 w-4 mr-1.5" />
-            + Create New Note
+            Create New Note
           </Button>
         </div>
       ) : (
@@ -837,7 +837,7 @@ export const NotesPage: React.FC = () => {
                 onClick={handleDraftInGoogleDocs}
                 className="text-xs text-blue-600 hover:text-blue-700 h-7 px-2 font-semibold"
               >
-                + Create New Google Doc
+                Create New Google Doc
               </Button>
             </div>
           </div>
