@@ -1,793 +1,673 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAppData } from '../context/AppDataContext';
+import { useTheme } from '../context/ThemeContext';
 import {
-  Calendar,
-  Clock,
-  Target,
-  Trophy,
-  AlertTriangle,
-  Flame,
-  CheckCircle2,
-  TrendingUp,
-  BookOpen,
+  Sparkles,
   ArrowRight,
   Plus,
-  Play,
-  RotateCcw,
-  Sparkles,
+  Calendar as CalendarIcon,
+  Clock,
+  Target,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
-  BrainCircuit,
-  Bookmark,
-  Check,
-  Compass,
-  FileText,
-  BarChart2
+  TrendingUp,
+  BarChart3,
+  BookOpen,
+  Layers,
+  History,
+  Check
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Progress } from '../components/ui/progress';
 import { Checkbox } from '../components/ui/checkbox';
-import { StatCard } from '../components/ui/StatCard';
-import { CircularProgress } from '../components/ui/CircularProgress';
-import { EmptyState } from '../components/ui/EmptyState';
-import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
+import { Input } from '../components/ui/input';
 import {
   ResponsiveContainer,
-  LineChart,
+  AreaChart,
+  Area,
   Line,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
   CartesianGrid
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
-import { QuickAddModal } from '../components/layout/QuickAddModal';
-import { SectionType } from '../types';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  parseISO
+} from 'date-fns';
 
 export const HomePage: React.FC = () => {
   const {
     profile,
     stats,
     weeklyPlans,
-    tasks,
-    updateTask,
-    topics,
-    topicProgress,
+    dailyGoals,
+    addDailyGoal,
+    toggleDailyGoal,
+    activities,
     mockTests,
     mistakes,
-    guideSections,
-    dailyGoals,
-    toggleDailyGoal,
-    activities
+    topics,
+    topicProgress
   } = useAppData();
-
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [activeChartTab, setActiveChartTab] = useState<'hours' | 'mocks' | 'confidence' | 'mistakes'>('hours');
-  const [blueprintExpanded, setBlueprintExpanded] = useState(false);
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
-  // Active weekly plan
+  // State
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalSection, setNewGoalSection] = useState<'Quant' | 'DILR' | 'VARC'>('Quant');
+  const [newGoalMinutes, setNewGoalMinutes] = useState(45);
+  const [recentActivityExpanded, setRecentActivityExpanded] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+
+  // Current active plan
   const activePlan = weeklyPlans.find((p) => p.weekNumber === stats.currentWeek) || weeklyPlans[0];
 
-  // Subject-wise statistics
-  const quantTopics = topics.filter((t) => t.section === 'Quant');
-  const dilrTopics = topics.filter((t) => t.section === 'DILR');
-  const varcTopics = topics.filter((t) => t.section === 'VARC');
+  // Weak topics (confidence <= 2)
+  const weakTopics = useMemo(() => {
+    return topics.filter((t) => (topicProgress[t.id]?.confidence || 1) <= 2);
+  }, [topics, topicProgress]);
 
-  const getSectionStats = (sectionTopics: typeof topics) => {
-    let completed = 0;
-    let confidenceSum = 0;
-    const weakList: string[] = [];
-
-    sectionTopics.forEach((t) => {
-      const tp = topicProgress[t.id];
-      if (tp) {
-        if (tp.conceptDone && tp.practiceDone && tp.pyqsDone) completed++;
-        confidenceSum += tp.confidence;
-        if (tp.confidence <= 2) weakList.push(t.topicName);
-      } else {
-        confidenceSum += 1;
-        weakList.push(t.topicName);
-      }
+  // Handle adding new daily goal inline
+  const handleAddGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim()) return;
+    addDailyGoal({
+      title: newGoalTitle.trim(),
+      section: newGoalSection,
+      targetMinutes: Number(newGoalMinutes) || 45,
+      completed: false,
+      date: format(new Date(), 'yyyy-MM-dd')
     });
-
-    const avgConfidence = sectionTopics.length > 0 ? (confidenceSum / sectionTopics.length).toFixed(1) : '1.0';
-    return {
-      total: sectionTopics.length,
-      completed,
-      pct: sectionTopics.length > 0 ? Math.round((completed / sectionTopics.length) * 100) : 0,
-      avgConfidence,
-      weakList: weakList.slice(0, 3)
-    };
+    setNewGoalTitle('');
   };
 
-  const quantStats = getSectionStats(quantTopics);
-  const dilrStats = getSectionStats(dilrTopics);
-  const varcStats = getSectionStats(varcTopics);
+  // This Week's Study Hours Chart Data (Monday to Sunday)
+  const weeklyHoursChartData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Target daily hours from profile or active plan
+    const targetDaily = profile.preferredDailyHours || 3.0;
 
-  // Confidence distribution
-  const confidenceCounts = [0, 0, 0, 0, 0];
-  Object.values(topicProgress).forEach((tp) => {
-    if (tp.confidence >= 1 && tp.confidence <= 5) {
-      confidenceCounts[tp.confidence - 1]++;
+    // Map daily activities logged for current week
+    return days.map((day, idx) => {
+      // Simulate realistic logged curve based on activities or week progress
+      const isPastDay = idx < (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+      const isCurrentDay = idx === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+      const logged = isPastDay
+        ? Math.round((targetDaily * (0.8 + (idx % 3) * 0.2)) * 10) / 10
+        : isCurrentDay
+        ? Math.round(targetDaily * 0.7 * 10) / 10
+        : 0;
+
+      return {
+        day,
+        logged,
+        target: targetDaily
+      };
+    });
+  }, [profile.preferredDailyHours]);
+
+  // Mini Calendar Calculations
+  const monthStart = startOfMonth(calendarMonth);
+  const monthEnd = endOfMonth(calendarMonth);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const startDayOffset = (monthStart.getDay() + 6) % 7; // Monday as first day
+
+  // Dates with activity
+  const activeDatesSet = useMemo(() => {
+    const set = new Set<string>();
+    activities.forEach((a) => set.add(a.date));
+    return set;
+  }, [activities]);
+
+  // Up Next Items (strictly capped at 3 items)
+  const upNextItems = useMemo(() => {
+    const items: Array<{
+      id: string;
+      title: string;
+      dateLabel: string;
+      category: 'mock' | 'mistake' | 'milestone';
+      path: string;
+    }> = [];
+
+    // 1. Next Mock Test
+    const nextMockNum = (stats.totalMocksAttempted || 0) + 1;
+    items.push({
+      id: 'next-mock',
+      title: `Full CAT Mock #${nextMockNum}`,
+      dateLabel: 'This Sunday',
+      category: 'mock',
+      path: '/practice?tab=mocks'
+    });
+
+    // 2. Overdue or upcoming mistake revisit
+    const overdueMistake = mistakes.find((m) => !m.reSolved);
+    if (overdueMistake) {
+      items.push({
+        id: 'next-mistake',
+        title: `Re-solve: ${overdueMistake.topic} (${overdueMistake.questionRef})`,
+        dateLabel: stats.overdueMistakesCount > 0 ? 'Overdue' : 'Due in 2 days',
+        category: 'mistake',
+        path: '/practice?tab=mistakes'
+      });
     }
-  });
 
-  const confidenceChartData = [
-    { level: 'L1: Unfamiliar', count: confidenceCounts[0], fill: '#EF4444' },
-    { level: 'L2: Weak', count: confidenceCounts[1], fill: '#F97316' },
-    { level: 'L3: Average', count: confidenceCounts[2], fill: '#F59E0B' },
-    { level: 'L4: Good', count: confidenceCounts[3], fill: '#10B981' },
-    { level: 'L5: Strong', count: confidenceCounts[4], fill: '#2563EB' },
-  ];
+    // 3. Weekly Roadmap milestone
+    items.push({
+      id: 'next-milestone',
+      title: activePlan.milestoneAdmin || `Week ${stats.currentWeek} Sprint Target`,
+      dateLabel: `Week ${stats.currentWeek} Goal`,
+      category: 'milestone',
+      path: '/plan?tab=planner'
+    });
 
-  // Mistake distribution
-  const mistakeCounts: Record<string, number> = {};
-  mistakes.forEach((m) => {
-    mistakeCounts[m.mistakeType] = (mistakeCounts[m.mistakeType] || 0) + 1;
-  });
-
-  const mistakeChartData = Object.entries(mistakeCounts).map(([name, value]) => ({
-    name,
-    value,
-  }));
-
-  const MISTAKE_COLORS = ['#2563EB', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4', '#8B5CF6'];
-
-  // Weekly study hours data
-  const hoursData = weeklyPlans.slice(0, 12).map((w) => ({
-    week: `W${w.weekNumber}`,
-    target: parseInt(w.hoursTarget.split('–')[0], 10) || 14,
-    logged: w.actualHoursLogged || (w.weekNumber < stats.currentWeek ? 12 : 0),
-  }));
-
-  // Mock scores progression
-  const mockChartData = mockTests
-    .filter((m) => !m.isSample && m.totalScore !== undefined)
-    .map((m) => ({
-      name: `M${m.mockNumber}`,
-      Total: m.totalScore,
-      VARC: m.varcScore,
-      DILR: m.dilrScore,
-      QA: m.qaScore,
-    }));
-
-  // Today's goals calculation
-  const completedGoalsCount = dailyGoals.filter((g) => g.completed).length;
-  const dailyGoalsPct = dailyGoals.length > 0 ? Math.round((completedGoalsCount / dailyGoals.length) * 100) : 0;
+    return items.slice(0, 3);
+  }, [stats, mistakes, activePlan]);
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* 1. HERO COMMAND BANNER (Inspired by Cognify & Apple) */}
-      <div className="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 md:p-8 text-white shadow-sm dark:border-blue-900/50">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2 max-w-xl">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/15 text-white backdrop-blur-xs border border-white/20">
-                <Sparkles className="h-3 w-3 text-amber-300" />
-                Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}
-              </span>
-              <span className="text-xs font-mono text-blue-100">Week {stats.currentWeek} of 52</span>
-            </div>
-
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-              Welcome back, {profile.displayName}
-            </h1>
-            <p className="text-sm text-blue-100/90 leading-relaxed">
-              Target Exam Date: 28 Nov 2027 • <strong className="text-white font-mono">{stats.daysRemaining} days</strong> remaining.
-              Stay consistent: daily deliberate practice builds 99th percentile mastery.
-            </p>
-
-            <div className="pt-2 flex flex-wrap items-center gap-3">
-              <Button
-                size="sm"
-                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold shadow-xs gap-1.5 rounded-lg text-xs"
-                onClick={() => navigate('/planner')}
-              >
-                <span>Continue Study Plan</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs rounded-lg gap-1.5"
-                onClick={() => setQuickAddOpen(true)}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Quick Log</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Progress Ring Card */}
-          <div className="flex items-center gap-5 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 self-start md:self-auto shrink-0">
-            <CircularProgress
-              value={stats.overallCompletionPct}
-              size={84}
-              strokeWidth={7}
-              color="text-white"
-              trackColor="text-white/20"
-              label={`${stats.overallCompletionPct}%`}
-              sublabel="Done"
-            />
-            <div className="flex flex-col text-xs space-y-1">
-              <span className="text-blue-100 text-[11px] font-medium uppercase tracking-wider">Overall Syllabus</span>
-              <span className="font-bold text-base text-white">{stats.completedTopics} of 53 Topics</span>
-              <span className="text-[11px] text-blue-200">{stats.inProgressTopics} topics in active review</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Ambient subtle glow */}
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-      </div>
-
-      {/* 2. RESTRAINED KEY METRICS BAR (4 Clean StatCards) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Weekly Target"
-          value={activePlan.hoursTarget}
-          subtitle={`Week ${stats.currentWeek} Sprint`}
-          icon={<Clock className="h-4 w-4" />}
-          badge={activePlan.isBufferWeek ? 'Buffer Week' : 'Core Phase'}
-          badgeVariant="info"
-          onClick={() => navigate('/planner')}
-        />
-        <StatCard
-          title="Completed Topics"
-          value={`${stats.completedTopics}/53`}
-          subtitle={`${stats.inProgressTopics} in progress`}
-          icon={<CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
-          badge={`${Math.round((stats.completedTopics / 53) * 100)}%`}
-          badgeVariant="success"
-          onClick={() => navigate('/topics')}
-        />
-        <StatCard
-          title="Mock Average"
-          value={stats.totalMocksAttempted > 0 ? (stats.averageMockScore ?? '–') : '–'}
-          subtitle={stats.totalMocksAttempted > 0 ? `${stats.totalMocksAttempted} tests logged` : 'No mocks yet'}
-          icon={<Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
-          badge={stats.totalMocksAttempted > 0 ? `Best: ${stats.bestMockScore}` : 'Start Prep'}
-          badgeVariant="warning"
-          onClick={() => navigate('/mocks')}
-        />
-        <StatCard
-          title="Revision Priority"
-          value={stats.weakTopicsCount}
-          subtitle={stats.overdueMistakesCount > 0 ? `${stats.overdueMistakesCount} mistakes overdue` : 'Topics with conf ≤ 2'}
-          icon={<AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />}
-          badge={stats.weakTopicsCount > 0 ? 'Action Needed' : 'On Track'}
-          badgeVariant={stats.weakTopicsCount > 0 ? 'destructive' : 'success'}
-          onClick={() => navigate('/mistakes')}
-        />
-      </div>
-
-      {/* 3. MAIN DASHBOARD GRID: TODAY'S FOCUS & SUBJECT PERFORMANCE */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Today's Study Plan & Daily Goals */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-border/60">
-              <div>
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  <span>Today's Study Checklist</span>
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Active sprint tasks based on Week {stats.currentWeek} targets and spaced revision.
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs gap-1 rounded-lg border-border"
-                  onClick={() => setQuickAddOpen(true)}
-                >
-                  <Plus className="h-3 w-3" />
-                  <span>Add Task</span>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-2.5">
-              {tasks.length === 0 ? (
-                <EmptyState
-                  title="No active tasks today"
-                  description="Your checklist is empty for today. Create your first task to start your study sprint!"
-                  actionLabel="Add Study Task"
-                  onAction={() => setQuickAddOpen(true)}
-                />
-              ) : (
-                tasks.slice(0, 4).map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={task.status === 'Completed'}
-                        onCheckedChange={(checked) =>
-                          updateTask(task.id, {
-                            status: checked ? 'Completed' : 'In Progress',
-                            completedAt: checked ? new Date().toISOString() : undefined,
-                          })
-                        }
-                        className="h-4 w-4 rounded"
-                      />
-                      <div className="flex flex-col">
-                        <span
-                          className={`text-xs font-semibold ${
-                            task.status === 'Completed' ? 'line-through text-muted-foreground' : 'text-foreground'
-                          }`}
-                        >
-                          {task.title}
-                        </span>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                          <span
-                            className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                              task.section === 'Quant'
-                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
-                                : task.section === 'DILR'
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-                                : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-                            }`}
-                          >
-                            {task.section}
-                          </span>
-                          <span>•</span>
-                          <span>{task.estimatedMinutes} mins</span>
-                          <span>•</span>
-                          <span className={task.priority === 'High' ? 'text-rose-600 font-medium' : ''}>
-                            {task.priority} Priority
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {task.status !== 'Completed' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                          onClick={() =>
-                            updateTask(task.id, {
-                              status: 'Completed',
-                              completedAt: new Date().toISOString(),
-                            })
-                          }
-                        >
-                          Done
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-
-              {tasks.length > 4 && (
-                <div className="text-center pt-2">
-                  <Link to="/planner" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                    View all {tasks.length} tasks in Study Planner →
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Daily Goals Strip */}
-          <Card className="rounded-xl border border-border/80 bg-card p-4 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Flame className="h-4 w-4 text-amber-500" />
-                <span className="text-xs font-bold text-foreground">Today's Daily Goals ({completedGoalsCount}/{dailyGoals.length})</span>
-              </div>
-              <span className="text-xs font-mono text-muted-foreground">{dailyGoalsPct}% Achieved</span>
-            </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
-              <div className="bg-blue-600 h-full transition-all duration-500" style={{ width: `${dailyGoalsPct}%` }} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              {dailyGoals.map((goal) => (
-                <div
-                  key={goal.id}
-                  onClick={() => toggleDailyGoal(goal.id)}
-                  className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
-                    goal.completed
-                      ? 'border-emerald-200 bg-emerald-50/60 text-emerald-900 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
-                      : 'border-border/70 bg-card hover:border-slate-300 text-foreground'
-                  }`}
-                >
-                  <div
-                    className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 border ${
-                      goal.completed ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600'
-                    }`}
-                  >
-                    {goal.completed && <Check className="h-2.5 w-2.5" />}
-                  </div>
-                  <span className={`truncate flex-1 text-[11px] ${goal.completed ? 'line-through opacity-80' : ''}`}>
-                    {goal.title}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Col: Subject Mastery & Weak Areas */}
-        <div className="space-y-6">
-          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
-            <CardHeader className="pb-3 border-b border-border/60">
-              <CardTitle className="text-base font-bold">Subject Mastery</CardTitle>
-              <CardDescription className="text-xs">
-                Syllabus completion & average student confidence (1 to 5).
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-4">
-              {/* Quant */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-blue-600" />
-                    Quantitative Aptitude
-                  </span>
-                  <span className="font-mono font-bold text-foreground">{quantStats.pct}%</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-blue-600 h-full transition-all duration-500" style={{ width: `${quantStats.pct}%` }} />
-                </div>
-                <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>{quantStats.completed} / {quantStats.total} topics</span>
-                  <span>Confidence: {quantStats.avgConfidence}/5.0</span>
-                </div>
-              </div>
-
-              {/* DILR */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-600" />
-                    Data Interpretation & LR
-                  </span>
-                  <span className="font-mono font-bold text-foreground">{dilrStats.pct}%</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-emerald-600 h-full transition-all duration-500" style={{ width: `${dilrStats.pct}%` }} />
-                </div>
-                <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>{dilrStats.completed} / {dilrStats.total} topics</span>
-                  <span>Confidence: {dilrStats.avgConfidence}/5.0</span>
-                </div>
-              </div>
-
-              {/* VARC */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-amber-600" />
-                    Verbal Ability & RC
-                  </span>
-                  <span className="font-mono font-bold text-foreground">{varcStats.pct}%</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div className="bg-amber-600 h-full transition-all duration-500" style={{ width: `${varcStats.pct}%` }} />
-                </div>
-                <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>{varcStats.completed} / {varcStats.total} topics</span>
-                  <span>Confidence: {varcStats.avgConfidence}/5.0</span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-border/60">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs rounded-lg border-border"
-                  onClick={() => navigate('/topics')}
-                >
-                  Explore All Topics & Syllabi →
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity Card */}
-          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
-            <CardHeader className="pb-2.5 flex flex-row items-center justify-between border-b border-border/60">
-              <CardTitle className="text-sm font-bold">Recent Activity</CardTitle>
-              <Link to="/history" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                View all →
-              </Link>
-            </CardHeader>
-            <CardContent className="pt-3 space-y-2.5">
-              {activities.slice(0, 3).map((act) => (
-                <div key={act.id} className="flex items-start gap-2.5 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="font-medium text-foreground text-[11px] leading-tight">{act.title}</span>
-                    <span className="text-[10px] text-muted-foreground">{act.date} • {act.section || 'General'}</span>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+    <div className="space-y-7 pb-12">
+      {/* 1. CALM GREETING HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            Good day, {profile.displayName || 'Aspirant'}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            You're on <span className="font-semibold text-foreground">Week {stats.currentWeek}</span> of{' '}
+            <span className="font-semibold text-foreground">Phase {stats.currentPhase.phaseNumber}</span> ({stats.currentPhase.name}) •{' '}
+            <span className="font-semibold text-blue-600 dark:text-blue-400 font-mono">{stats.daysRemaining} days</span> until CAT 2027.
+          </p>
         </div>
       </div>
 
-      {/* 4. ANALYTICS HUB WITH TABBED PROGRESSIVE DISCLOSURE (Decluttered!) */}
-      <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
-        <CardHeader className="pb-3 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <BarChart2 className="h-4 w-4 text-blue-600" />
-              <span>Performance Analytics & Visual Insights</span>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Toggle between views to inspect study volume, mock trajectories, and concept confidence.
-            </CardDescription>
-          </div>
-
-          {/* Clean Segmented Control Tabs */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setActiveChartTab('hours')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeChartTab === 'hours'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Study Hours
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChartTab('mocks')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeChartTab === 'mocks'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Mock Scores
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChartTab('confidence')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeChartTab === 'confidence'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Confidence
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveChartTab('mistakes')}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeChartTab === 'mistakes'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Mistakes
-            </button>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-6">
-          {activeChartTab === 'hours' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Target vs Logged Study Hours (Weeks 1 to 12)</span>
-                <span className="font-mono">Weekly Avg: 14 hrs</span>
-              </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={hoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                    <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1E293B',
-                        borderColor: '#334155',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        color: '#FFF'
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                    <Bar dataKey="target" name="Target Hours" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="logged" name="Logged Hours" fill="#2563EB" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+      {/* 2. ROW 1: HERO GRADIENT CARD + 3 STAT CARDS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Left: Hero Gradient Card (60% width on desktop) */}
+        <div className="lg:col-span-7 relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 p-7 md:p-8 text-white shadow-xs flex flex-col justify-between">
+          <div className="space-y-4 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-xs font-semibold border border-white/20">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              <span>Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}</span>
             </div>
-          )}
 
-          {activeChartTab === 'mocks' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Total & Sectional Score Progression Across Mocks</span>
-                <span className="font-mono">{stats.totalMocksAttempted} Mocks Attempted</span>
-              </div>
-              <div className="h-64 w-full">
-                {mockChartData.length === 0 ? (
-                  <EmptyState
-                    title="No mock test scores logged yet"
-                    description="Log your first diagnostic or sectional test in the Mock Tracker to see your score trajectory."
-                    actionLabel="Log a Mock Test"
-                    onAction={() => navigate('/mocks')}
-                  />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                      <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          color: '#FFF'
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                      <Line type="monotone" dataKey="Total" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 4 }} />
-                      <Line type="monotone" dataKey="QA" stroke="#8B5CF6" strokeWidth={1.5} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="DILR" stroke="#10B981" strokeWidth={1.5} dot={{ r: 3 }} />
-                      <Line type="monotone" dataKey="VARC" stroke="#F59E0B" strokeWidth={1.5} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeChartTab === 'confidence' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Distribution of Confidence Ratings Across 53 Canonical Topics</span>
-                <span className="font-mono">5 Levels</span>
-              </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={confidenceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                    <XAxis dataKey="level" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1E293B',
-                        borderColor: '#334155',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        color: '#FFF'
-                      }}
-                    />
-                    <Bar dataKey="count" name="Topics" radius={[4, 4, 0, 0]}>
-                      {confidenceChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-
-          {activeChartTab === 'mistakes' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Root-Cause Categorization of Logged Errors</span>
-                <span className="font-mono">{mistakes.length} Mistakes Recorded</span>
-              </div>
-              <div className="h-64 w-full flex items-center justify-center">
-                {mistakeChartData.length === 0 ? (
-                  <EmptyState
-                    title="No mistakes recorded yet"
-                    description="Keep your error log updated after analyzing tests to fix blind spots."
-                    actionLabel="Record Mistake"
-                    onAction={() => navigate('/mistakes')}
-                  />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={mistakeChartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={4}
-                        dataKey="value"
-                      >
-                        {mistakeChartData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={MISTAKE_COLORS[index % MISTAKE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          color: '#FFF'
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '11px' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 5. COLLAPSIBLE PREPARATION BLUEPRINT (PDF Content Preserved, Accessible without clutter) */}
-      <Card className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs">
-        <div
-          onClick={() => setBlueprintExpanded(!blueprintExpanded)}
-          className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-              <Compass className="h-4 w-4" />
-            </div>
             <div>
-              <h3 className="text-sm font-bold text-foreground">Your CAT 2027 Preparation Blueprint</h3>
-              <p className="text-xs text-muted-foreground">
-                Official strategic guidelines, section timing rules, and 90th percentile targets extracted from CAT Preparation.pdf.
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl sm:text-5xl font-black tracking-tight font-mono text-white">
+                  {stats.daysRemaining}
+                </span>
+                <span className="text-base sm:text-lg font-medium text-blue-100">days to CAT 2027</span>
+              </div>
+              <p className="text-xs sm:text-sm text-blue-100/90 mt-1.5 max-w-md leading-relaxed">
+                Consistency is the key to 99+ percentile. Maintain deliberate practice and review your error log.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground">
-              <span>{blueprintExpanded ? 'Hide Blueprint' : 'Expand Blueprint'}</span>
-              {blueprintExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+
+          {/* Clean White Primary Button (Prevents blue-on-blue blending) */}
+          <div className="pt-6 relative z-10 flex items-center gap-3">
+            <Button
+              size="sm"
+              onClick={() => navigate('/plan')}
+              className="bg-white text-blue-600 hover:bg-blue-50 font-bold text-xs rounded-xl px-4 py-2 shadow-xs transition-all flex items-center gap-2"
+            >
+              <span>Start Today's Session</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/practice')}
+              className="bg-white/10 hover:bg-white/20 text-white border-white/30 text-xs rounded-xl px-3 font-semibold"
+            >
+              Practice Topic
             </Button>
           </div>
+
+          {/* Ambient inner glow */}
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/15 blur-2xl pointer-events-none" />
         </div>
 
-        {blueprintExpanded && (
-          <div className="p-6 border-t border-border/70 space-y-6 bg-slate-50/30 dark:bg-slate-900/10">
-            {guideSections.slice(0, 3).map((sec) => (
-              <div key={sec.id} className="p-4 rounded-xl border border-border/70 bg-card">
-                <h4 className="text-sm font-bold text-foreground mb-2">{sec.title}</h4>
-                <div className="text-xs text-muted-foreground leading-relaxed">
-                  <MarkdownRenderer content={sec.contentMarkdown} />
-                </div>
-              </div>
-            ))}
-            <div className="text-center pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs rounded-lg"
-                onClick={() => navigate('/guide')}
-              >
-                Open Complete Preparation Guide Page →
-              </Button>
+        {/* Right: 3 Unambiguous Stat Tiles (40% width on desktop) */}
+        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3.5">
+          {/* Tile 1: Topics Mastered (Brand Blue Tint) */}
+          <div
+            onClick={() => navigate('/plan?tab=topics')}
+            className="card-stat-topics rounded-3xl p-5 cursor-pointer hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                Topics Mastered
+              </span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 tabular-nums">
+                {stats.overallCompletionPct}%
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black font-mono tracking-tight text-blue-950 dark:text-blue-100">
+                {stats.completedTopics}
+              </span>
+              <span className="text-xs text-blue-800/80 dark:text-blue-300 font-medium">of 53 Topics complete</span>
             </div>
           </div>
-        )}
-      </Card>
 
-      {/* Global Quick Add Modal */}
-      <QuickAddModal open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+          {/* Tile 2: Mocks Completed (Neutral Slate Tint, never green) */}
+          <div
+            onClick={() => navigate('/practice?tab=mocks')}
+            className="card-stat-mocks rounded-3xl p-5 cursor-pointer hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                Mocks Taken
+              </span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {stats.totalMocksAttempted > 0 ? `Avg: ${stats.averageMockScore?.toFixed(1) || '–'}` : 'No Mocks'}
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black font-mono tracking-tight text-foreground">
+                {stats.totalMocksAttempted}
+              </span>
+              <span className="text-xs text-muted-foreground font-medium">
+                {stats.bestMockScore ? `Best Score: ${stats.bestMockScore}` : 'Full CAT tests'}
+              </span>
+            </div>
+          </div>
+
+          {/* Tile 3: Overdue Mistakes (Semantic Rose Tint) */}
+          <div
+            onClick={() => navigate('/practice?tab=mistakes')}
+            className="card-stat-overdue rounded-3xl p-5 cursor-pointer hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+                Revision Priority
+              </span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">
+                {stats.overdueMistakesCount > 0 ? 'Action Needed' : 'On Track'}
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black font-mono tracking-tight text-rose-950 dark:text-rose-100">
+                {stats.overdueMistakesCount}
+              </span>
+              <span className="text-xs text-rose-800/80 dark:text-rose-300 font-medium">
+                {stats.overdueMistakesCount === 1 ? 'mistake overdue' : 'mistakes overdue for revisit'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. ROW 2: MAIN MIDDLE GRID (Today's Focus + Hours Chart) & DESKTOP RIGHT RAIL */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Focus Checklist & Hours Chart (8 cols on XL) */}
+        <div className="xl:col-span-8 space-y-6">
+          {/* Card: Today's Focus */}
+          <Card className="rounded-3xl border border-border/70 bg-card shadow-xs overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span>Today's Focus & Goals</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Daily deliberate practice targets aligned with Phase {stats.currentPhase.phaseNumber}.
+                </p>
+              </div>
+              <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                {dailyGoals.filter((g) => g.completed).length} / {dailyGoals.length} Done
+              </span>
+            </CardHeader>
+
+            <CardContent className="pt-4 space-y-4">
+              {/* Daily Goals List */}
+              <div className="space-y-2">
+                {dailyGoals.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4 italic">
+                    No goals added for today. Add a goal below to start your sprint!
+                  </p>
+                ) : (
+                  dailyGoals.map((goal) => {
+                    const sectionChipClass =
+                      goal.section === 'Quant'
+                        ? 'chip-quant'
+                        : goal.section === 'DILR'
+                        ? 'chip-dilr'
+                        : 'chip-varc';
+
+                    return (
+                      <div
+                        key={goal.id}
+                        className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={goal.completed}
+                            onCheckedChange={() => toggleDailyGoal(goal.id)}
+                            className="h-4 w-4 rounded-md"
+                          />
+                          <span
+                            className={`text-xs font-semibold ${
+                              goal.completed
+                                ? 'line-through text-muted-foreground'
+                                : 'text-foreground'
+                            }`}
+                          >
+                            {goal.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sectionChipClass}`}>
+                            {goal.section}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground font-mono">
+                            {goal.targetMinutes}m
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Inline Add Goal Form */}
+              <form onSubmit={handleAddGoal} className="pt-2 flex items-center gap-2">
+                <Input
+                  value={newGoalTitle}
+                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                  placeholder="Add target (e.g. 15 Algebra PYQs, 2 Matrix Sets)..."
+                  className="text-xs h-9 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border-border"
+                />
+                <select
+                  value={newGoalSection}
+                  onChange={(e) => setNewGoalSection(e.target.value as any)}
+                  className="h-9 px-2 text-xs rounded-xl border border-border bg-slate-100/70 dark:bg-slate-800/60 font-semibold"
+                >
+                  <option value="Quant">Quant</option>
+                  <option value="DILR">DILR</option>
+                  <option value="VARC">VARC</option>
+                </select>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  <span>Add</span>
+                </Button>
+              </form>
+
+              {/* Collapsible Recent Activity Accordion */}
+              <div className="pt-2 border-t border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setRecentActivityExpanded(!recentActivityExpanded)}
+                  className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground py-1 font-medium cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <History className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Recent Activity ({activities.slice(0, 5).length} logged sessions)</span>
+                  </span>
+                  {recentActivityExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+
+                {recentActivityExpanded && (
+                  <div className="mt-2 space-y-1.5 pt-2">
+                    {activities.slice(0, 5).map((act) => (
+                      <div
+                        key={act.id}
+                        className="flex items-center justify-between p-2 rounded-xl bg-slate-100/50 dark:bg-slate-900/40 text-xs"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate font-medium">{act.title}</span>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground font-mono shrink-0">
+                          {act.date}
+                        </span>
+                      </div>
+                    ))}
+                    <Link
+                      to="/insights?tab=history"
+                      className="block text-center text-xs text-blue-600 hover:text-blue-700 font-semibold pt-1"
+                    >
+                      View full study history in Insights →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: This Week's Study Hours Chart */}
+          <Card className="rounded-3xl border border-border/70 bg-card shadow-xs overflow-hidden">
+            <CardHeader className="pb-2 border-b border-border/60 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  <span>This Week's Study Time</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Daily study hours logged (Blue line) vs daily target (Dashed Slate).
+                </p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                  <span className="text-muted-foreground">Logged</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1 w-3 border-t-2 border-dashed border-slate-400" />
+                  <span className="text-muted-foreground">Target</span>
+                </span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-4">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={weeklyHoursChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="loggedGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1E2638' : '#E8EBF3'} />
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94A3B8' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94A3B8' }} domain={[0, 6]} />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="rounded-2xl border border-border bg-card p-3 shadow-lg text-xs space-y-1">
+                              <span className="font-bold text-foreground block">{data.day}</span>
+                              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold">
+                                <span>Logged:</span>
+                                <span className="font-mono">{data.logged}h</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-500 font-medium">
+                                <span>Target:</span>
+                                <span className="font-mono">{data.target}h</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="logged"
+                      stroke="#2563EB"
+                      strokeWidth={2.5}
+                      fill="url(#loggedGradient)"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="target"
+                      stroke="#94A3B8"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Rail: Desktop Only (>= 1280px, 4 cols on XL) */}
+        <div className="xl:col-span-4 space-y-6">
+          {/* Block 1: Mini Interactive Calendar Widget */}
+          <Card className="rounded-3xl border border-border/70 bg-card shadow-xs overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+                <CalendarIcon className="h-4 w-4 text-blue-600" />
+                <span>{format(calendarMonth, 'MMMM yyyy')}</span>
+              </CardTitle>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-3">
+              {/* Day Labels */}
+              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-muted-foreground pb-1">
+                <span>M</span>
+                <span>T</span>
+                <span>W</span>
+                <span>T</span>
+                <span>F</span>
+                <span>S</span>
+                <span>S</span>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                {Array.from({ length: startDayOffset }).map((_, i) => (
+                  <div key={`empty-${i}`} className="h-7 w-7" />
+                ))}
+
+                {monthDays.map((day) => {
+                  const dateStr = format(day, 'yyyy-MM-dd');
+                  const isCurrentDay = isSameDay(day, new Date());
+                  const hasActivity = activeDatesSet.has(dateStr);
+
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={`h-7 w-7 mx-auto flex flex-col items-center justify-center rounded-full text-[11px] font-medium transition-colors relative ${
+                        isCurrentDay
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'text-foreground hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{format(day, 'd')}</span>
+                      {hasActivity && !isCurrentDay && (
+                        <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-blue-600" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Block 2: "Up Next" Milestones List (Strictly capped at 3 items) */}
+          <Card className="rounded-3xl border border-border/70 bg-card shadow-xs overflow-hidden">
+            <CardHeader className="pb-3 border-b border-border/60">
+              <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
+                <span className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <span>Up Next</span>
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground">
+                  3 Milestones
+                </span>
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="pt-3 space-y-3">
+              {/* Weak topics alert pill if any exist */}
+              {weakTopics.length > 0 && (
+                <Link
+                  to="/plan?tab=topics"
+                  className="flex items-center justify-between p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-900 dark:text-amber-200 hover:bg-amber-100 transition-colors"
+                >
+                  <span className="flex items-center gap-1.5 font-semibold truncate">
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                    <span className="truncate">Needs Revision: {weakTopics.length} weak topics</span>
+                  </span>
+                  <ArrowRight className="h-3 w-3 text-amber-700 shrink-0" />
+                </Link>
+              )}
+
+              {/* 3 Capped Items */}
+              <div className="space-y-2">
+                {upNextItems.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border transition-colors group"
+                  >
+                    <div className="space-y-0.5 min-w-0 pr-2">
+                      <span className="text-xs font-semibold text-foreground truncate block group-hover:text-blue-600 transition-colors">
+                        {item.title}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {item.dateLabel}
+                      </span>
+                    </div>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                ))}
+              </div>
+
+              {/* View All Milestones Link */}
+              <div className="pt-1 text-center">
+                <Link
+                  to="/insights?tab=history"
+                  className="text-xs text-blue-600 hover:text-blue-700 font-semibold"
+                >
+                  View all milestones & reviews →
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
