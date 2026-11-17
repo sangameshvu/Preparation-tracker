@@ -217,6 +217,29 @@ export interface PrepGuideSection {
   sortOrder: number;
 }
 
+export type ActivityCategory = 'topic' | 'task' | 'mock' | 'mistake' | 'note' | 'goal';
+
+export interface StudyActivityItem {
+  id: string;
+  date: string; // ISO date 'YYYY-MM-DD'
+  timestamp: string; // ISO datetime
+  category: ActivityCategory;
+  title: string;
+  details?: string;
+  section?: SectionType;
+  durationMinutes?: number;
+}
+
+export interface DailyGoalItem {
+  id: string;
+  date: string; // 'YYYY-MM-DD'
+  title: string;
+  section: SectionType;
+  targetMinutes: number;
+  completed: boolean;
+  completedAt?: string;
+}
+
 export interface DashboardStats {
   daysRemaining: number;
   currentWeek: number;

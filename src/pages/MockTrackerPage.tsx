@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppData } from '../context/AppDataContext';
 import {
   Trophy,
@@ -12,12 +12,22 @@ import {
   HelpCircle,
   FileText,
   Calendar,
-  Sparkles
+  Sparkles,
+  Clock,
+  Bookmark,
+  Check,
+  RotateCcw,
+  Play,
+  Pause,
+  Award,
+  ArrowRight
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
+import { StatCard } from '../components/ui/StatCard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -35,15 +45,79 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  Legend,
-  BarChart,
-  Bar
+  Legend
 } from 'recharts';
 import { MockTestItem } from '../types';
 import { format } from 'date-fns';
 
+// Practice Exam Simulator Questions (Reference 4)
+interface PracticeQuestion {
+  id: number;
+  section: 'Quant' | 'DILR' | 'VARC';
+  text: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+const SAMPLE_EXAM_QUESTIONS: PracticeQuestion[] = [
+  {
+    id: 1,
+    section: 'Quant',
+    text: 'A merchant buys two articles for ₹1,200 total. He sells the first at 20% loss and the second at 20% profit. If the overall transaction results in no profit and no loss, what is the cost price of the first article?',
+    options: [
+      '₹600',
+      '₹500',
+      '₹700',
+      '₹800'
+    ],
+    correctIndex: 0,
+    explanation: 'Let CP of 1st be x, 2nd be (1200 - x). Loss on 1st = 0.2x. Profit on 2nd = 0.2(1200 - x). Since net profit/loss is 0, 0.2x = 0.2(1200 - x) => 2x = 1200 => x = 600.'
+  },
+  {
+    id: 2,
+    section: 'Quant',
+    text: 'Find the remainder when 2^100 is divided by 101. (Hint: 101 is a prime number).',
+    options: [
+      '1',
+      '2',
+      '100',
+      '0'
+    ],
+    correctIndex: 0,
+    explanation: 'By Fermat’s Little Theorem, if p is a prime and gcd(a, p) = 1, then a^(p-1) ≡ 1 (mod p). Here p = 101 and a = 2, so 2^(101 - 1) = 2^100 ≡ 1 (mod 101).'
+  },
+  {
+    id: 3,
+    section: 'DILR',
+    text: 'In a round-robin tournament of 8 teams where each pair plays exactly once with no draws, what is the minimum number of wins required to guarantee a top-4 finish?',
+    options: [
+      '4 wins',
+      '5 wins',
+      '6 wins',
+      '7 wins'
+    ],
+    correctIndex: 1,
+    explanation: 'Total matches = 8C2 = 28. To guarantee 4th or higher position against ties, 5 wins strictly guarantees advancing to playoffs.'
+  },
+  {
+    id: 4,
+    section: 'VARC',
+    text: 'Which of the following phrases best captures the primary tone of an author who critiques technological determinism by examining unintended algorithmic societal consequences?',
+    options: [
+      'Unabashedly celebratory and optimistic',
+      'Cautiously critical and inquisitive',
+      'Aggressively hostile and cynical',
+      'Wholly indifferent and detached'
+    ],
+    correctIndex: 1,
+    explanation: 'An analytical critique examining systemic unintended consequences without outright cynicism reflects a cautiously critical and inquisitive tone.'
+  }
+];
+
 export const MockTrackerPage: React.FC = () => {
   const { mockTests, addMockTest, updateMockTest, deleteMockTest, convertSampleMock, deleteSampleMock } = useAppData();
+  const [activeTab, setActiveTab] = useState<'tracker' | 'simulator'>('tracker');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMock, setEditingMock] = useState<MockTestItem | null>(null);
 
@@ -59,10 +133,30 @@ export const MockTrackerPage: React.FC = () => {
   const [percentile, setPercentile] = useState('');
   const [biggestLesson, setBiggestLesson] = useState('');
 
+  // Simulator State (Reference 4)
+  const [simQuestionIdx, setSimQuestionIdx] = useState(0);
+  const [simAnswers, setSimAnswers] = useState<Record<number, number>>({});
+  const [simBookmarks, setSimBookmarks] = useState<Record<number, boolean>>({});
+  const [simSecondsRemaining, setSimSecondsRemaining] = useState(2400); // 40 mins
+  const [simIsRunning, setSimIsRunning] = useState(false);
+  const [simSubmitted, setSimSubmitted] = useState(false);
+  const [simResult, setSimResult] = useState<{ total: number; correct: number; wrong: number } | null>(null);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: any;
+    if (simIsRunning && simSecondsRemaining > 0) {
+      interval = setInterval(() => {
+        setSimSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [simIsRunning, simSecondsRemaining]);
+
   const hasSampleMock = mockTests.some((m) => m.isSample);
   const genuineMocks = mockTests.filter((m) => !m.isSample && m.totalScore !== undefined);
 
-  // Calculate Aggregates on genuine mocks
+  // Aggregates
   const totalMocksTaken = genuineMocks.length;
   let bestScore = 0;
   let avgScore = 0;
@@ -111,18 +205,16 @@ export const MockTrackerPage: React.FC = () => {
     setDilrScore(mock.dilrScore || 0);
     setQaAttempts(mock.qaAttempts || 0);
     setQaScore(mock.qaScore || 0);
-    setPercentile(mock.percentile !== undefined ? String(mock.percentile) : '');
+    setPercentile(mock.percentile ? String(mock.percentile) : '');
     setBiggestLesson(mock.biggestLesson || '');
     setModalOpen(true);
   };
 
   const handleSaveMock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!seriesName.trim()) return;
-
     if (editingMock) {
       updateMockTest(editingMock.id, {
-        seriesName: seriesName.trim(),
+        seriesName,
         testDate,
         varcAttempts: Number(varcAttempts) || 0,
         varcScore: Number(varcScore) || 0,
@@ -130,13 +222,13 @@ export const MockTrackerPage: React.FC = () => {
         dilrScore: Number(dilrScore) || 0,
         qaAttempts: Number(qaAttempts) || 0,
         qaScore: Number(qaScore) || 0,
-        percentile: percentile ? Number(percentile) : undefined,
-        biggestLesson: biggestLesson.trim(),
-        analysisDone: Boolean(biggestLesson.trim()),
+        percentile: percentile ? parseFloat(percentile) : undefined,
+        biggestLesson,
+        isSample: false
       });
     } else {
       addMockTest({
-        seriesName: seriesName.trim(),
+        seriesName,
         testDate,
         varcAttempts: Number(varcAttempts) || 0,
         varcScore: Number(varcScore) || 0,
@@ -144,374 +236,637 @@ export const MockTrackerPage: React.FC = () => {
         dilrScore: Number(dilrScore) || 0,
         qaAttempts: Number(qaAttempts) || 0,
         qaScore: Number(qaScore) || 0,
-        percentile: percentile ? Number(percentile) : undefined,
-        biggestLesson: biggestLesson.trim(),
-        analysisDone: Boolean(biggestLesson.trim()),
-        isSample: false,
+        percentile: percentile ? parseFloat(percentile) : undefined,
+        biggestLesson,
+        analysisDone: false,
+        isSample: false
       });
     }
     setModalOpen(false);
   };
 
+  // Simulator actions
+  const currentQ = SAMPLE_EXAM_QUESTIONS[simQuestionIdx];
+  const simAttemptedCount = Object.keys(simAnswers).length;
+
+  const handleSelectSimAnswer = (optIdx: number) => {
+    setSimAnswers((prev) => ({ ...prev, [currentQ.id]: optIdx }));
+  };
+
+  const handleToggleBookmark = () => {
+    setSimBookmarks((prev) => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }));
+  };
+
+  const handleSubmitSimulator = () => {
+    let correct = 0;
+    let wrong = 0;
+    let score = 0;
+
+    SAMPLE_EXAM_QUESTIONS.forEach((q) => {
+      const selected = simAnswers[q.id];
+      if (selected !== undefined) {
+        if (selected === q.correctIndex) {
+          correct++;
+          score += 3;
+        } else {
+          wrong++;
+          score -= 1;
+        }
+      }
+    });
+
+    setSimResult({ total: score, correct, wrong });
+    setSimSubmitted(true);
+    setSimIsRunning(false);
+  };
+
+  const handleLogSimToMocks = () => {
+    if (!simResult) return;
+    addMockTest({
+      seriesName: 'CAT Crack Simulator Drill',
+      testDate: format(new Date(), 'yyyy-MM-dd'),
+      varcAttempts: 1,
+      varcScore: simAnswers[4] === SAMPLE_EXAM_QUESTIONS[3].correctIndex ? 3 : -1,
+      dilrAttempts: 1,
+      dilrScore: simAnswers[3] === SAMPLE_EXAM_QUESTIONS[2].correctIndex ? 3 : -1,
+      qaAttempts: 2,
+      qaScore: (simAnswers[1] === 0 ? 3 : -1) + (simAnswers[2] === 0 ? 3 : -1),
+      biggestLesson: `Completed 4-question speed drill. Score: ${simResult.total}`,
+      analysisDone: true,
+      isSample: false
+    });
+    setSimSubmitted(false);
+    setActiveTab('tracker');
+  };
+
+  const formatTimer = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header */}
+    <div className="space-y-6 pb-12 font-sans">
+      {/* 1. Header & Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Mock Performance Tracker</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Mock Test Centre</h1>
+            <Badge variant="blue" className="font-mono text-xs font-semibold">
+              Exam Ready
+            </Badge>
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Track all 40 full-length mocks. Automated scoring (+3 correct, -1 wrong MCQ), sectional breakdown, and percentile progression.
+            Simulate timed CAT test conditions, record full-length test results, and analyze sectional score progression.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} variant="purple" size="sm" className="gap-1.5 shadow-sm">
-          <Plus className="h-4 w-4" />
-          <span>Log New Mock</span>
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList className="h-9 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+              <TabsTrigger value="tracker" className="text-xs rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 font-semibold">
+                Test History & Logs
+              </TabsTrigger>
+              <TabsTrigger value="simulator" className="text-xs rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 font-semibold">
+                Practice Exam Simulator
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {activeTab === 'tracker' && (
+            <Button size="sm" className="h-8 gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg" onClick={handleOpenAdd}>
+              <Plus className="h-3.5 w-3.5" />
+              <span>Log Mock</span>
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Sample Mock Banner */}
-      {hasSampleMock && (
-        <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-start gap-2.5">
-            <Sparkles className="h-5 w-5 text-purple-400 shrink-0 mt-0.5" />
-            <div>
-              <strong className="font-semibold text-foreground block">
-                Sample Mock Record Detected (SIMCAT 1, Score: 77, Percentile: 82.5)
-              </strong>
-              <p className="text-muted-foreground mt-0.5">
-                The original Excel planner includes 1 illustrative mock row. It is isolated from your actual preparation analytics.
-              </p>
+      {/* TAB 1: MOCK TRACKER & LOGS */}
+      {activeTab === 'tracker' && (
+        <div className="space-y-6">
+          {/* Sample Banner if present */}
+          {hasSampleMock && (
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-blue-200 bg-blue-50/70 dark:border-blue-900/40 dark:bg-blue-950/20 text-xs">
+              <div className="flex items-center gap-2 text-blue-900 dark:text-blue-300">
+                <Sparkles className="h-4 w-4 text-blue-600 shrink-0" />
+                <span>Sample mock test data is loaded to demonstrate charts. Ready to start your own records?</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" className="h-7 text-xs rounded-md" onClick={convertSampleMock}>
+                  Keep as Mine
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs text-rose-600 hover:text-rose-700" onClick={deleteSampleMock}>
+                  Remove Sample
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="outline" className="h-8 text-xs" onClick={deleteSampleMock}>
-              Discard Sample
-            </Button>
-            <Button size="sm" variant="purple" className="h-8 text-xs" onClick={convertSampleMock}>
-              Adopt as Mock #1
-            </Button>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* KPI Aggregate Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground font-medium block">Mocks Taken</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-foreground">{totalMocksTaken}</span>
-            <span className="text-xs text-muted-foreground font-mono">/ 40 slots</span>
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Total Mocks Attempted"
+              value={totalMocksTaken}
+              subtitle="Full-length tests"
+              icon={<BarChart3 className="h-4 w-4 text-blue-600" />}
+              badge="Recorded"
+              badgeVariant="info"
+            />
+            <StatCard
+              title="Best Score"
+              value={bestScore}
+              subtitle="Highest raw score"
+              icon={<Trophy className="h-4 w-4 text-amber-500" />}
+              badge="Peak"
+              badgeVariant="warning"
+            />
+            <StatCard
+              title="Average Score"
+              value={avgScore}
+              subtitle="Mean across all tests"
+              icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
+              badge="Pacing"
+              badgeVariant="success"
+            />
+            <StatCard
+              title="Latest Test Score"
+              value={latestScore}
+              subtitle="Most recent exam"
+              icon={<CheckCircle2 className="h-4 w-4 text-purple-600" />}
+              badge="Current"
+              badgeVariant="info"
+            />
           </div>
-        </Card>
 
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground font-medium block">Best Total Score</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-purple-700 dark:text-purple-300">
-              {totalMocksTaken > 0 ? bestScore : '–'}
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">pts</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground font-medium block">Average Total Score</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-emerald-400">
-              {totalMocksTaken > 0 ? avgScore : '–'}
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">pts</span>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <span className="text-xs text-muted-foreground font-medium block">Latest Mock Score</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl font-bold font-mono text-amber-400">
-              {totalMocksTaken > 0 ? latestScore : '–'}
-            </span>
-            <span className="text-xs text-muted-foreground font-mono">pts</span>
-          </div>
-        </Card>
-      </div>
-
-      {/* Analytical Charts */}
-      {totalMocksTaken > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Total Score Trend */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Score Progression Over Mocks
-              </CardTitle>
+          {/* Score Trajectory Chart */}
+          <Card className="rounded-xl border border-border/80 shadow-xs">
+            <CardHeader className="pb-3 border-b border-border/60">
+              <CardTitle className="text-sm font-bold">Score Trajectory Across Attempted Tests</CardTitle>
+              <CardDescription className="text-xs">
+                Total and sectional breakdown (Quant, DILR, VARC).
+              </CardDescription>
             </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  <Line type="monotone" dataKey="Total" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent className="pt-4">
+              <div className="h-64 w-full">
+                {chartData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center border border-dashed rounded-xl p-6">
+                    <Trophy className="h-8 w-8 text-muted-foreground opacity-40 mb-2" />
+                    <p className="text-xs font-semibold text-foreground">No test scores recorded yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">Click "Log Mock" to add your test evaluation.</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1E293B',
+                          borderColor: '#334155',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          color: '#FFF'
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                      <Line type="monotone" dataKey="Total" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="QA" stroke="#8B5CF6" strokeWidth={1.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="DILR" stroke="#10B981" strokeWidth={1.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="VARC" stroke="#F59E0B" strokeWidth={1.5} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Sectional Breakdown */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Sectional Score Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  <Bar dataKey="VARC" fill="#F59E0B" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="DILR" fill="#10B981" radius={[2, 2, 0, 0]} />
-                  <Bar dataKey="QA" fill="#8B5CF6" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Mock Tests Data Table */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-bold">Mock Tests Record Log (40 Slots)</CardTitle>
-          <CardDescription className="text-xs">
-            Scoring rule: +3 for correct, -1 for wrong MCQ, 0 for wrong TITA. Attempts = questions answered.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-muted/40 border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <tr>
-                  <th className="py-2.5 px-3">#</th>
-                  <th className="py-2.5 px-3">Date</th>
-                  <th className="py-2.5 px-3 min-w-[150px]">Series / Name</th>
-                  <th className="py-2.5 px-3 text-center">VARC (Att/Scr)</th>
-                  <th className="py-2.5 px-3 text-center">DILR (Att/Scr)</th>
-                  <th className="py-2.5 px-3 text-center">QA (Att/Scr)</th>
-                  <th className="py-2.5 px-3 text-center font-bold">Total Attempts</th>
-                  <th className="py-2.5 px-3 text-center font-bold">Total Score</th>
-                  <th className="py-2.5 px-3 text-center">%ile</th>
-                  <th className="py-2.5 px-3 text-center">Analysis</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {mockTests.map((mock) => {
-                  const hasScore = mock.totalScore !== undefined && mock.totalScore !== null;
-                  return (
-                    <tr key={mock.id} className={`hover:bg-muted/30 transition-colors ${mock.isSample ? 'bg-purple-500/5' : ''}`}>
-                      <td className="py-2.5 px-3 font-mono font-bold text-foreground">
-                        {mock.mockNumber}
+          {/* Mocks Table */}
+          <Card className="rounded-xl border border-border/80 shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-border/60 flex items-center justify-between">
+              <span className="text-sm font-bold text-foreground">Logged Full-Length Mock Tests ({genuineMocks.length})</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 dark:bg-slate-900/50 text-muted-foreground font-semibold border-b border-border/60">
+                  <tr>
+                    <th className="p-3 w-14 text-center">#</th>
+                    <th className="p-3">Series / Provider</th>
+                    <th className="p-3">Date</th>
+                    <th className="p-3 text-center">VARC</th>
+                    <th className="p-3 text-center">DILR</th>
+                    <th className="p-3 text-center">QA</th>
+                    <th className="p-3 text-center font-bold">Total</th>
+                    <th className="p-3 text-center">%ile</th>
+                    <th className="p-3">Key Takeaway</th>
+                    <th className="p-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {genuineMocks.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors">
+                      <td className="p-3 text-center font-mono font-bold">M{m.mockNumber}</td>
+                      <td className="p-3 font-semibold text-foreground">{m.seriesName || 'Standard CAT Mock'}</td>
+                      <td className="p-3 text-muted-foreground font-mono">{m.testDate || '–'}</td>
+                      <td className="p-3 text-center font-mono">{m.varcScore ?? '–'}</td>
+                      <td className="p-3 text-center font-mono">{m.dilrScore ?? '–'}</td>
+                      <td className="p-3 text-center font-mono">{m.qaScore ?? '–'}</td>
+                      <td className="p-3 text-center font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
+                        {m.totalScore ?? '–'}
                       </td>
-                      <td className="py-2.5 px-3 text-muted-foreground">
-                        {mock.testDate || '–'}
+                      <td className="p-3 text-center font-mono">
+                        {m.percentile ? `${m.percentile}%` : '–'}
                       </td>
-                      <td className="py-2.5 px-3 font-medium text-foreground">
-                        {mock.seriesName || <span className="text-muted-foreground/60 italic">Unattempted slot</span>}
-                        {mock.isSample && (
-                          <Badge variant="purple" className="ml-2 text-[9px] px-1 py-0">Sample</Badge>
-                        )}
+                      <td className="p-3 max-w-[240px] truncate text-muted-foreground">
+                        {m.biggestLesson || 'No takeaway logged.'}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-mono">
-                        {hasScore ? `${mock.varcAttempts ?? '–'} / ${mock.varcScore ?? '–'}` : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono">
-                        {hasScore ? `${mock.dilrAttempts ?? '–'} / ${mock.dilrScore ?? '–'}` : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono">
-                        {hasScore ? `${mock.qaAttempts ?? '–'} / ${mock.qaScore ?? '–'}` : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-bold">
-                        {hasScore ? mock.totalAttempts : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono font-extrabold text-purple-700 dark:text-purple-300 text-sm">
-                        {hasScore ? mock.totalScore : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-mono text-muted-foreground">
-                        {mock.percentile ? `${mock.percentile}%` : '–'}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        {mock.analysisDone ? (
-                          <Badge variant="success" className="text-[10px]">Done ✓</Badge>
-                        ) : hasScore ? (
-                          <Badge variant="warning" className="text-[10px]">Pending</Badge>
-                        ) : (
-                          '–'
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => handleOpenEdit(mock)}
-                            title="Edit / Log Mock"
-                          >
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenEdit(m)}>
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
-                          {hasScore && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-red-400"
-                              onClick={() => deleteMockTest(mock.id)}
-                              title="Delete Mock"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-600 hover:text-rose-700" onClick={() => deleteMockTest(m.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
 
-      {/* Edit/Add Mock Dialog */}
+      {/* TAB 2: DISTRACTION-FREE PRACTICE EXAM SIMULATOR (Reference 4) */}
+      {activeTab === 'simulator' && (
+        <div className="space-y-6">
+          {/* Top Simulator Control Bar */}
+          <Card className="rounded-xl border border-border/80 bg-card p-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-6">
+                <div>
+                  <span className="text-[11px] text-muted-foreground uppercase font-semibold block">Exam Mode</span>
+                  <span className="text-sm font-bold text-foreground">CAT Model Diagnostic Drill</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-muted-foreground uppercase font-semibold block">Section</span>
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{currentQ.section}</span>
+                </div>
+                <div>
+                  <span className="text-[11px] text-muted-foreground uppercase font-semibold block">Progress</span>
+                  <span className="text-sm font-bold text-foreground">
+                    {simAttemptedCount} of {SAMPLE_EXAM_QUESTIONS.length} Answered
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-xs rounded-lg"
+                  onClick={() => setSimIsRunning(!simIsRunning)}
+                >
+                  {simIsRunning ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+                  <span>{simIsRunning ? 'Pause Timer' : 'Start Timer'}</span>
+                </Button>
+
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold"
+                  onClick={handleSubmitSimulator}
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  <span>Submit Exam</span>
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Main Simulator Viewport */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left 2 Cols: Question & Options */}
+            <div className="lg:col-span-2 space-y-4">
+              <Card className="rounded-xl border border-border/80 bg-card p-6 shadow-xs min-h-[380px] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-border/60">
+                    <span className="text-xs font-mono font-bold text-muted-foreground">
+                      Question {simQuestionIdx + 1} of {SAMPLE_EXAM_QUESTIONS.length}
+                    </span>
+                    <Button
+                      variant={simBookmarks[currentQ.id] ? 'default' : 'ghost'}
+                      size="sm"
+                      className={`h-7 text-xs gap-1 rounded-md ${
+                        simBookmarks[currentQ.id] ? 'bg-purple-600 text-white' : 'text-muted-foreground'
+                      }`}
+                      onClick={handleToggleBookmark}
+                    >
+                      <Bookmark className="h-3.5 w-3.5" />
+                      <span>{simBookmarks[currentQ.id] ? 'Bookmarked' : 'Save for Revision'}</span>
+                    </Button>
+                  </div>
+
+                  <h3 className="text-base font-semibold text-foreground leading-relaxed mb-6">
+                    {currentQ.text}
+                  </h3>
+
+                  {/* Options List (Reference 4 clean card style) */}
+                  <div className="space-y-2.5">
+                    {currentQ.options.map((opt, oIdx) => {
+                      const letter = ['A', 'B', 'C', 'D'][oIdx];
+                      const isSelected = simAnswers[currentQ.id] === oIdx;
+
+                      return (
+                        <div
+                          key={oIdx}
+                          onClick={() => handleSelectSimAnswer(oIdx)}
+                          className={`flex items-center gap-3.5 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-50/70 text-blue-900 dark:border-blue-500 dark:bg-blue-500/15 dark:text-blue-200 font-semibold shadow-xs'
+                              : 'border-border/80 bg-card hover:border-slate-300 dark:hover:border-slate-700 text-foreground'
+                          }`}
+                        >
+                          <div
+                            className={`flex h-7 w-7 items-center justify-center rounded-lg font-bold text-xs shrink-0 border ${
+                              isSelected
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-slate-100 dark:bg-slate-800 border-border text-muted-foreground'
+                            }`}
+                          >
+                            {letter}
+                          </div>
+                          <span className="flex-1 leading-normal">{opt}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Footer Navigation Buttons */}
+                <div className="flex items-center justify-between pt-6 mt-6 border-t border-border/60">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={simQuestionIdx === 0}
+                      onClick={() => setSimQuestionIdx(0)}
+                      className="text-xs h-8 rounded-lg"
+                    >
+                      First
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={simQuestionIdx === 0}
+                      onClick={() => setSimQuestionIdx(simQuestionIdx - 1)}
+                      className="text-xs h-8 rounded-lg"
+                    >
+                      Back
+                    </Button>
+                  </div>
+
+                  <span className="text-xs font-mono font-bold text-foreground">
+                    {simQuestionIdx + 1} / {SAMPLE_EXAM_QUESTIONS.length}
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={simQuestionIdx === SAMPLE_EXAM_QUESTIONS.length - 1}
+                      onClick={() => setSimQuestionIdx(simQuestionIdx + 1)}
+                      className="text-xs h-8 rounded-lg"
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={simQuestionIdx === SAMPLE_EXAM_QUESTIONS.length - 1}
+                      onClick={() => setSimQuestionIdx(SAMPLE_EXAM_QUESTIONS.length - 1)}
+                      className="text-xs h-8 rounded-lg"
+                    >
+                      Last
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Col: Countdown Timer & Question Palette */}
+            <div className="space-y-4">
+              {/* Countdown Timer Card */}
+              <Card className="rounded-xl border border-border/80 bg-card p-5 text-center shadow-xs">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+                  Timer Remaining
+                </span>
+                <div className="text-3xl font-bold font-mono text-blue-600 dark:text-blue-400">
+                  {formatTimer(simSecondsRemaining)}
+                </div>
+                <span className="text-[11px] text-muted-foreground mt-1 block">
+                  Strict 40:00 section countdown
+                </span>
+              </Card>
+
+              {/* Question Palette Card */}
+              <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-xs">
+                <span className="text-xs font-bold text-foreground block mb-3">Question Palette</span>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {SAMPLE_EXAM_QUESTIONS.map((q, idx) => {
+                    const isCurrent = simQuestionIdx === idx;
+                    const isAnswered = simAnswers[q.id] !== undefined;
+                    const isBookmarked = simBookmarks[q.id];
+
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setSimQuestionIdx(idx)}
+                        className={`h-9 w-full rounded-lg font-mono font-bold text-xs flex items-center justify-center border transition-all ${
+                          isCurrent
+                            ? 'ring-2 ring-blue-600 ring-offset-2 border-blue-600'
+                            : ''
+                        } ${
+                          isAnswered
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : isBookmarked
+                            ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300'
+                            : 'bg-slate-100 dark:bg-slate-800 text-muted-foreground border-border'
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/60 space-y-1.5 text-[11px] text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded bg-blue-600" />
+                    <span>Answered ({simAttemptedCount})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded bg-purple-200 dark:bg-purple-900" />
+                    <span>Bookmarked ({Object.values(simBookmarks).filter(Boolean).length})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded bg-slate-200 dark:bg-slate-800" />
+                    <span>Unanswered ({SAMPLE_EXAM_QUESTIONS.length - simAttemptedCount})</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* Results Dialog */}
+          <Dialog open={simSubmitted} onOpenChange={setSimSubmitted}>
+            <DialogContent className="sm:max-w-[440px]">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                  <Award className="h-5 w-5 text-amber-500" />
+                  <span>Exam Performance Report</span>
+                </DialogTitle>
+                <DialogDescription className="text-xs">
+                  Evaluation based on official CAT scoring rules (+3 correct, -1 negative mark).
+                </DialogDescription>
+              </DialogHeader>
+
+              {simResult && (
+                <div className="space-y-4 py-3">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-center">
+                    <span className="text-xs text-muted-foreground uppercase font-semibold">Total Raw Score</span>
+                    <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 font-mono mt-1">
+                      {simResult.total} / 12 Marks
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-lg border border-border/80 bg-slate-50 dark:bg-slate-900/30">
+                      <span className="text-muted-foreground block text-[11px]">Correct Answers</span>
+                      <span className="text-base font-bold text-emerald-600">{simResult.correct} questions (+{simResult.correct * 3})</span>
+                    </div>
+                    <div className="p-3 rounded-lg border border-border/80 bg-slate-50 dark:bg-slate-900/30">
+                      <span className="text-muted-foreground block text-[11px]">Incorrect Answers</span>
+                      <span className="text-base font-bold text-rose-600">{simResult.wrong} questions (-{simResult.wrong})</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex sm:justify-between gap-2">
+                <Button variant="outline" size="sm" onClick={() => setSimSubmitted(false)}>
+                  Close
+                </Button>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleLogSimToMocks}>
+                  Save to Mock Tracker
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* Add / Edit Mock Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="text-base font-bold">
-              {editingMock ? `Log / Edit Mock #${editingMock.mockNumber}` : 'Log New Mock Exam'}
+              {editingMock ? `Edit Mock #${editingMock.mockNumber}` : 'Log New Mock Test'}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Enter attempts and scores for VARC, DILR, and Quant. Total attempts and total score calculate automatically.
+              Record sectional performance, percentile scores, and critical post-mortem takeaways.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveMock} className="space-y-4 py-2">
+          <form onSubmit={handleSaveMock} className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Mock Name / Series</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Series / Provider</label>
                 <Input
-                  placeholder="e.g. SIMCAT 1 or AIMCAT 2027"
+                  placeholder="e.g., AIMCAT 2027-01, SIMCAT 02"
                   value={seriesName}
                   onChange={(e) => setSeriesName(e.target.value)}
-                  required
+                  className="text-xs"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Date</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-foreground">Date Taken</label>
                 <Input
                   type="date"
                   value={testDate}
                   onChange={(e) => setTestDate(e.target.value)}
-                  required
+                  className="text-xs"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5 p-3 rounded-xl border border-border/80 bg-muted/20">
-              <div>
-                <span className="text-xs font-semibold text-purple-400 block mb-1">VARC (40 min)</span>
-                <div className="space-y-1.5">
+            {/* Sectional Scores */}
+            <div className="p-3.5 rounded-xl border border-border/80 bg-slate-50 dark:bg-slate-900/30 space-y-3">
+              <span className="text-xs font-bold text-foreground block">Sectional Attempts & Scores</span>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-blue-600">QA Score</label>
                   <Input
                     type="number"
-                    placeholder="Attempts (0-24)"
-                    min="0"
-                    max="24"
-                    value={varcAttempts || ''}
-                    onChange={(e) => setVarcAttempts(Number(e.target.value))}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Score"
-                    value={varcScore || ''}
-                    onChange={(e) => setVarcScore(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-semibold text-emerald-400 block mb-1">DILR (40 min)</span>
-                <div className="space-y-1.5">
-                  <Input
-                    type="number"
-                    placeholder="Attempts (0-22)"
-                    min="0"
-                    max="22"
-                    value={dilrAttempts || ''}
-                    onChange={(e) => setDilrAttempts(Number(e.target.value))}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Score"
-                    value={dilrScore || ''}
-                    onChange={(e) => setDilrScore(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-semibold text-amber-400 block mb-1">Quant (40 min)</span>
-                <div className="space-y-1.5">
-                  <Input
-                    type="number"
-                    placeholder="Attempts (0-22)"
-                    min="0"
-                    max="22"
-                    value={qaAttempts || ''}
-                    onChange={(e) => setQaAttempts(Number(e.target.value))}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Score"
-                    value={qaScore || ''}
+                    value={qaScore}
                     onChange={(e) => setQaScore(Number(e.target.value))}
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-emerald-600">DILR Score</label>
+                  <Input
+                    type="number"
+                    value={dilrScore}
+                    onChange={(e) => setDilrScore(Number(e.target.value))}
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-amber-600">VARC Score</label>
+                  <Input
+                    type="number"
+                    value={varcScore}
+                    onChange={(e) => setVarcScore(Number(e.target.value))}
+                    className="text-xs"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-mono p-2.5 rounded-lg bg-background border">
-              <span>Total Attempts: <strong>{Number(varcAttempts) + Number(dilrAttempts) + Number(qaAttempts)}</strong></span>
-              <span>Total Score: <strong className="text-purple-700 dark:text-purple-300 text-sm">{Number(varcScore) + Number(dilrScore) + Number(qaScore)}</strong></span>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1">Percentile (Optional)</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground">Percentile (Optional)</label>
               <Input
                 type="number"
-                step="0.1"
-                placeholder="e.g. 88.5"
+                step="0.01"
+                placeholder="e.g., 94.25"
                 value={percentile}
                 onChange={(e) => setPercentile(e.target.value)}
+                className="text-xs"
               />
             </div>
 
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1">Biggest Lesson from this Mock</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-foreground">Biggest Lesson / Strategic Takeaway</label>
               <Textarea
-                placeholder="e.g. Spent 14 min on one DILR set. Rule: switch sets at 8 min if no progress..."
+                placeholder="What was the primary root-cause of lost marks? (e.g., Spent 14 mins on 1 dead-end DILR set)"
                 value={biggestLesson}
                 onChange={(e) => setBiggestLesson(e.target.value)}
                 rows={2}
+                className="text-xs"
               />
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setModalOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="purple" size="sm">Save Mock Record</Button>
+            <DialogFooter className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                Save Evaluation
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

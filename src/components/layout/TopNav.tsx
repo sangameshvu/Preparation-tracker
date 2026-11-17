@@ -7,7 +7,6 @@ import {
   Moon,
   AlertTriangle,
   User,
-  ExternalLink,
   Bot
 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -25,12 +24,9 @@ export const TopNav: React.FC<TopNavProps> = () => {
   const { theme, toggleTheme } = useTheme();
   const { profile, stats, mistakes } = useAppData();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
 
   const formattedDate = format(new Date(), 'EEEE, dd MMMM yyyy');
-
-  const overdueList = mistakes.filter((m) => !m.isSample && !m.reSolved && m.revisitDate < format(new Date(), 'yyyy-MM-dd'));
 
   return (
     <>
@@ -38,13 +34,13 @@ export const TopNav: React.FC<TopNavProps> = () => {
         {/* Left: Date & Status */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 sm:hidden items-center justify-center rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 p-1 shadow-xs">
-              <img src="/logo.png" alt="CAT 2027 HQ Logo" className="h-full w-full object-contain brightness-0 invert" />
+            <div className="flex h-7 w-7 sm:hidden items-center justify-center rounded-lg bg-blue-600 p-1 shadow-xs">
+              <img src="/logo.png" alt="CAT Crack Logo" className="h-full w-full object-contain brightness-0 invert" />
             </div>
             <span className="text-xs font-medium text-foreground tracking-tight hidden sm:inline-block">
               {formattedDate}
             </span>
-            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20">
+            <span className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 font-medium">
               Week {stats.currentWeek} of 52
             </span>
           </div>
@@ -55,7 +51,7 @@ export const TopNav: React.FC<TopNavProps> = () => {
           <button
             type="button"
             onClick={() => navigate('/topics')}
-            className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-border/80 bg-muted/40 hover:bg-muted/70 text-xs text-muted-foreground transition-colors cursor-pointer"
+            className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-lg border border-border/80 bg-muted/40 hover:bg-muted/70 text-xs text-muted-foreground transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <Search className="h-3.5 w-3.5" />
@@ -72,8 +68,7 @@ export const TopNav: React.FC<TopNavProps> = () => {
           {/* Quick-Add Button */}
           <Button
             size="sm"
-            variant="purple"
-            className="h-8 gap-1.5 text-xs font-semibold shadow-sm"
+            className="h-8 gap-1.5 text-xs font-semibold shadow-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
             onClick={() => setQuickAddOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -84,7 +79,7 @@ export const TopNav: React.FC<TopNavProps> = () => {
           {stats.overdueMistakesCount > 0 && (
             <Link
               to="/mistakes"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-red-500/15 text-red-400 border border-red-500/30 font-semibold hover:bg-red-500/25 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30 font-semibold hover:bg-rose-100 transition-colors"
               title={`${stats.overdueMistakesCount} mistakes overdue for re-solving`}
             >
               <AlertTriangle className="h-3.5 w-3.5 animate-bounce" />
@@ -95,10 +90,10 @@ export const TopNav: React.FC<TopNavProps> = () => {
           {/* AI Coach Quick Shortcut */}
           <Link
             to="/ai-coach"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/20 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 transition-colors"
             title="Ask AI Study Coach"
           >
-            <Bot className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+            <Bot className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden md:inline font-semibold">Coach</span>
           </Link>
 
@@ -119,7 +114,7 @@ export const TopNav: React.FC<TopNavProps> = () => {
             className="flex items-center gap-2 pl-2 border-l border-border/80 hover:opacity-80 transition-opacity"
             title="Profile & Settings"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white font-bold text-xs shadow-sm">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-xs shadow-xs">
               {profile.displayName.charAt(0).toUpperCase()}
             </div>
             <span className="text-xs font-medium text-foreground hidden lg:inline max-w-[100px] truncate">

@@ -403,7 +403,7 @@ export const NotesPage: React.FC = () => {
                     className={cn(
                       'px-2.5 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer',
                       sectionFilter === sec
-                        ? 'bg-purple-600 text-white shadow-xs'
+                        ? 'bg-blue-600 text-white shadow-xs'
                         : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >

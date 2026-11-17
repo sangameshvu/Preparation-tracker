@@ -19,6 +19,8 @@ import { NotesPage } from './pages/NotesPage';
 import { StickyBoardPage } from './pages/StickyBoardPage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { AdminPanelPage } from './pages/AdminPanelPage';
+import { HistoryPage } from './pages/HistoryPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
 
 export const App: React.FC = () => {
   return (
@@ -31,6 +33,8 @@ export const App: React.FC = () => {
               <Route path="planner" element={<WeeklyPlannerPage />} />
               <Route path="topics" element={<TopicTrackerPage />} />
               <Route path="mocks" element={<MockTrackerPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="history" element={<HistoryPage />} />
               <Route path="mistakes" element={<MistakeLogPage />} />
               <Route path="resources" element={<FreeResourcesPage />} />
               <Route path="routines" element={<DailyRoutinesPage />} />

@@ -18,13 +18,21 @@ import {
   ChevronDown,
   ChevronUp,
   BrainCircuit,
-  Bookmark
+  Bookmark,
+  Check,
+  Compass,
+  FileText,
+  BarChart2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
 import { Checkbox } from '../components/ui/checkbox';
+import { StatCard } from '../components/ui/StatCard';
+import { CircularProgress } from '../components/ui/CircularProgress';
+import { EmptyState } from '../components/ui/EmptyState';
+import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
 import {
   ResponsiveContainer,
   LineChart,
@@ -38,27 +46,38 @@ import {
   Pie,
   Cell,
   Legend,
-  CartesianGrid,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar
+  CartesianGrid
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { QuickAddModal } from '../components/layout/QuickAddModal';
 import { SectionType } from '../types';
 
 export const HomePage: React.FC = () => {
-  const { stats, weeklyPlans, tasks, updateTask, topics, topicProgress, mockTests, mistakes, guideSections } = useAppData();
+  const {
+    profile,
+    stats,
+    weeklyPlans,
+    tasks,
+    updateTask,
+    topics,
+    topicProgress,
+    mockTests,
+    mistakes,
+    guideSections,
+    dailyGoals,
+    toggleDailyGoal,
+    activities
+  } = useAppData();
+
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [blueprintExpanded, setBlueprintExpanded] = useState(true);
+  const [activeChartTab, setActiveChartTab] = useState<'hours' | 'mocks' | 'confidence' | 'mistakes'>('hours');
+  const [blueprintExpanded, setBlueprintExpanded] = useState(false);
   const navigate = useNavigate();
 
   // Active weekly plan
   const activePlan = weeklyPlans.find((p) => p.weekNumber === stats.currentWeek) || weeklyPlans[0];
 
-  // Subject-wise progress counts
+  // Subject-wise statistics
   const quantTopics = topics.filter((t) => t.section === 'Quant');
   const dilrTopics = topics.filter((t) => t.section === 'DILR');
   const varcTopics = topics.filter((t) => t.section === 'VARC');
@@ -94,8 +113,8 @@ export const HomePage: React.FC = () => {
   const dilrStats = getSectionStats(dilrTopics);
   const varcStats = getSectionStats(varcTopics);
 
-  // Confidence distribution for chart
-  const confidenceCounts = [0, 0, 0, 0, 0]; // 1, 2, 3, 4, 5
+  // Confidence distribution
+  const confidenceCounts = [0, 0, 0, 0, 0];
   Object.values(topicProgress).forEach((tp) => {
     if (tp.confidence >= 1 && tp.confidence <= 5) {
       confidenceCounts[tp.confidence - 1]++;
@@ -107,10 +126,10 @@ export const HomePage: React.FC = () => {
     { level: 'L2: Weak', count: confidenceCounts[1], fill: '#F97316' },
     { level: 'L3: Average', count: confidenceCounts[2], fill: '#F59E0B' },
     { level: 'L4: Good', count: confidenceCounts[3], fill: '#10B981' },
-    { level: 'L5: Strong', count: confidenceCounts[4], fill: '#0EA5E9' },
+    { level: 'L5: Strong', count: confidenceCounts[4], fill: '#2563EB' },
   ];
 
-  // Mistake category distribution
+  // Mistake distribution
   const mistakeCounts: Record<string, number> = {};
   mistakes.forEach((m) => {
     mistakeCounts[m.mistakeType] = (mistakeCounts[m.mistakeType] || 0) + 1;
@@ -121,23 +140,16 @@ export const HomePage: React.FC = () => {
     value,
   }));
 
-  const MISTAKE_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#F43F5E', '#06B6D4', '#EC4899'];
+  const MISTAKE_COLORS = ['#2563EB', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4', '#8B5CF6'];
 
-  // Radar Subject Comparison Data
-  const radarData = [
-    { subject: 'Quant (Math)', score: quantStats.pct, fullMark: 100 },
-    { subject: 'DILR (Logic & Data)', score: dilrStats.pct, fullMark: 100 },
-    { subject: 'VARC (Verbal & RC)', score: varcStats.pct, fullMark: 100 },
-  ];
-
-  // Weekly study hours comparison (sampled across phases)
-  const hoursData = weeklyPlans.slice(0, 16).map((w) => ({
+  // Weekly study hours data
+  const hoursData = weeklyPlans.slice(0, 12).map((w) => ({
     week: `W${w.weekNumber}`,
-    target: parseInt(w.hoursTarget.split('–')[0], 10) || 12,
-    logged: w.actualHoursLogged || (w.weekNumber < stats.currentWeek ? 10 : 0),
+    target: parseInt(w.hoursTarget.split('–')[0], 10) || 14,
+    logged: w.actualHoursLogged || (w.weekNumber < stats.currentWeek ? 12 : 0),
   }));
 
-  // Mock score trajectory
+  // Mock scores progression
   const mockChartData = mockTests
     .filter((m) => !m.isSample && m.totalScore !== undefined)
     .map((m) => ({
@@ -148,618 +160,629 @@ export const HomePage: React.FC = () => {
       QA: m.qaScore,
     }));
 
+  // Today's goals calculation
+  const completedGoalsCount = dailyGoals.filter((g) => g.completed).length;
+  const dailyGoalsPct = dailyGoals.length > 0 ? Math.round((completedGoalsCount / dailyGoals.length) * 100) : 0;
+
   return (
     <div className="space-y-6 pb-12">
-      {/* SECTION A: PREPARATION OVERVIEW HERO BAR */}
-      <div className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-br from-card via-card to-purple-950/20 p-6 shadow-md">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Progress Ring & Main Metrics */}
-          <div className="flex items-center gap-5">
-            <div className="relative flex h-20 w-20 items-center justify-center shrink-0">
-              <svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-secondary stroke-current"
-                  strokeWidth="3.5"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="text-purple-500 stroke-current transition-all duration-1000 ease-out"
-                  strokeDasharray={`${stats.overallCompletionPct}, 100`}
-                  strokeLinecap="round"
-                  strokeWidth="3.5"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="font-mono text-base font-extrabold text-foreground tracking-tight">
-                  {stats.overallCompletionPct}%
-                </span>
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Done</span>
-              </div>
+      {/* 1. HERO COMMAND BANNER (Inspired by Cognify & Apple) */}
+      <div className="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 md:p-8 text-white shadow-sm dark:border-blue-900/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2 max-w-xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/15 text-white backdrop-blur-xs border border-white/20">
+                <Sparkles className="h-3 w-3 text-amber-300" />
+                Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}
+              </span>
+              <span className="text-xs font-mono text-blue-100">Week {stats.currentWeek} of 52</span>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex h-5 w-5 items-center justify-center rounded bg-purple-600 p-0.5 shadow-xs">
-                  <img src="/logo.png" alt="CAT 2027 HQ Logo" className="h-full w-full object-contain brightness-0 invert" />
-                </div>
-                <Badge variant="purple" className="font-mono text-[10px] uppercase font-bold">
-                  Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}
-                </Badge>
-                <Badge variant="outline" className="font-mono text-[10px]">
-                  Week {stats.currentWeek} / 52
-                </Badge>
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                CAT 2027 Command Centre
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Target Date: 28 Nov 2027 • <strong className="text-purple-700 dark:text-purple-400 font-mono">{stats.daysRemaining} days</strong> remaining
-              </p>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+              Welcome back, {profile.displayName}
+            </h1>
+            <p className="text-sm text-blue-100/90 leading-relaxed">
+              Target Exam Date: 28 Nov 2027 • <strong className="text-white font-mono">{stats.daysRemaining} days</strong> remaining.
+              Stay consistent: daily deliberate practice builds 99th percentile mastery.
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <Button
+                size="sm"
+                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold shadow-xs gap-1.5 rounded-lg text-xs"
+                onClick={() => navigate('/planner')}
+              >
+                <span>Continue Study Plan</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs rounded-lg gap-1.5"
+                onClick={() => setQuickAddOpen(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Quick Log</span>
+              </Button>
             </div>
           </div>
 
-          {/* Key Metric Blocks */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-xl border border-border/70 bg-background/50">
-              <span className="text-[11px] text-muted-foreground font-medium block">Completed Topics</span>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-lg font-bold font-mono text-emerald-400">{stats.completedTopics}</span>
-                <span className="text-xs text-muted-foreground font-mono">/ 53</span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl border border-border/70 bg-background/50">
-              <span className="text-[11px] text-muted-foreground font-medium block">In Progress</span>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-lg font-bold font-mono text-amber-400">{stats.inProgressTopics}</span>
-                <span className="text-xs text-muted-foreground font-mono">topics</span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl border border-border/70 bg-background/50">
-              <span className="text-[11px] text-muted-foreground font-medium block">Revision Priority</span>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-lg font-bold font-mono text-red-400">{stats.weakTopicsCount}</span>
-                <span className="text-xs text-muted-foreground font-mono">conf ≤ 2</span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl border border-border/70 bg-background/50">
-              <span className="text-[11px] text-muted-foreground font-medium block">Mock Score Trend</span>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-lg font-bold font-mono text-purple-400">
-                  {stats.totalMocksAttempted > 0 ? stats.latestMockScore : '–'}
-                </span>
-                <span className="text-xs text-muted-foreground font-mono">
-                  {stats.totalMocksAttempted > 0 ? `(Avg ${stats.averageMockScore})` : '0 mocks'}
-                </span>
-              </div>
+          {/* Progress Ring Card */}
+          <div className="flex items-center gap-5 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 self-start md:self-auto shrink-0">
+            <CircularProgress
+              value={stats.overallCompletionPct}
+              size={84}
+              strokeWidth={7}
+              color="text-white"
+              trackColor="text-white/20"
+              label={`${stats.overallCompletionPct}%`}
+              sublabel="Done"
+            />
+            <div className="flex flex-col text-xs space-y-1">
+              <span className="text-blue-100 text-[11px] font-medium uppercase tracking-wider">Overall Syllabus</span>
+              <span className="font-bold text-base text-white">{stats.completedTopics} of 53 Topics</span>
+              <span className="text-[11px] text-blue-200">{stats.inProgressTopics} topics in active review</span>
             </div>
           </div>
         </div>
+
+        {/* Ambient subtle glow */}
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
       </div>
 
-      {/* SECTION B & C: TODAY'S FOCUS & WEEKLY SPRINT */}
+      {/* 2. RESTRAINED KEY METRICS BAR (4 Clean StatCards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Weekly Target"
+          value={activePlan.hoursTarget}
+          subtitle={`Week ${stats.currentWeek} Sprint`}
+          icon={<Clock className="h-4 w-4" />}
+          badge={activePlan.isBufferWeek ? 'Buffer Week' : 'Core Phase'}
+          badgeVariant="info"
+          onClick={() => navigate('/planner')}
+        />
+        <StatCard
+          title="Completed Topics"
+          value={`${stats.completedTopics}/53`}
+          subtitle={`${stats.inProgressTopics} in progress`}
+          icon={<CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
+          badge={`${Math.round((stats.completedTopics / 53) * 100)}%`}
+          badgeVariant="success"
+          onClick={() => navigate('/topics')}
+        />
+        <StatCard
+          title="Mock Average"
+          value={stats.totalMocksAttempted > 0 ? (stats.averageMockScore ?? '–') : '–'}
+          subtitle={stats.totalMocksAttempted > 0 ? `${stats.totalMocksAttempted} tests logged` : 'No mocks yet'}
+          icon={<Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+          badge={stats.totalMocksAttempted > 0 ? `Best: ${stats.bestMockScore}` : 'Start Prep'}
+          badgeVariant="warning"
+          onClick={() => navigate('/mocks')}
+        />
+        <StatCard
+          title="Revision Priority"
+          value={stats.weakTopicsCount}
+          subtitle={stats.overdueMistakesCount > 0 ? `${stats.overdueMistakesCount} mistakes overdue` : 'Topics with conf ≤ 2'}
+          icon={<AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />}
+          badge={stats.weakTopicsCount > 0 ? 'Action Needed' : 'On Track'}
+          badgeVariant={stats.weakTopicsCount > 0 ? 'destructive' : 'success'}
+          onClick={() => navigate('/mistakes')}
+        />
+      </div>
+
+      {/* 3. MAIN DASHBOARD GRID: TODAY'S FOCUS & SUBJECT PERFORMANCE */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's Focus (2 Cols) */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Target className="h-4 w-4 text-purple-400" />
-                <span>Today's Study Checklist</span>
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Derived dynamically from Week {stats.currentWeek} targets and active mistake revisits.
-              </CardDescription>
-            </div>
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => setQuickAddOpen(true)}>
-              <Plus className="h-3 w-3" />
-              <span>Add Task</span>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {tasks.length === 0 ? (
-              <div className="p-6 text-center text-xs text-muted-foreground border border-dashed rounded-lg">
-                No tasks logged for today. Click "Add Task" to schedule your sprint!
+        {/* Left 2 Cols: Today's Study Plan & Daily Goals */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between border-b border-border/60">
+              <div>
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span>Today's Study Checklist</span>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Active sprint tasks based on Week {stats.currentWeek} targets and spaced revision.
+                </CardDescription>
               </div>
-            ) : (
-              tasks.slice(0, 5).map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-2.5 rounded-lg border border-border/70 bg-muted/20 hover:bg-muted/40 transition-colors"
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs gap-1 rounded-lg border-border"
+                  onClick={() => setQuickAddOpen(true)}
                 >
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={task.status === 'Completed'}
-                      onCheckedChange={(checked) =>
-                        updateTask(task.id, {
-                          status: checked ? 'Completed' : 'In Progress',
-                          completedAt: checked ? new Date().toISOString() : undefined,
-                        })
-                      }
-                    />
-                    <div className="flex flex-col">
-                      <span
-                        className={`text-xs font-medium ${
-                          task.status === 'Completed' ? 'line-through text-muted-foreground' : 'text-foreground'
-                        }`}
-                      >
-                        {task.title}
-                      </span>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
-                        <Badge
-                          variant={
-                            task.section === 'Quant' ? 'quant' : task.section === 'DILR' ? 'dilr' : task.section === 'VARC' ? 'varc' : 'secondary'
-                          }
-                          className="text-[9px] px-1.5 py-0"
-                        >
-                          {task.section}
-                        </Badge>
-                        <span>{task.estimatedMinutes} mins est.</span>
-                        {task.priority === 'Urgent' && (
-                          <span className="text-red-400 font-semibold">• Urgent</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={task.status === 'Completed' ? 'success' : 'outline'}
-                      className="text-[10px]"
-                    >
-                      {task.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))
-            )}
-
-            <div className="pt-2 flex justify-between items-center text-xs text-muted-foreground">
-              <span>{tasks.filter((t) => t.status === 'Completed').length} of {tasks.length} tasks completed</span>
-              <Link to="/planner" className="text-purple-400 hover:underline flex items-center gap-1 font-medium text-xs">
-                Open Weekly Planner <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Weekly Progress Sprint (1 Col) */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-purple-400" />
-              <span>Week {stats.currentWeek} Sprint Targets</span>
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Target: <strong className="text-foreground">{activePlan.hoursTarget} hrs/week</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Weekly Completion</span>
-                <span className="font-mono font-bold text-purple-400">
-                  {activePlan.status === 'Done' ? '100%' : 'In Progress'}
-                </span>
-              </div>
-              <Progress value={activePlan.status === 'Done' ? 100 : 35} className="h-2" />
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="p-2 rounded-lg border border-border/70 bg-purple-500/5">
-                <span className="font-semibold text-purple-400 block text-[11px]">Quant Syllabus</span>
-                <p className="text-muted-foreground text-[11px] line-clamp-2 mt-0.5">{activePlan.quantPlan}</p>
-              </div>
-
-              <div className="p-2 rounded-lg border border-border/70 bg-emerald-500/5">
-                <span className="font-semibold text-emerald-400 block text-[11px]">DILR Syllabus</span>
-                <p className="text-muted-foreground text-[11px] line-clamp-2 mt-0.5">{activePlan.dilrPlan}</p>
-              </div>
-
-              <div className="p-2 rounded-lg border border-border/70 bg-amber-500/5">
-                <span className="font-semibold text-amber-400 block text-[11px]">VARC Syllabus</span>
-                <p className="text-muted-foreground text-[11px] line-clamp-2 mt-0.5">{activePlan.varcPlan}</p>
-              </div>
-            </div>
-
-            {activePlan.testsPlanned && (
-              <div className="text-[11px] p-2 rounded-lg bg-secondary/50 border border-border/50 text-foreground">
-                <strong>Tests scheduled:</strong> {activePlan.testsPlanned}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* SECTION D: SUBJECT PERFORMANCE CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* QA Card */}
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-foreground">Quantitative Aptitude (QA)</CardTitle>
-              <Badge variant="quant">25 Topics</Badge>
-            </div>
-            <CardDescription className="text-xs">Arithmetic, Algebra, Geometry, Numbers & Modern Maths</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Syllabus Mastered</span>
-                <span className="font-mono font-bold text-purple-400">{quantStats.completed} / {quantStats.total}</span>
-              </div>
-              <Progress value={quantStats.pct} indicatorClassName="bg-purple-500" />
-            </div>
-
-            <div className="flex justify-between text-xs font-mono pt-1">
-              <span className="text-muted-foreground">Avg Confidence:</span>
-              <strong className="text-foreground">{quantStats.avgConfidence} / 5.0</strong>
-            </div>
-
-            {quantStats.weakList.length > 0 && (
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium text-red-400">Revision Focus:</span> {quantStats.weakList.join(', ')}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* DILR Card */}
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-foreground">Data Interpretation & LR</CardTitle>
-              <Badge variant="dilr">18 Topics</Badge>
-            </div>
-            <CardDescription className="text-xs">Tables, Caselets, Arrangements, Games & Puzzles</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Syllabus Mastered</span>
-                <span className="font-mono font-bold text-emerald-400">{dilrStats.completed} / {dilrStats.total}</span>
-              </div>
-              <Progress value={dilrStats.pct} indicatorClassName="bg-emerald-500" />
-            </div>
-
-            <div className="flex justify-between text-xs font-mono pt-1">
-              <span className="text-muted-foreground">Avg Confidence:</span>
-              <strong className="text-foreground">{dilrStats.avgConfidence} / 5.0</strong>
-            </div>
-
-            {dilrStats.weakList.length > 0 && (
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium text-red-400">Revision Focus:</span> {dilrStats.weakList.join(', ')}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* VARC Card */}
-        <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-foreground">Verbal Ability & RC</CardTitle>
-              <Badge variant="varc">10 Topics</Badge>
-            </div>
-            <CardDescription className="text-xs">Reading Comprehension, Summaries, Jumbles & Inferences</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Syllabus Mastered</span>
-                <span className="font-mono font-bold text-amber-400">{varcStats.completed} / {varcStats.total}</span>
-              </div>
-              <Progress value={varcStats.pct} indicatorClassName="bg-amber-500" />
-            </div>
-
-            <div className="flex justify-between text-xs font-mono pt-1">
-              <span className="text-muted-foreground">Avg Confidence:</span>
-              <strong className="text-foreground">{varcStats.avgConfidence} / 5.0</strong>
-            </div>
-
-            {varcStats.weakList.length > 0 && (
-              <div className="text-[11px] text-muted-foreground">
-                <span className="font-medium text-red-400">Revision Focus:</span> {varcStats.weakList.join(', ')}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* SECTION E: PERFORMANCE VISUALIZATIONS (6 RECHARTS PANELS) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Chart 1: Subject Progress Radar */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Subject Mastery Balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#374151" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#6B7280', fontSize: 9 }} />
-                <Radar name="Completion %" dataKey="score" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.4} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Chart 2: Confidence Rating Breakdown */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              5-Level Confidence Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={confidenceChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis dataKey="level" tick={{ fill: '#9CA3AF', fontSize: 9 }} />
-                <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {confidenceChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Chart 3: Mistake Category Distribution */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Mistake Root-Cause Categories
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            {mistakeChartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                No mistakes logged yet.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={mistakeChartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={70}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {mistakeChartData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={MISTAKE_COLORS[index % MISTAKE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '10px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Chart 4: Planned vs Logged Hours */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Weekly Study Hours: Target vs Actual (Phase 1–2)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={hoursData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis dataKey="week" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Bar dataKey="target" name="Target (hrs)" fill="#374151" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="logged" name="Logged (hrs)" fill="#8B5CF6" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Chart 5: Mock Score Progression */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Mock Score Trajectory
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            {mockChartData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                <Trophy className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                <span className="text-xs text-muted-foreground">No genuine mocks logged yet.</span>
-                <Button size="sm" variant="outline" className="mt-3 text-xs" onClick={() => navigate('/mocks')}>
-                  Log First Mock
+                  <Plus className="h-3 w-3" />
+                  <span>Add Task</span>
                 </Button>
               </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                  <XAxis dataKey="name" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <YAxis tick={{ fill: '#9CA3AF', fontSize: 10 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px', fontSize: '11px' }}
-                  />
-                  <Line type="monotone" dataKey="Total" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-2.5">
+              {tasks.length === 0 ? (
+                <EmptyState
+                  title="No active tasks today"
+                  description="Your checklist is empty for today. Create your first task to start your study sprint!"
+                  actionLabel="Add Study Task"
+                  onAction={() => setQuickAddOpen(true)}
+                />
+              ) : (
+                tasks.slice(0, 4).map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={task.status === 'Completed'}
+                        onCheckedChange={(checked) =>
+                          updateTask(task.id, {
+                            status: checked ? 'Completed' : 'In Progress',
+                            completedAt: checked ? new Date().toISOString() : undefined,
+                          })
+                        }
+                        className="h-4 w-4 rounded"
+                      />
+                      <div className="flex flex-col">
+                        <span
+                          className={`text-xs font-semibold ${
+                            task.status === 'Completed' ? 'line-through text-muted-foreground' : 'text-foreground'
+                          }`}
+                        >
+                          {task.title}
+                        </span>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                              task.section === 'Quant'
+                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
+                                : task.section === 'DILR'
+                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                                : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                            }`}
+                          >
+                            {task.section}
+                          </span>
+                          <span>•</span>
+                          <span>{task.estimatedMinutes} mins</span>
+                          <span>•</span>
+                          <span className={task.priority === 'High' ? 'text-rose-600 font-medium' : ''}>
+                            {task.priority} Priority
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {task.status !== 'Completed' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                          onClick={() =>
+                            updateTask(task.id, {
+                              status: 'Completed',
+                              completedAt: new Date().toISOString(),
+                            })
+                          }
+                        >
+                          Done
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {tasks.length > 4 && (
+                <div className="text-center pt-2">
+                  <Link to="/planner" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                    View all {tasks.length} tasks in Study Planner →
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Daily Goals Strip */}
+          <Card className="rounded-xl border border-border/80 bg-card p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Flame className="h-4 w-4 text-amber-500" />
+                <span className="text-xs font-bold text-foreground">Today's Daily Goals ({completedGoalsCount}/{dailyGoals.length})</span>
+              </div>
+              <span className="text-xs font-mono text-muted-foreground">{dailyGoalsPct}% Achieved</span>
+            </div>
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mb-3">
+              <div className="bg-blue-600 h-full transition-all duration-500" style={{ width: `${dailyGoalsPct}%` }} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {dailyGoals.map((goal) => (
+                <div
+                  key={goal.id}
+                  onClick={() => toggleDailyGoal(goal.id)}
+                  className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                    goal.completed
+                      ? 'border-emerald-200 bg-emerald-50/60 text-emerald-900 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
+                      : 'border-border/70 bg-card hover:border-slate-300 text-foreground'
+                  }`}
+                >
+                  <div
+                    className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 border ${
+                      goal.completed ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600'
+                    }`}
+                  >
+                    {goal.completed && <Check className="h-2.5 w-2.5" />}
+                  </div>
+                  <span className={`truncate flex-1 text-[11px] ${goal.completed ? 'line-through opacity-80' : ''}`}>
+                    {goal.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Col: Subject Mastery & Weak Areas */}
+        <div className="space-y-6">
+          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
+            <CardHeader className="pb-3 border-b border-border/60">
+              <CardTitle className="text-base font-bold">Subject Mastery</CardTitle>
+              <CardDescription className="text-xs">
+                Syllabus completion & average student confidence (1 to 5).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              {/* Quant */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-blue-600" />
+                    Quantitative Aptitude
+                  </span>
+                  <span className="font-mono font-bold text-foreground">{quantStats.pct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="bg-blue-600 h-full transition-all duration-500" style={{ width: `${quantStats.pct}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>{quantStats.completed} / {quantStats.total} topics</span>
+                  <span>Confidence: {quantStats.avgConfidence}/5.0</span>
+                </div>
+              </div>
+
+              {/* DILR */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                    Data Interpretation & LR
+                  </span>
+                  <span className="font-mono font-bold text-foreground">{dilrStats.pct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="bg-emerald-600 h-full transition-all duration-500" style={{ width: `${dilrStats.pct}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>{dilrStats.completed} / {dilrStats.total} topics</span>
+                  <span>Confidence: {dilrStats.avgConfidence}/5.0</span>
+                </div>
+              </div>
+
+              {/* VARC */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-amber-600" />
+                    Verbal Ability & RC
+                  </span>
+                  <span className="font-mono font-bold text-foreground">{varcStats.pct}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="bg-amber-600 h-full transition-all duration-500" style={{ width: `${varcStats.pct}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-muted-foreground">
+                  <span>{varcStats.completed} / {varcStats.total} topics</span>
+                  <span>Confidence: {varcStats.avgConfidence}/5.0</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-border/60">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs rounded-lg border-border"
+                  onClick={() => navigate('/topics')}
+                >
+                  Explore All Topics & Syllabi →
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity Card */}
+          <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
+            <CardHeader className="pb-2.5 flex flex-row items-center justify-between border-b border-border/60">
+              <CardTitle className="text-sm font-bold">Recent Activity</CardTitle>
+              <Link to="/history" className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                View all →
+              </Link>
+            </CardHeader>
+            <CardContent className="pt-3 space-y-2.5">
+              {activities.slice(0, 3).map((act) => (
+                <div key={act.id} className="flex items-start gap-2.5 text-xs">
+                  <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-foreground text-[11px] leading-tight">{act.title}</span>
+                    <span className="text-[10px] text-muted-foreground">{act.date} • {act.section || 'General'}</span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* SECTION F: QUICK ACTIONS */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Preparation Shortcuts:
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setQuickAddOpen(true)}>
-                <Plus className="h-3.5 w-3.5 text-purple-400" />
-                <span>Log Mock</span>
-              </Button>
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setQuickAddOpen(true)}>
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-                <span>Record Mistake</span>
-              </Button>
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => navigate('/topics')}>
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Update Topics</span>
-              </Button>
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => setQuickAddOpen(true)}>
-                <Bookmark className="h-3.5 w-3.5 text-blue-400" />
-                <span>Sticky Note</span>
-              </Button>
-              <Button size="sm" variant="purple" className="h-8 text-xs gap-1.5" onClick={() => navigate('/ai-coach')}>
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Consult AI Coach</span>
-              </Button>
-            </div>
+      {/* 4. ANALYTICS HUB WITH TABBED PROGRESSIVE DISCLOSURE (Decluttered!) */}
+      <Card className="rounded-xl border border-border/80 bg-card shadow-xs">
+        <CardHeader className="pb-3 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <BarChart2 className="h-4 w-4 text-blue-600" />
+              <span>Performance Analytics & Visual Insights</span>
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Toggle between views to inspect study volume, mock trajectories, and concept confidence.
+            </CardDescription>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* SECTION G: CAT PREPARATION BLUEPRINT (PDF INTEGRATION) */}
-      <Card className="border-purple-500/20 bg-card/60 backdrop-blur-sm">
-        <CardHeader className="cursor-pointer select-none" onClick={() => setBlueprintExpanded(!blueprintExpanded)}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-bold text-foreground">
-                  Your CAT 2027 Preparation Blueprint
-                </CardTitle>
-                <Badge variant="purple" className="text-[10px]">PDF Source Integrated</Badge>
-              </div>
-              <CardDescription className="text-xs mt-0.5">
-                Complete preparation strategies, sectional targets, and daily distribution extracted from `CAT Preparation.pdf`.
-              </CardDescription>
-            </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              {blueprintExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
+          {/* Clean Segmented Control Tabs */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setActiveChartTab('hours')}
+              className={`px-3 py-1 rounded-md font-medium transition-all ${
+                activeChartTab === 'hours'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Study Hours
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChartTab('mocks')}
+              className={`px-3 py-1 rounded-md font-medium transition-all ${
+                activeChartTab === 'mocks'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Mock Scores
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChartTab('confidence')}
+              className={`px-3 py-1 rounded-md font-medium transition-all ${
+                activeChartTab === 'confidence'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Confidence
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveChartTab('mistakes')}
+              className={`px-3 py-1 rounded-md font-medium transition-all ${
+                activeChartTab === 'mistakes'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Mistakes
+            </button>
           </div>
         </CardHeader>
 
-        {blueprintExpanded && (
-          <CardContent className="space-y-6 pt-0">
-            {/* Quick Visual Exam Structure */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl border border-border/80 bg-muted/20">
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">Total Duration & Format</span>
-                <p className="text-sm font-bold text-foreground">120 Minutes (2 Hours)</p>
-                <p className="text-xs text-muted-foreground">3 sequential sections • 40 min each</p>
+        <CardContent className="pt-6">
+          {activeChartTab === 'hours' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Target vs Logged Study Hours (Weeks 1 to 12)</span>
+                <span className="font-mono">Weekly Avg: 14 hrs</span>
               </div>
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Question Proportions</span>
-                <p className="text-sm font-bold text-foreground">68 Total Questions</p>
-                <p className="text-xs text-muted-foreground">49 MCQs • 17 Non-MCQ TITA</p>
-              </div>
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Marking Scheme</span>
-                <p className="text-sm font-bold text-foreground">+3 Correct / -1 Wrong</p>
-                <p className="text-xs text-muted-foreground">Zero negative marking on TITA</p>
-              </div>
-            </div>
-
-            {/* 90% Target Strategy Box */}
-            <div className="p-4 rounded-xl border border-border/80 bg-background/50">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-400">
-                  Target Score Benchmarks for 90%+ (PDF Recommended Bare Minimum)
-                </h4>
-                <span className="text-[10px] text-muted-foreground">Document-derived target guidelines</span>
-              </div>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/50">
-                  <span className="text-[11px] text-muted-foreground block">VARC Minimum</span>
-                  <strong className="text-base font-mono font-bold text-foreground">15 – 20</strong>
-                  <span className="text-[10px] text-muted-foreground block">Net Score</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/50">
-                  <span className="text-[11px] text-muted-foreground block">DILR Minimum</span>
-                  <strong className="text-base font-mono font-bold text-foreground">10</strong>
-                  <span className="text-[10px] text-muted-foreground block">Net Score</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-secondary/40 border border-border/50">
-                  <span className="text-[11px] text-muted-foreground block">QA Minimum</span>
-                  <strong className="text-base font-mono font-bold text-foreground">5+</strong>
-                  <span className="text-[10px] text-muted-foreground block">Net Score</span>
-                </div>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={hoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1E293B',
+                        borderColor: '#334155',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#FFF'
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                    <Bar dataKey="target" name="Target Hours" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="logged" name="Logged Hours" fill="#2563EB" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
+          )}
 
-            {/* Weekly Routine Schedule */}
+          {activeChartTab === 'mocks' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Total & Sectional Score Progression Across Mocks</span>
+                <span className="font-mono">{stats.totalMocksAttempted} Mocks Attempted</span>
+              </div>
+              <div className="h-64 w-full">
+                {mockChartData.length === 0 ? (
+                  <EmptyState
+                    title="No mock test scores logged yet"
+                    description="Log your first diagnostic or sectional test in the Mock Tracker to see your score trajectory."
+                    actionLabel="Log a Mock Test"
+                    onAction={() => navigate('/mocks')}
+                  />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1E293B',
+                          borderColor: '#334155',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          color: '#FFF'
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                      <Line type="monotone" dataKey="Total" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="QA" stroke="#8B5CF6" strokeWidth={1.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="DILR" stroke="#10B981" strokeWidth={1.5} dot={{ r: 3 }} />
+                      <Line type="monotone" dataKey="VARC" stroke="#F59E0B" strokeWidth={1.5} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeChartTab === 'confidence' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Distribution of Confidence Ratings Across 53 Canonical Topics</span>
+                <span className="font-mono">5 Levels</span>
+              </div>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={confidenceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="level" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1E293B',
+                        borderColor: '#334155',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#FFF'
+                      }}
+                    />
+                    <Bar dataKey="count" name="Topics" radius={[4, 4, 0, 0]}>
+                      {confidenceChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {activeChartTab === 'mistakes' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Root-Cause Categorization of Logged Errors</span>
+                <span className="font-mono">{mistakes.length} Mistakes Recorded</span>
+              </div>
+              <div className="h-64 w-full flex items-center justify-center">
+                {mistakeChartData.length === 0 ? (
+                  <EmptyState
+                    title="No mistakes recorded yet"
+                    description="Keep your error log updated after analyzing tests to fix blind spots."
+                    actionLabel="Record Mistake"
+                    onAction={() => navigate('/mistakes')}
+                  />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={mistakeChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {mistakeChartData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={MISTAKE_COLORS[index % MISTAKE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1E293B',
+                          borderColor: '#334155',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          color: '#FFF'
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 5. COLLAPSIBLE PREPARATION BLUEPRINT (PDF Content Preserved, Accessible without clutter) */}
+      <Card className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs">
+        <div
+          onClick={() => setBlueprintExpanded(!blueprintExpanded)}
+          className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+              <Compass className="h-4 w-4" />
+            </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                Weekly Subject Distribution
-              </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-center text-xs">
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Mon</strong>
-                  <span className="text-[10px] text-muted-foreground">Arith + DILR + RC</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Tue</strong>
-                  <span className="text-[10px] text-muted-foreground">Alg + DILR + VA</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Wed</strong>
-                  <span className="text-[10px] text-muted-foreground">Arith + DILR + RC</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Thu</strong>
-                  <span className="text-[10px] text-muted-foreground">Geo + DILR + VA</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-purple-700 dark:text-purple-400 block text-[11px]">Fri</strong>
-                  <span className="text-[10px] text-muted-foreground">NumSys + DILR + RC</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-emerald-700 dark:text-emerald-400 block text-[11px]">Sat</strong>
-                  <span className="text-[10px] text-muted-foreground">Mixed QA + Sectionals</span>
-                </div>
-                <div className="p-2 rounded-lg border border-border/70 bg-card">
-                  <strong className="text-amber-700 dark:text-amber-400 block text-[11px]">Sun</strong>
-                  <span className="text-[10px] text-muted-foreground">Mock + 3h Analysis</span>
+              <h3 className="text-sm font-bold text-foreground">Your CAT 2027 Preparation Blueprint</h3>
+              <p className="text-xs text-muted-foreground">
+                Official strategic guidelines, section timing rules, and 90th percentile targets extracted from CAT Preparation.pdf.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground">
+              <span>{blueprintExpanded ? 'Hide Blueprint' : 'Expand Blueprint'}</span>
+              {blueprintExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {blueprintExpanded && (
+          <div className="p-6 border-t border-border/70 space-y-6 bg-slate-50/30 dark:bg-slate-900/10">
+            {guideSections.slice(0, 3).map((sec) => (
+              <div key={sec.id} className="p-4 rounded-xl border border-border/70 bg-card">
+                <h4 className="text-sm font-bold text-foreground mb-2">{sec.title}</h4>
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  <MarkdownRenderer content={sec.contentMarkdown} />
                 </div>
               </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => navigate('/guide')}>
-                <span>View Complete Preparation Blueprint</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+            ))}
+            <div className="text-center pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs rounded-lg"
+                onClick={() => navigate('/guide')}
+              >
+                Open Complete Preparation Guide Page →
               </Button>
             </div>
-          </CardContent>
+          </div>
         )}
       </Card>
 

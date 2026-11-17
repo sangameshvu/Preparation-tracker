@@ -14,7 +14,10 @@ import {
   Bookmark,
   ShieldAlert,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Flame,
+  Check,
+  Trash2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
@@ -23,18 +26,40 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { WeekStatus, TaskStatus, PriorityType, SectionType, StudyTask } from '../types';
 
 export const WeeklyPlannerPage: React.FC = () => {
-  const { weeklyPlans, updateWeeklyPlan, tasks, addTask, updateTask, deleteTask, stats } = useAppData();
+  const {
+    weeklyPlans,
+    updateWeeklyPlan,
+    tasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    stats,
+    dailyGoals,
+    addDailyGoal,
+    toggleDailyGoal,
+    deleteDailyGoal
+  } = useAppData();
+
   const [selectedWeekNum, setSelectedWeekNum] = useState<number>(stats.currentWeek);
   const [viewMode, setViewMode] = useState<'weekly' | 'calendar' | 'kanban' | 'table'>('weekly');
   const [phaseFilter, setPhaseFilter] = useState<string>('all');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskSection, setNewTaskSection] = useState<SectionType>('Quant');
 
+  // New Daily Goal State
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalSection, setNewGoalSection] = useState<SectionType>('Quant');
+  const [newGoalMinutes, setNewGoalMinutes] = useState(45);
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
+
   const selectedPlan = weeklyPlans.find((w) => w.weekNumber === selectedWeekNum) || weeklyPlans[0];
-  const weekTasks = tasks.filter((t) => t.weeklyPlanId === selectedPlan.id || (!t.weeklyPlanId && selectedPlan.weekNumber === stats.currentWeek));
+  const weekTasks = tasks.filter(
+    (t) => t.weeklyPlanId === selectedPlan.id || (!t.weeklyPlanId && selectedPlan.weekNumber === stats.currentWeek)
+  );
 
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,68 +77,214 @@ export const WeeklyPlannerPage: React.FC = () => {
     setNewTaskTitle('');
   };
 
+  const handleCreateDailyGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim()) return;
+    addDailyGoal({
+      date: new Date().toISOString().split('T')[0],
+      title: newGoalTitle.trim(),
+      section: newGoalSection,
+      targetMinutes: Number(newGoalMinutes) || 30,
+      completed: false
+    });
+    setNewGoalTitle('');
+    setIsGoalDialogOpen(false);
+  };
+
   const filteredPlans = weeklyPlans.filter((p) => {
     if (phaseFilter === 'all') return true;
     return p.phaseNumber === parseInt(phaseFilter, 10);
   });
 
+  const completedGoalsCount = dailyGoals.filter((g) => g.completed).length;
+  const dailyGoalsPct = dailyGoals.length > 0 ? Math.round((completedGoalsCount / dailyGoals.length) * 100) : 0;
+
+  // Days of week for the 7-day grid view (Reference 2 style)
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header & Controls */}
+    <div className="space-y-6 pb-12 font-sans">
+      {/* 1. Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">52-Week Study Planner</h1>
-            <Badge variant="purple" className="font-mono text-xs">
+            <Badge variant="blue" className="font-mono text-xs font-semibold">
               Phase {selectedPlan.phaseNumber}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Chronological roadmap from Day 1 to CAT 2027. JIRA-style task management, Kanban sprint board, and buffer week tracking.
+            Productivity roadmap from Day 1 to CAT 2027. Manage sprints, daily goals, 7-day calendar, and buffer weeks.
           </p>
         </div>
 
         {/* View Switcher Tabs */}
         <div className="flex items-center gap-2">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
-            <TabsList className="grid grid-cols-4 h-9">
-              <TabsTrigger value="weekly" className="text-xs gap-1.5">
+            <TabsList className="grid grid-cols-4 h-9 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+              <TabsTrigger value="weekly" className="text-xs gap-1.5 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">
                 <CalendarDays className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Weekly</span>
+                <span className="hidden md:inline">Sprint</span>
               </TabsTrigger>
-              <TabsTrigger value="kanban" className="text-xs gap-1.5">
+              <TabsTrigger value="calendar" className="text-xs gap-1.5 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">7-Day Grid</span>
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="text-xs gap-1.5 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">
                 <Columns className="h-3.5 w-3.5" />
                 <span className="hidden md:inline">Kanban</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="text-xs gap-1.5">
-                <CalendarIcon className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Calendar</span>
-              </TabsTrigger>
-              <TabsTrigger value="table" className="text-xs gap-1.5">
+              <TabsTrigger value="table" className="text-xs gap-1.5 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">
                 <List className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Table</span>
+                <span className="hidden md:inline">52 Weeks</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </div>
 
-      {/* VIEW 1: WEEKLY DEEP-DIVE */}
+      {/* 2. DEDICATED DAILY GOALS SECTION (User Request) */}
+      <Card className="rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/30 dark:from-slate-900 dark:via-card dark:to-blue-950/20 p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border/60">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+              <Flame className="h-5 w-5 text-amber-300" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                Today's Daily Goals
+                <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                  {completedGoalsCount} of {dailyGoals.length} Done ({dailyGoalsPct}%)
+                </span>
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Set non-negotiable daily habits. Checking a goal records deliberate progress in your history.
+              </p>
+            </div>
+          </div>
+
+          <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="h-8 gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add Daily Goal</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[420px]">
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold">Add Today's Goal</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateDailyGoal} className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground">Goal Description</label>
+                  <Input
+                    placeholder="e.g., Solve 20 Quant Questions on Percentages"
+                    value={newGoalTitle}
+                    onChange={(e) => setNewGoalTitle(e.target.value)}
+                    required
+                    className="text-xs"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">Section</label>
+                    <Select value={newGoalSection} onValueChange={(v) => setNewGoalSection(v as SectionType)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Quant">Quant</SelectItem>
+                        <SelectItem value="DILR">DILR</SelectItem>
+                        <SelectItem value="VARC">VARC</SelectItem>
+                        <SelectItem value="General">General</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">Target (Minutes)</label>
+                    <Input
+                      type="number"
+                      min={10}
+                      step={5}
+                      value={newGoalMinutes}
+                      onChange={(e) => setNewGoalMinutes(Number(e.target.value))}
+                      className="text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsGoalDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Save Goal
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Daily Goals Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+          {dailyGoals.map((goal) => (
+            <div
+              key={goal.id}
+              className={`group flex items-center justify-between p-3 rounded-lg border text-xs transition-all ${
+                goal.completed
+                  ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
+                  : 'border-border/80 bg-card hover:border-slate-300 text-foreground'
+              }`}
+            >
+              <div
+                onClick={() => toggleDailyGoal(goal.id)}
+                className="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden"
+              >
+                <div
+                  className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 border ${
+                    goal.completed ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600'
+                  }`}
+                >
+                  {goal.completed && <Check className="h-2.5 w-2.5" />}
+                </div>
+                <div className="flex flex-col truncate">
+                  <span className={`font-semibold truncate text-xs ${goal.completed ? 'line-through opacity-75' : ''}`}>
+                    {goal.title}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {goal.section} • {goal.targetMinutes} mins
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600"
+                onClick={() => deleteDailyGoal(goal.id)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* VIEW 1: SPRINT VIEW (Default) */}
       {viewMode === 'weekly' && (
         <div className="space-y-6">
           {/* Week Selector Bar */}
-          <div className="flex items-center justify-between p-3.5 rounded-xl border border-border/80 bg-card shadow-sm">
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-card shadow-xs">
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-lg"
                 disabled={selectedWeekNum <= 1}
                 onClick={() => setSelectedWeekNum(selectedWeekNum - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-1">
                 <span className="font-mono font-bold text-sm text-foreground">Week {selectedPlan.weekNumber}</span>
                 <span className="text-xs text-muted-foreground hidden sm:inline">
                   ({selectedPlan.startDate} to {selectedPlan.endDate})
@@ -122,7 +293,7 @@ export const WeeklyPlannerPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-lg"
                 disabled={selectedWeekNum >= 52}
                 onClick={() => setSelectedWeekNum(selectedWeekNum + 1)}
               >
@@ -134,18 +305,18 @@ export const WeeklyPlannerPage: React.FC = () => {
               {selectedPlan.isBufferWeek && (
                 <Badge variant="warning" className="animate-pulse gap-1 text-[11px]">
                   <ShieldAlert className="h-3 w-3" />
-                  Buffer Week (Catch-up)
+                  Buffer Week
                 </Badge>
               )}
 
               {selectedPlan.weekNumber === stats.currentWeek && (
-                <Badge variant="purple" className="text-[11px]">Active Week</Badge>
+                <Badge variant="blue" className="text-[11px]">Active Week</Badge>
               )}
 
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold"
+                className="h-8 text-xs text-blue-600 hover:text-blue-700 font-semibold"
                 onClick={() => setSelectedWeekNum(stats.currentWeek)}
               >
                 Jump to Current
@@ -155,7 +326,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                 value={selectedPlan.status}
                 onValueChange={(val: WeekStatus) => updateWeeklyPlan(selectedPlan.id, { status: val })}
               >
-                <SelectTrigger className="h-8 text-xs w-[130px]">
+                <SelectTrigger className="h-8 text-xs w-[130px] rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,23 +339,22 @@ export const WeeklyPlannerPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Buffer Week Special Notice */}
+          {/* Buffer Notice */}
           {selectedPlan.isBufferWeek && (
-            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs flex items-start gap-3">
-              <ShieldAlert className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
+            <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
+              <ShieldAlert className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
               <div>
-                <strong className="font-bold text-amber-200 block text-sm">Designated Buffer Week</strong>
-                <p className="mt-1 text-amber-300/90 leading-relaxed">
-                  "Life happens. Use this week to catch up, not to rest. Re-solve every mistake question, finish pending problem sets, and review tough DILR sets."
+                <strong className="font-bold text-sm block">Designated Buffer Week (Catch-Up Sprint)</strong>
+                <p className="mt-1 leading-relaxed opacity-90">
+                  "Life happens. Use this week to catch up, not to rest. Re-solve mistake questions, finish pending problem sets, and review tough DILR sets."
                 </p>
               </div>
             </div>
           )}
 
-          {/* 3 Core Subject Plans */}
+          {/* 3 Subject Targets */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Quant */}
-            <Card className="border-t-4 border-t-purple-500">
+            <Card className="rounded-xl border border-border/80 border-t-4 border-t-blue-600 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
                   <span>Quantitative Aptitude</span>
@@ -192,14 +362,13 @@ export const WeeklyPlannerPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/60">
+                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
                   {selectedPlan.quantPlan}
                 </p>
               </CardContent>
             </Card>
 
-            {/* DILR */}
-            <Card className="border-t-4 border-t-emerald-500">
+            <Card className="rounded-xl border border-border/80 border-t-4 border-t-emerald-600 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
                   <span>Data Interpretation & LR</span>
@@ -207,14 +376,13 @@ export const WeeklyPlannerPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/60">
+                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
                   {selectedPlan.dilrPlan}
                 </p>
               </CardContent>
             </Card>
 
-            {/* VARC */}
-            <Card className="border-t-4 border-t-amber-500">
+            <Card className="rounded-xl border border-border/80 border-t-4 border-t-amber-600 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
                   <span>Verbal Ability & RC</span>
@@ -222,75 +390,37 @@ export const WeeklyPlannerPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/60">
+                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
                   {selectedPlan.varcPlan}
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Milestones & Scheduled Tests */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Scheduled Tests This Week
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs">
-                {selectedPlan.testsPlanned ? (
-                  <p className="p-3 rounded-lg bg-secondary/40 border border-border/70 text-foreground font-medium">
-                    {selectedPlan.testsPlanned}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground italic">No formal tests scheduled for this week.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Milestone & Administrative Reminders
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs">
-                {selectedPlan.milestoneAdmin ? (
-                  <p className="p-3 rounded-lg bg-secondary/40 border border-border/70 text-foreground font-medium">
-                    {selectedPlan.milestoneAdmin}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground italic">No administrative milestones for this week.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Interactive Sprint Tasks for This Week */}
-          <Card>
-            <CardHeader className="pb-3">
+          {/* Sprint Tasks for This Week */}
+          <Card className="rounded-xl border border-border/80 shadow-xs">
+            <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground">
-                    Week {selectedPlan.weekNumber} Tasks & Daily Execution
+                    Week {selectedPlan.weekNumber} Tasks ({weekTasks.length})
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Target: {selectedPlan.hoursTarget} hrs • Break down this week's targets into actionable items.
+                    Target: {selectedPlan.hoursTarget} hrs • Manage weekly deliverables with precision.
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Task Creation Form */}
+            <CardContent className="pt-4 space-y-4">
               <form onSubmit={handleCreateTask} className="flex gap-2">
                 <Input
                   placeholder="Add a new task for this week..."
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 text-xs rounded-lg"
                 />
                 <Select value={newTaskSection} onValueChange={(v) => setNewTaskSection(v as SectionType)}>
-                  <SelectTrigger className="w-[110px]">
+                  <SelectTrigger className="w-[110px] text-xs rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -300,13 +430,12 @@ export const WeeklyPlannerPage: React.FC = () => {
                     <SelectItem value="General">General</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button type="submit" variant="purple" size="sm" className="gap-1">
+                <Button type="submit" size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
                   <Plus className="h-4 w-4" />
                   <span>Add</span>
                 </Button>
               </form>
 
-              {/* Task List */}
               <div className="space-y-2">
                 {weekTasks.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-6 border border-dashed rounded-lg">
@@ -316,7 +445,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                   weekTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-card hover:bg-accent/40 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-300 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
@@ -327,15 +456,15 @@ export const WeeklyPlannerPage: React.FC = () => {
                               completedAt: checked ? new Date().toISOString() : undefined,
                             })
                           }
+                          className="h-4 w-4 rounded"
                         />
                         <div>
-                          <p className={`text-xs font-medium ${task.status === 'Completed' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                          <p className={`text-xs font-semibold ${task.status === 'Completed' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                             {task.title}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
-                            <Badge variant={task.section === 'Quant' ? 'quant' : task.section === 'DILR' ? 'dilr' : 'varc'} className="text-[9px] px-1 py-0">
-                              {task.section}
-                            </Badge>
+                            <span className="font-medium text-blue-600 dark:text-blue-400">{task.section}</span>
+                            <span>•</span>
                             <span>{task.estimatedMinutes} mins</span>
                           </div>
                         </div>
@@ -346,7 +475,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                           value={task.status}
                           onValueChange={(val: TaskStatus) => updateTask(task.id, { status: val })}
                         >
-                          <SelectTrigger className="h-7 text-[11px] w-[110px]">
+                          <SelectTrigger className="h-7 text-[11px] w-[110px] rounded-md">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -358,11 +487,11 @@ export const WeeklyPlannerPage: React.FC = () => {
                         </Select>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 text-muted-foreground hover:text-red-400 p-0"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-rose-600"
                           onClick={() => deleteTask(task.id)}
                         >
-                          ×
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -374,224 +503,165 @@ export const WeeklyPlannerPage: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 2: KANBAN BOARD */}
-      {viewMode === 'kanban' && (
+      {/* VIEW 2: 7-DAY CALENDAR GRID (Reference 2 Inspired Notion Style) */}
+      {viewMode === 'calendar' && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center text-xs text-muted-foreground">
-            <span>Sprint Task Management (Drag or click status to transition)</span>
-            <Badge variant="outline" className="font-mono">
-              Week {stats.currentWeek} Tasks
-            </Badge>
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>Week {selectedPlan.weekNumber} Schedule • {selectedPlan.startDate} to {selectedPlan.endDate}</span>
+            <span>Target: {selectedPlan.hoursTarget} hrs</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {(['Not Started', 'In Progress', 'Review', 'Completed'] as TaskStatus[]).map((colStatus) => {
-              const colTasks = tasks.filter((t) => t.status === colStatus);
-              return (
-                <div key={colStatus} className="flex flex-col rounded-xl border border-border/80 bg-muted/20 p-3 min-h-[400px]">
-                  <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-border/60">
-                    <span className="text-xs font-bold text-foreground">{colStatus}</span>
-                    <Badge variant="secondary" className="font-mono text-[10px] h-5 px-1.5">
-                      {colTasks.length}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-2 flex-1">
-                    {colTasks.length === 0 ? (
-                      <div className="h-32 flex items-center justify-center text-[11px] text-muted-foreground/60 border border-dashed rounded-lg">
-                        Empty
-                      </div>
-                    ) : (
-                      colTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          className="p-3 rounded-lg border border-border/80 bg-card shadow-sm space-y-2 text-xs hover:border-purple-500/40 transition-colors"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="font-semibold text-foreground leading-snug">{task.title}</span>
-                            <Badge variant={task.priority === 'Urgent' ? 'destructive' : 'outline'} className="text-[9px] px-1 py-0">
-                              {task.priority}
-                            </Badge>
-                          </div>
-
-                          <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40">
-                            <Badge variant={task.section === 'Quant' ? 'quant' : task.section === 'DILR' ? 'dilr' : 'varc'} className="text-[9px] px-1 py-0">
-                              {task.section}
-                            </Badge>
-                            <span>{task.estimatedMinutes}m</span>
-                          </div>
-
-                          {/* Quick move buttons */}
-                          <div className="flex gap-1 pt-1 justify-end">
-                            {colStatus !== 'Not Started' && (
-                              <button
-                                onClick={() => updateTask(task.id, { status: 'Not Started' })}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-muted hover:bg-muted/80 text-muted-foreground"
-                              >
-                                ← To Do
-                              </button>
-                            )}
-                            {colStatus !== 'In Progress' && (
-                              <button
-                                onClick={() => updateTask(task.id, { status: 'In Progress' })}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-500/10 dark:text-purple-300 font-semibold"
-                              >
-                                In Prog
-                              </button>
-                            )}
-                            {colStatus !== 'Completed' && (
-                              <button
-                                onClick={() => updateTask(task.id, { status: 'Completed', completedAt: new Date().toISOString() })}
-                                className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                              >
-                                Done ✓
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+            {daysOfWeek.map((day, idx) => (
+              <div key={day} className="flex flex-col rounded-xl border border-border/80 bg-card p-3 shadow-xs min-h-[220px]">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
+                  <span className="text-xs font-bold text-foreground">{day.slice(0, 3)}</span>
+                  <span className="text-[11px] font-mono text-muted-foreground">Day {idx + 1}</span>
                 </div>
-              );
-            })}
+
+                <div className="space-y-2 flex-1">
+                  {idx === 0 && (
+                    <div className="p-2 rounded-lg bg-blue-50 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300 text-[11px] font-medium leading-tight border border-blue-200/60">
+                      QA Core Theory & Formulas
+                    </div>
+                  )}
+                  {idx === 1 && (
+                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 text-[11px] font-medium leading-tight border border-emerald-200/60">
+                      DILR 2 Unseen Sets Practice
+                    </div>
+                  )}
+                  {idx === 2 && (
+                    <div className="p-2 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 text-[11px] font-medium leading-tight border border-amber-200/60">
+                      VARC 3 RCs + Tone Analysis
+                    </div>
+                  )}
+                  {idx === 5 && (
+                    <div className="p-2 rounded-lg bg-purple-50 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300 text-[11px] font-medium leading-tight border border-purple-200/60">
+                      Sectional Test & Mistake Log
+                    </div>
+                  )}
+                  {idx === 6 && (
+                    <div className="p-2 rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-medium leading-tight border border-slate-200/60">
+                      Weekly Buffer & Revision
+                    </div>
+                  )}
+
+                  {weekTasks.filter((_, i) => i % 7 === idx).map((t) => (
+                    <div key={t.id} className="p-1.5 rounded bg-muted/60 text-[10px] text-foreground font-medium truncate">
+                      ✓ {t.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* VIEW 3: MONTHLY CALENDAR VIEW */}
-      {viewMode === 'calendar' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold">52-Week Chronological Calendar</CardTitle>
-            <CardDescription className="text-xs">
-              Phase roadmap mapped by week blocks. Click any week to open its detailed targets.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5">
-              {weeklyPlans.map((week) => {
-                const isCurrent = week.weekNumber === stats.currentWeek;
-                const isBuffer = week.isBufferWeek;
-                return (
-                  <button
-                    key={week.id}
-                    onClick={() => {
-                      setSelectedWeekNum(week.weekNumber);
-                      setViewMode('weekly');
-                    }}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      isCurrent
-                        ? 'border-purple-500 bg-purple-500/15 shadow-md shadow-purple-500/20'
-                        : isBuffer
-                        ? 'border-amber-500/40 bg-amber-500/10'
-                        : 'border-border/70 bg-card hover:bg-accent/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className="font-mono font-bold text-foreground">W{week.weekNumber}</span>
-                      <span className="text-[9px] text-muted-foreground">{week.monthLabel}</span>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground block truncate">
-                      Phase {week.phaseNumber}
-                    </span>
-                    {isBuffer && (
-                      <span className="text-[9px] text-amber-400 font-semibold block mt-1">Buffer</span>
-                    )}
-                    {isCurrent && (
-                      <span className="text-[9px] text-purple-700 dark:text-purple-300 font-bold block mt-1">Current</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+      {/* VIEW 3: KANBAN BOARD (Linear Inspired) */}
+      {viewMode === 'kanban' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {(['Not Started', 'In Progress', 'Review', 'Completed'] as TaskStatus[]).map((col) => {
+            const colTasks = tasks.filter((t) => t.status === col);
+            return (
+              <div key={col} className="flex flex-col rounded-xl border border-border/80 bg-slate-50/50 dark:bg-slate-900/20 p-3">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
+                  <span className="text-xs font-bold text-foreground">{col}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-muted-foreground">
+                    {colTasks.length}
+                  </span>
+                </div>
+                <div className="space-y-2 flex-1">
+                  {colTasks.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground text-center py-6 italic">No tasks</p>
+                  ) : (
+                    colTasks.map((t) => (
+                      <div key={t.id} className="p-2.5 rounded-lg border border-border/70 bg-card text-xs space-y-1.5 shadow-2xs">
+                        <p className="font-medium text-foreground">{t.title}</p>
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span className="text-blue-600 font-semibold">{t.section}</span>
+                          <span>{t.estimatedMinutes}m</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* VIEW 4: TABLE VIEW */}
+      {/* VIEW 4: 52-WEEK TABLE */}
       {viewMode === 'table' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div>
-              <CardTitle className="text-base font-bold">52-Week Master Spreadsheet</CardTitle>
-              <CardDescription className="text-xs">Full tabular roadmap with inline status controls.</CardDescription>
-            </div>
+        <Card className="rounded-xl border border-border/80 shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-border/60 flex items-center justify-between">
+            <span className="text-sm font-bold text-foreground">All 52 Preparation Weeks</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Filter Phase:</span>
               <Select value={phaseFilter} onValueChange={setPhaseFilter}>
-                <SelectTrigger className="h-8 text-xs w-[130px]">
+                <SelectTrigger className="h-8 text-xs w-[130px] rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Phases</SelectItem>
-                  <SelectItem value="1">Phase 1</SelectItem>
-                  <SelectItem value="2">Phase 2</SelectItem>
-                  <SelectItem value="3">Phase 3</SelectItem>
-                  <SelectItem value="4">Phase 4</SelectItem>
-                  <SelectItem value="5">Phase 5</SelectItem>
+                  <SelectItem value="all">All Phases (1–5)</SelectItem>
+                  <SelectItem value="1">Phase 1 (W1–12)</SelectItem>
+                  <SelectItem value="2">Phase 2 (W13–24)</SelectItem>
+                  <SelectItem value="3">Phase 3 (W25–36)</SelectItem>
+                  <SelectItem value="4">Phase 4 (W37–44)</SelectItem>
+                  <SelectItem value="5">Phase 5 (W45–52)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-muted/40 border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  <tr>
-                    <th className="py-2.5 px-3">Wk</th>
-                    <th className="py-2.5 px-3">Dates</th>
-                    <th className="py-2.5 px-3">Phase</th>
-                    <th className="py-2.5 px-3 min-w-[200px]">Quant Plan</th>
-                    <th className="py-2.5 px-3 min-w-[180px]">DILR</th>
-                    <th className="py-2.5 px-3 min-w-[180px]">VARC</th>
-                    <th className="py-2.5 px-3">Hrs</th>
-                    <th className="py-2.5 px-3">Status</th>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-900/50 text-muted-foreground font-semibold border-b border-border/60">
+                <tr>
+                  <th className="p-3">Week</th>
+                  <th className="p-3">Phase</th>
+                  <th className="p-3">Quant Target</th>
+                  <th className="p-3">DILR Target</th>
+                  <th className="p-3">VARC Target</th>
+                  <th className="p-3">Hours</th>
+                  <th className="p-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {filteredPlans.map((plan) => (
+                  <tr
+                    key={plan.id}
+                    onClick={() => {
+                      setSelectedWeekNum(plan.weekNumber);
+                      setViewMode('weekly');
+                    }}
+                    className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors ${
+                      plan.weekNumber === stats.currentWeek ? 'bg-blue-50/40 dark:bg-blue-950/20 font-medium' : ''
+                    }`}
+                  >
+                    <td className="p-3 font-mono font-bold">
+                      W{plan.weekNumber}
+                      {plan.isBufferWeek && (
+                        <span className="ml-1.5 text-[10px] text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-1 py-0.2 rounded font-sans">
+                          Buffer
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 text-muted-foreground">P{plan.phaseNumber}</td>
+                    <td className="p-3 max-w-[200px] truncate">{plan.quantPlan}</td>
+                    <td className="p-3 max-w-[200px] truncate">{plan.dilrPlan}</td>
+                    <td className="p-3 max-w-[200px] truncate">{plan.varcPlan}</td>
+                    <td className="p-3 font-mono">{plan.hoursTarget}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-muted-foreground">
+                        {plan.status}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {filteredPlans.map((plan) => (
-                    <tr
-                      key={plan.id}
-                      className={`hover:bg-muted/30 transition-colors ${
-                        plan.weekNumber === stats.currentWeek ? 'bg-purple-500/10' : ''
-                      }`}
-                    >
-                      <td className="py-2.5 px-3 font-mono font-bold">{plan.weekNumber}</td>
-                      <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
-                        {plan.startDate.slice(5)} to {plan.endDate.slice(5)}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <Badge variant="outline" className="text-[10px]">
-                          P{plan.phaseNumber}
-                        </Badge>
-                      </td>
-                      <td className="py-2.5 px-3 text-muted-foreground font-medium text-[11px]">{plan.quantPlan}</td>
-                      <td className="py-2.5 px-3 text-muted-foreground text-[11px]">{plan.dilrPlan}</td>
-                      <td className="py-2.5 px-3 text-muted-foreground text-[11px]">{plan.varcPlan}</td>
-                      <td className="py-2.5 px-3 font-mono text-muted-foreground">{plan.hoursTarget}</td>
-                      <td className="py-2.5 px-3">
-                        <Select
-                          value={plan.status}
-                          onValueChange={(val: WeekStatus) => updateWeeklyPlan(plan.id, { status: val })}
-                        >
-                          <SelectTrigger className="h-7 text-[11px] w-[110px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Not started">Not started</SelectItem>
-                            <SelectItem value="In progress">In progress</SelectItem>
-                            <SelectItem value="Done">Done</SelectItem>
-                            <SelectItem value="Catch-up needed">Catch-up</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
     </div>

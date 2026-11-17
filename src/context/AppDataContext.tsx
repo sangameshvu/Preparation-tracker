@@ -14,7 +14,9 @@ import {
   PrepGuideSection,
   DashboardStats,
   TaskStatus,
-  ConfidenceScore
+  ConfidenceScore,
+  StudyActivityItem,
+  DailyGoalItem
 } from '../types';
 import { initialPhases } from '../data/phases';
 import { initialTopics } from '../data/topics';
@@ -24,6 +26,7 @@ import { initialRoutines } from '../data/routines';
 import { initialGuideSections } from '../data/guideSections';
 import { initialStudyNotes } from '../data/initialNotes';
 import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake';
+import { initialActivities, initialDailyGoals } from '../data/initialActivities';
 import { addDays, differenceInCalendarDays, parseISO, format } from 'date-fns';
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -81,6 +84,13 @@ interface AppDataContextType {
   deleteStudyNote: (id: string) => void;
   guideSections: PrepGuideSection[];
   updateGuideSection: (id: string, updates: Partial<PrepGuideSection>) => void;
+  activities: StudyActivityItem[];
+  addActivity: (act: Omit<StudyActivityItem, 'id' | 'timestamp'> & { timestamp?: string }) => void;
+  deleteActivity: (id: string) => void;
+  dailyGoals: DailyGoalItem[];
+  addDailyGoal: (goal: Omit<DailyGoalItem, 'id'>) => void;
+  toggleDailyGoal: (id: string) => void;
+  deleteDailyGoal: (id: string) => void;
   stats: DashboardStats;
   resetAllData: () => void;
 }
@@ -215,6 +225,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     getInitialState('guideSections', initialGuideSections)
   );
 
+  const [activities, setActivities] = useState<StudyActivityItem[]>(() =>
+    getInitialState('activities', initialActivities)
+  );
+
+  const [dailyGoals, setDailyGoals] = useState<DailyGoalItem[]>(() =>
+    getInitialState('dailyGoals', initialDailyGoals)
+  );
+
   // Sync to local storage on change
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'profile', JSON.stringify(profile));
@@ -260,6 +278,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem(STORAGE_PREFIX + 'guideSections', JSON.stringify(guideSections));
   }, [guideSections]);
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_PREFIX + 'activities', JSON.stringify(activities));
+  }, [activities]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_PREFIX + 'dailyGoals', JSON.stringify(dailyGoals));
+  }, [dailyGoals]);
+
   // Recalculate 52-week dates when prepStartDate changes
   useEffect(() => {
     try {
@@ -282,6 +308,62 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [profile.prepStartDate]);
 
   // Actions
+  const addActivity = (act: Omit<StudyActivityItem, 'id' | 'timestamp'> & { timestamp?: string }) => {
+    const newAct: StudyActivityItem = {
+      ...act,
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: act.timestamp || new Date().toISOString()
+    };
+    setActivities((prev) => [newAct, ...prev]);
+  };
+
+  const deleteActivity = (id: string) => {
+    setActivities((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const addDailyGoal = (goal: Omit<DailyGoalItem, 'id'>) => {
+    const newGoal: DailyGoalItem = {
+      ...goal,
+      id: `goal-${Date.now()}`
+    };
+    setDailyGoals((prev) => [newGoal, ...prev]);
+    addActivity({
+      date: goal.date,
+      category: 'goal',
+      title: `Set Goal: ${goal.title}`,
+      details: `Target: ${goal.targetMinutes}m in ${goal.section}`,
+      section: goal.section
+    });
+  };
+
+  const toggleDailyGoal = (id: string) => {
+    setDailyGoals((prev) =>
+      prev.map((g) => {
+        if (g.id !== id) return g;
+        const nowCompleted = !g.completed;
+        if (nowCompleted) {
+          addActivity({
+            date: new Date().toISOString().split('T')[0],
+            category: 'goal',
+            title: `Completed Goal: ${g.title}`,
+            details: `Target of ${g.targetMinutes} minutes achieved.`,
+            section: g.section,
+            durationMinutes: g.targetMinutes
+          });
+        }
+        return {
+          ...g,
+          completed: nowCompleted,
+          completedAt: nowCompleted ? new Date().toISOString() : undefined
+        };
+      })
+    );
+  };
+
+  const deleteDailyGoal = (id: string) => {
+    setDailyGoals((prev) => prev.filter((g) => g.id !== id));
+  };
+
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile((prev) => ({ ...prev, ...updates }));
   };
@@ -299,6 +381,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       createdAt: new Date().toISOString()
     };
     setTasks((prev) => [newTask, ...prev]);
+    addActivity({
+      date: new Date().toISOString().split('T')[0],
+      category: 'task',
+      title: `Added Task: ${task.title}`,
+      details: task.description || `Section: ${task.section}`,
+      section: task.section,
+      durationMinutes: task.estimatedMinutes
+    });
   };
 
   const updateTask = (id: string, updates: Partial<StudyTask>) => {
@@ -312,6 +402,37 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const updateTopicProgress = (topicId: string, updates: Partial<TopicProgress>) => {
+    const topicObj = initialTopics.find((t) => t.id === topicId);
+    if (topicObj) {
+      if (updates.conceptDone) {
+        addActivity({
+          date: new Date().toISOString().split('T')[0],
+          category: 'topic',
+          title: `Studied Concept: ${topicObj.topicName}`,
+          details: `Area: ${topicObj.area} (${topicObj.section})`,
+          section: topicObj.section
+        });
+      }
+      if (updates.practiceDone) {
+        addActivity({
+          date: new Date().toISOString().split('T')[0],
+          category: 'topic',
+          title: `Completed Practice: ${topicObj.topicName}`,
+          details: `Area: ${topicObj.area} (${topicObj.section})`,
+          section: topicObj.section
+        });
+      }
+      if (updates.pyqsDone) {
+        addActivity({
+          date: new Date().toISOString().split('T')[0],
+          category: 'topic',
+          title: `Solved PYQs: ${topicObj.topicName}`,
+          details: `Past Year CAT Questions completed.`,
+          section: topicObj.section
+        });
+      }
+    }
+
     setTopicProgress((prev) => {
       const current = prev[topicId] || {
         topicId,
@@ -361,6 +482,15 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
       return [newMock, ...prev];
     });
+
+    addActivity({
+      date: mock.testDate || new Date().toISOString().split('T')[0],
+      category: 'mock',
+      title: `Attempted Mock Test #${nextNumber}`,
+      details: `Total Score: ${totalScore} (QA: ${mock.qaScore || 0}, DILR: ${mock.dilrScore || 0}, VARC: ${mock.varcScore || 0})`,
+      section: 'General',
+      durationMinutes: 120
+    });
   };
 
   const updateMockTest = (id: string, updates: Partial<MockTestItem>) => {
@@ -401,6 +531,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       isSample: false
     };
     setMistakes((prev) => [newMistake, ...prev]);
+
+    addActivity({
+      date: mistake.date,
+      category: 'mistake',
+      title: `Logged Mistake: ${mistake.topic}`,
+      details: `Type: ${mistake.mistakeType} • Rule: ${mistake.ruleForNextTime}`,
+      section: mistake.section
+    });
   };
 
   const updateMistake = (id: string, updates: Partial<MistakeItem>) => {
@@ -474,6 +612,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       updatedAt: new Date().toISOString()
     };
     setStudyNotes((prev) => [newNote, ...prev]);
+
+    addActivity({
+      date: newNote.createdAt,
+      category: 'note',
+      title: `Created Study Note: ${newNote.title}`,
+      details: `Type: ${newNote.noteType} • Topic: ${newNote.topic}`,
+      section: newNote.section
+    });
   };
 
   const updateStudyNote = (id: string, updates: Partial<StudyNoteItem>) => {
@@ -520,6 +666,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setStickyNotes([]);
     setStudyNotes(initialStudyNotes);
     setGuideSections(initialGuideSections);
+    setActivities(initialActivities);
+    setDailyGoals(initialDailyGoals);
   };
 
   // Computed dashboard statistics
@@ -654,6 +802,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         deleteStudyNote,
         guideSections,
         updateGuideSection,
+        activities,
+        addActivity,
+        deleteActivity,
+        dailyGoals,
+        addDailyGoal,
+        toggleDailyGoal,
+        deleteDailyGoal,
         stats,
         resetAllData
       }}

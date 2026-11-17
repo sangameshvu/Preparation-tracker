@@ -130,6 +130,35 @@ test('MockTracker & MistakeLog isolate sample row data from real metrics', () =>
   assert(appDataContent.includes('filter((m) => !m.isSample'), 'Sample isolation filter missing');
 });
 
+// 5. VERIFY REDESIGN ENHANCEMENTS & BREATHABLE UI
+test('Student Activity History and Daily Goals datasets exist and are integrated', () => {
+  const actContent = fs.readFileSync(path.join(__dirname, 'src/data/initialActivities.ts'), 'utf8');
+  assert(actContent.includes('initialActivities'), 'initialActivities missing');
+  assert(actContent.includes('initialDailyGoals'), 'initialDailyGoals missing');
+  const contextContent = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(contextContent.includes('addActivity'), 'addActivity missing');
+  assert(contextContent.includes('addDailyGoal'), 'addDailyGoal missing');
+});
+
+test('App routing includes dedicated History and Analytics pages', () => {
+  const appContent = fs.readFileSync(path.join(__dirname, 'src/App.tsx'), 'utf8');
+  assert(appContent.includes('path="history"'), 'history route missing');
+  assert(appContent.includes('path="analytics"'), 'analytics route missing');
+});
+
+test('Design system contains StatCard, CircularProgress, and EmptyState components', () => {
+  assert(fs.existsSync(path.join(__dirname, 'src/components/ui/StatCard.tsx')), 'StatCard missing');
+  assert(fs.existsSync(path.join(__dirname, 'src/components/ui/CircularProgress.tsx')), 'CircularProgress missing');
+  assert(fs.existsSync(path.join(__dirname, 'src/components/ui/EmptyState.tsx')), 'EmptyState missing');
+});
+
+test('MockTrackerPage includes practice exam simulator with timer and palette', () => {
+  const mockPageContent = fs.readFileSync(path.join(__dirname, 'src/pages/MockTrackerPage.tsx'), 'utf8');
+  assert(mockPageContent.includes('SAMPLE_EXAM_QUESTIONS'), 'Exam questions missing');
+  assert(mockPageContent.includes('formatTimer'), 'Timer formatter missing');
+  assert(mockPageContent.includes('Question Palette'), 'Question palette missing');
+});
+
 test('Production build output contains all expected bundles', () => {
   assert(fs.existsSync(path.join(__dirname, 'dist/index.html')), 'dist/index.html missing');
   const assets = fs.readdirSync(path.join(__dirname, 'dist/assets'));
