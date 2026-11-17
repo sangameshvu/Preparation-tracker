@@ -54,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       group: 'MAIN',
       items: [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+        { name: 'Study Notes & Q&A', path: '/notes', icon: FileText, badge: `${studyNotes.length}` },
         { name: 'Study Planner', path: '/planner', icon: CalendarDays, badge: `W${stats.currentWeek}` },
         { name: 'Activity History', path: '/history', icon: History, badge: 'New' },
       ]
@@ -77,7 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
     {
       group: 'STUDY DESK',
       items: [
-        { name: 'Study Notes & Q&A', path: '/notes', icon: FileText, badge: `${studyNotes.length}` },
         { name: 'Sticky Board', path: '/sticky-board', icon: StickyNote, badge: `${stickyNotes.length}` },
         { name: 'CAT Preparation Guide', path: '/guide', icon: Compass },
         { name: 'AI Study Coach', path: '/ai-coach', icon: Bot, highlight: true },

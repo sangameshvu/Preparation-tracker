@@ -11,6 +11,9 @@ export const initialStudyNotes: StudyNoteItem[] = [
     updatedAt: '2026-11-16',
     images: [],
     isPinned: true,
+    syncedWithGoogleDocs: true,
+    googleDocId: '1FermatEuler-Remainders-2027-DocId',
+    googleDocsUrl: 'https://docs.google.com/document/d/1FermatEuler-Remainders-2027-DocId/edit',
     content: `### Problem Breakdown (Solved Q&A):
 
 #### Question:
@@ -58,6 +61,9 @@ Find the remainder when **3^{2026} + 5^{2027}** is divided by **17**.
     updatedAt: '2026-11-15',
     images: [],
     isPinned: true,
+    syncedWithGoogleDocs: true,
+    googleDocId: '1CircularLinear-DILR-2027-DocId',
+    googleDocsUrl: 'https://docs.google.com/document/d/1CircularLinear-DILR-2027-DocId/edit',
     content: `### Core Rules for Circular Arrangements (DILR):
 
 #### 1. Directional Orientation Matrix:
@@ -82,6 +88,9 @@ Find the remainder when **3^{2026} + 5^{2027}** is divided by **17**.
     updatedAt: '2026-11-14',
     images: [],
     isPinned: false,
+    syncedWithGoogleDocs: true,
+    googleDocId: '1AuthorTone-VARC-2027-DocId',
+    googleDocsUrl: 'https://docs.google.com/document/d/1AuthorTone-VARC-2027-DocId/edit',
     content: `### Master Author Tone Reference Card (CAT VARC)
 
 #### 1. Analytical & Objective Tones:

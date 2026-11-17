@@ -209,7 +209,7 @@ export const DailyRoutinesPage: React.FC = () => {
                     <SelectItem value="General">General</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button type="submit" variant="purple" size="sm" className="h-9 gap-1 text-xs shrink-0">
+                <Button type="submit" variant="default" size="sm" className="h-9 gap-1 text-xs shrink-0">
                   <Plus className="h-4 w-4" />
                   <span>Add</span>
                 </Button>

@@ -190,7 +190,7 @@ export const ProfileSettingsPage: React.FC = () => {
             </div>
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" variant="purple" size="sm">
+              <Button type="submit" variant="default" size="sm">
                 Save & Recalculate Roadmap
               </Button>
             </div>

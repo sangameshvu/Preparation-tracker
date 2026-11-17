@@ -91,7 +91,7 @@ export const FreeResourcesPage: React.FC = () => {
             Handpicked, verified unsponsored resources from the master preparation guide. All 29 original URLs preserved.
           </p>
         </div>
-        <Button onClick={() => setModalOpen(true)} variant="purple" size="sm" className="gap-1.5 shadow-sm">
+        <Button onClick={() => setModalOpen(true)} variant="default" size="sm" className="gap-1.5 shadow-sm">
           <Plus className="h-4 w-4" />
           <span>Add Resource</span>
         </Button>
@@ -116,7 +116,7 @@ export const FreeResourcesPage: React.FC = () => {
           </div>
           <Button
             size="sm"
-            variant="purple"
+            variant="default"
             className="gap-1.5 shrink-0 text-xs"
             onClick={() => window.open('https://www.youtube.com/watch?v=PwRfsf0m0NM', '_blank', 'noopener,noreferrer')}
           >
@@ -286,7 +286,7 @@ export const FreeResourcesPage: React.FC = () => {
 
             <DialogFooter className="pt-2">
               <Button type="button" variant="ghost" size="sm" onClick={() => setModalOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="purple" size="sm">Add to Library</Button>
+              <Button type="submit" variant="default" size="sm">Add to Library</Button>
             </DialogFooter>
           </form>
         </DialogContent>

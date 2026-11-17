@@ -267,7 +267,7 @@ export const AICoachPage: React.FC = () => {
                       <p className="text-muted-foreground text-[11px]">{msg.actionProposal.details}</p>
                       <Button
                         size="sm"
-                        variant="purple"
+                        variant="default"
                         className="h-7 text-xs w-full gap-1 mt-1"
                         onClick={() => handleApplyProposal(msg.actionProposal!)}
                       >
@@ -344,7 +344,7 @@ export const AICoachPage: React.FC = () => {
                 onChange={(e) => setInputMessage(e.target.value)}
                 className="text-xs"
               />
-              <Button type="submit" variant="purple" size="sm" className="h-9 px-4 gap-1.5">
+              <Button type="submit" variant="default" size="sm" className="h-9 px-4 gap-1.5">
                 <Send className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Ask Coach</span>
               </Button>

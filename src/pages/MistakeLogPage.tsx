@@ -168,7 +168,7 @@ export const MistakeLogPage: React.FC = () => {
             Log every incorrect, skipped or slow question. Spaced repetition engine automatically schedules re-solving in 7 days.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} variant="purple" size="sm" className="gap-1.5 shadow-sm">
+        <Button onClick={handleOpenAdd} variant="default" size="sm" className="gap-1.5 shadow-sm">
           <Plus className="h-4 w-4" />
           <span>Record Mistake</span>
         </Button>
@@ -192,7 +192,7 @@ export const MistakeLogPage: React.FC = () => {
             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={deleteSampleMistake}>
               Discard Sample
             </Button>
-            <Button size="sm" variant="purple" className="h-8 text-xs" onClick={convertSampleMistake}>
+            <Button size="sm" variant="default" className="h-8 text-xs" onClick={convertSampleMistake}>
               Adopt Sample
             </Button>
           </div>
@@ -533,7 +533,7 @@ export const MistakeLogPage: React.FC = () => {
 
             <DialogFooter className="pt-2">
               <Button type="button" variant="ghost" size="sm" onClick={() => setModalOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="purple" size="sm">Save Mistake</Button>
+              <Button type="submit" variant="default" size="sm">Save Mistake</Button>
             </DialogFooter>
           </form>
         </DialogContent>

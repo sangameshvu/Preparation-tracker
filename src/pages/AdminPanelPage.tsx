@@ -364,7 +364,7 @@ export const AdminPanelPage: React.FC = () => {
 
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setEditingWeek(null)}>Cancel</Button>
-            <Button variant="purple" size="sm" onClick={handleSaveWeek}>Save Week Plan</Button>
+            <Button variant="default" size="sm" onClick={handleSaveWeek}>Save Week Plan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -387,7 +387,7 @@ export const AdminPanelPage: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setEditingGuide(null)}>Cancel</Button>
-            <Button variant="purple" size="sm" onClick={handleSaveGuide}>Save Section</Button>
+            <Button variant="default" size="sm" onClick={handleSaveGuide}>Save Section</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

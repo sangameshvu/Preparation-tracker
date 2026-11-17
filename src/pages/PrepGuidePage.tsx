@@ -132,7 +132,7 @@ export const PrepGuidePage: React.FC = () => {
 
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setEditingSection(null)}>Cancel</Button>
-            <Button variant="purple" size="sm" onClick={handleSaveEdit}>Save Changes</Button>
+            <Button variant="default" size="sm" onClick={handleSaveEdit}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

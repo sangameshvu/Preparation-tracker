@@ -133,7 +133,7 @@ export const StickyBoardPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleOpenAdd} variant="purple" size="sm" className="gap-1.5 shadow-sm">
+          <Button onClick={handleOpenAdd} variant="default" size="sm" className="gap-1.5 shadow-sm">
             <Plus className="h-4 w-4" />
             <span>Add Sticky Note</span>
           </Button>
@@ -268,7 +268,7 @@ export const StickyBoardPage: React.FC = () => {
 
             <DialogFooter>
               <Button type="button" variant="ghost" size="sm" onClick={() => setModalOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="purple" size="sm">Save Note</Button>
+              <Button type="submit" variant="default" size="sm">Save Note</Button>
             </DialogFooter>
           </form>
         </DialogContent>

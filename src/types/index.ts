@@ -207,6 +207,9 @@ export interface StudyNoteItem {
   updatedAt: string;
   images: NoteImageItem[];
   isPinned?: boolean;
+  googleDocId?: string;
+  googleDocsUrl?: string;
+  syncedWithGoogleDocs?: boolean;
 }
 
 export interface PrepGuideSection {

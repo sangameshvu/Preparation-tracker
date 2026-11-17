@@ -207,7 +207,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" variant="purple" size="sm">Create Task</Button>
+                <Button type="submit" variant="default" size="sm">Create Task</Button>
               </DialogFooter>
             </form>
           </TabsContent>
@@ -291,7 +291,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" variant="purple" size="sm">Save Mistake (Auto-Revisit in 7d)</Button>
+                <Button type="submit" variant="default" size="sm">Save Mistake (Auto-Revisit in 7d)</Button>
               </DialogFooter>
             </form>
           </TabsContent>
@@ -398,7 +398,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" variant="purple" size="sm">Record Mock</Button>
+                <Button type="submit" variant="default" size="sm">Record Mock</Button>
               </DialogFooter>
             </form>
           </TabsContent>
@@ -444,7 +444,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({ open, onOpenChange
 
               <DialogFooter className="pt-2">
                 <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button type="submit" variant="purple" size="sm">Pin Note to Canvas</Button>
+                <Button type="submit" variant="default" size="sm">Pin Note to Canvas</Button>
               </DialogFooter>
             </form>
           </TabsContent>
