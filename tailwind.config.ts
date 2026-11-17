@@ -56,6 +56,9 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        'card-dark': '#121826',
+        'canvas-dark': '#0B0F19',
+        'border-dark': '#1E2638',
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
