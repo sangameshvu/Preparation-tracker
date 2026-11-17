@@ -5,8 +5,14 @@ import { AppDataProvider } from './context/AppDataContext';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 
-// Navigation Pages
+// Hub Pages
 import { HomePage } from './pages/HomePage';
+import { PlanPage } from './pages/PlanPage';
+import { PracticePage } from './pages/PracticePage';
+import { InsightsPage } from './pages/InsightsPage';
+import { NotesContainerPage } from './pages/NotesContainerPage';
+
+// Sub-Pages & Utilities
 import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage';
 import { TopicTrackerPage } from './pages/TopicTrackerPage';
 import { MockTrackerPage } from './pages/MockTrackerPage';
@@ -31,19 +37,19 @@ export const App: React.FC = () => {
             <Route path="/" element={<AppShell />}>
               <Route index element={<HomePage />} />
               {/* Canonical Hub Routes */}
-              <Route path="plan" element={<WeeklyPlannerPage />} />
-              <Route path="practice" element={<MockTrackerPage />} />
-              <Route path="insights" element={<AnalyticsPage />} />
-              <Route path="notes" element={<NotesPage />} />
+              <Route path="plan" element={<PlanPage />} />
+              <Route path="practice" element={<PracticePage />} />
+              <Route path="insights" element={<InsightsPage />} />
+              <Route path="notes" element={<NotesContainerPage />} />
 
-              {/* Preserved Sub-routes & Legacy Redirects */}
-              <Route path="planner" element={<WeeklyPlannerPage />} />
-              <Route path="topics" element={<TopicTrackerPage />} />
-              <Route path="mocks" element={<MockTrackerPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="history" element={<HistoryPage />} />
-              <Route path="mistakes" element={<MistakeLogPage />} />
-              <Route path="sticky-board" element={<StickyBoardPage />} />
+              {/* Sub-routes and Legacy Direct Navigation */}
+              <Route path="planner" element={<PlanPage defaultTab="planner" />} />
+              <Route path="topics" element={<PlanPage defaultTab="topics" />} />
+              <Route path="mocks" element={<PracticePage defaultTab="mocks" />} />
+              <Route path="mistakes" element={<PracticePage defaultTab="mistakes" />} />
+              <Route path="analytics" element={<InsightsPage defaultTab="analytics" />} />
+              <Route path="history" element={<InsightsPage defaultTab="history" />} />
+              <Route path="sticky-board" element={<NotesContainerPage defaultTab="sticky-board" />} />
               <Route path="resources" element={<FreeResourcesPage />} />
               <Route path="routines" element={<DailyRoutinesPage />} />
               <Route path="guide" element={<PrepGuidePage />} />
