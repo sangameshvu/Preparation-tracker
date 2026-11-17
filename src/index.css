@@ -1,3 +1,8 @@
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,16 +10,19 @@
 @layer base {
   :root,
   .light {
-    --background: 210 40% 98%; /* #F8FAFC */
+    /* Pale lavender/slate canvas #F3F5FB */
+    --background: 228 33% 97%;
     --foreground: 222 47% 11%; /* #0F172A */
 
-    --card: 0 0% 100%; /* #FFFFFF */
+    /* Pure white cards #FFFFFF */
+    --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221.2 83.2% 53.3%; /* Royal Blue #2563EB */
+    /* Brand Royal Blue #2563EB */
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%; /* #F1F5F9 */
@@ -29,62 +37,67 @@
     --destructive: 0 72.2% 50.6%; /* #DC2626 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%; /* #E2E8F0 */
-    --input: 214.3 31.8% 91.4%;
+    /* Subtle 1px borders #E8EBF3 */
+    --border: 227 30% 93%;
+    --input: 227 30% 93%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.875rem;
+    --radius: 1.5rem; /* 24px Apple-like radius */
 
-    /* Clean, pristine Light Mode Navigation & Sidebar */
-    --sidebar-background: 0 0% 100%; /* Pure Clean White #FFFFFF */
-    --sidebar-foreground: 222 47% 11%; /* Deep Slate #0F172A */
-    --sidebar-primary: 221.2 83.2% 53.3%; /* Royal Blue #2563EB */
+    /* Pristine Light Mode Sidebar & Navigation #FFFFFF */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%; /* #F1F5F9 */
+    --sidebar-accent: 210 40% 96.1%;
     --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214.3 31.8% 91.4%; /* #E2E8F0 */
+    --sidebar-border: 227 30% 93%;
     --sidebar-ring: 221.2 83.2% 53.3%;
   }
 
   .dark {
-    --background: 222 47% 7%; /* #0B0F19 */
+    /* Deep obsidian canvas #0B0F19 */
+    --background: 222 47% 7%;
     --foreground: 210 40% 98%; /* #F8FAFC */
 
-    --card: 222 41% 12%; /* #131B2E */
+    /* Pure dark card #121826 */
+    --card: 222 35% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 41% 12%;
+    --popover: 222 35% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221.2 83.2% 53.3%; /* Royal Blue #2563EB */
+    /* Brand Royal Blue */
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 222 35% 18%;
+    --secondary: 222 30% 15%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 222 35% 18%;
+    --muted: 222 30% 15%;
     --muted-foreground: 217.9 10.6% 64.9%; /* #94A3B8 */
 
-    --accent: 222 35% 18%;
+    --accent: 222 30% 15%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 72.2% 50.6%; /* #DC2626 */
+    --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%; /* #1E293B */
-    --input: 217.2 32.6% 17.5%;
+    /* Dark border #1E2638 */
+    --border: 220 30% 17%;
+    --input: 220 30% 17%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.875rem;
+    --radius: 1.5rem;
 
-    /* High-contrast Dark Mode Navigation & Sidebar */
-    --sidebar-background: 222 47% 9%; /* Deep Dark Slate/Navy #0F172A */
-    --sidebar-foreground: 210 40% 98%;
+    /* Deep Navy Sidebar #0E131F */
+    --sidebar-background: 222 38% 9%;
+    --sidebar-foreground: 217.9 10.6% 64.9%;
     --sidebar-primary: 221.2 83.2% 53.3%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 222 41% 15%;
+    --sidebar-accent: 222 30% 15%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-border: 220 30% 17%;
     --sidebar-ring: 221.2 83.2% 53.3%;
   }
 }
@@ -95,8 +108,54 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ========================================================================= */
+/* STRICT DESIGN TOKENS UTILITIES                                            */
+/* ========================================================================= */
+
+/* Section Chips: Quant (Blue), DILR (Teal), VARC (Amber) */
+.chip-quant {
+  @apply bg-[#E0EDFF] text-[#1D4ED8] border border-[#BFDBFE] dark:bg-[rgba(37,99,235,0.15)] dark:text-[#93C5FD] dark:border-[rgba(37,99,235,0.25)];
+}
+
+.chip-dilr {
+  @apply bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] dark:bg-[rgba(20,184,166,0.15)] dark:text-[#5EEAD4] dark:border-[rgba(20,184,166,0.25)];
+}
+
+.chip-varc {
+  @apply bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] dark:bg-[rgba(249,115,22,0.15)] dark:text-[#FDBA74] dark:border-[rgba(249,115,22,0.25)];
+}
+
+/* Semantic Status Badges: Strictly semantic, never decorative */
+.status-done {
+  @apply bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0] dark:bg-[rgba(16,185,129,0.15)] dark:text-[#6EE7B7] dark:border-[rgba(16,185,129,0.25)];
+}
+
+.status-progress {
+  @apply bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] dark:bg-[rgba(245,158,11,0.15)] dark:text-[#FCD34D] dark:border-[rgba(245,158,11,0.25)];
+}
+
+.status-overdue {
+  @apply bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA] dark:bg-[rgba(239,68,68,0.15)] dark:text-[#FCA5A5] dark:border-[rgba(239,68,68,0.25)];
+}
+
+/* Today Dashboard 3 Stat Tiles */
+.card-stat-topics {
+  @apply bg-blue-50/70 border border-blue-100 text-blue-900 dark:bg-blue-950/20 dark:border-blue-900/40 dark:text-blue-200;
+}
+
+.card-stat-mocks {
+  @apply bg-slate-50 border border-slate-200/80 text-slate-900 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-200;
+}
+
+.card-stat-overdue {
+  @apply bg-rose-50 border border-rose-200 text-rose-900 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-200;
 }
 
 /* Custom modern scrollbars */
