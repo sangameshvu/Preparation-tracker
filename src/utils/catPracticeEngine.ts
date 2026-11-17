@@ -44,11 +44,11 @@ export const savePracticeSession = (session: PracticeSessionRecord) => {
 };
 
 /**
- * Intelligent AI Fallback Synthesizer for Quant & DILR
+ * Intelligent AI Fallback Synthesizer for Quant, DILR & VARC
  * Generates calibrated CAT exam questions with authentic logic traps & step-by-step solutions
  */
 function generateCalibratedQuestion(
-  section: 'Quant' | 'DILR',
+  section: 'Quant' | 'DILR' | 'VARC',
   topic: string,
   index: number,
   difficulty: 'Foundational' | 'Moderate' | 'Advanced'
@@ -56,8 +56,81 @@ function generateCalibratedQuestion(
   const seed = Math.floor(Math.random() * 1000);
   const qId = `ai-gen-${section.toLowerCase()}-${Date.now().toString(36)}-${index}-${seed}`;
 
+  // 1. VARC GENERATOR
+  if (section === 'VARC') {
+    const isRC = topic.toLowerCase().includes('reading') ||
+      topic.toLowerCase().includes('rc') ||
+      topic.toLowerCase().includes('idea') ||
+      topic.toLowerCase().includes('tone') ||
+      topic.toLowerCase().includes('passage') ||
+      topic.toLowerCase().includes('inference');
+
+    if (isRC) {
+      return {
+        id: qId,
+        section: 'VARC',
+        topic,
+        sourceType: 'AI_Generated',
+        sourceExam: 'AI Calibrated RC (CAT Standard)',
+        difficulty,
+        caselet: {
+          title: `RC Reading Passage: Philosophy of Science & Paradigms (${topic})`,
+          description: `Scientific progress is rarely the tranquil accretion of self-evident facts portrayed in introductory textbooks. Rather, as Thomas Kuhn articulated, scientific disciplines oscillate between protracted epochs of "normal science" and sudden epistemic earthquakes known as paradigm shifts.\n\nDuring normal science, researchers operate within a consensus framework of assumptions, methods, and metaphysical commitments. Anomalies—empirical findings that contradict dominant theoretical orthodoxies—are initially dismissed as observational artifacts or experimental errors. Only when an accumulating mass of recalcitrant anomalies precipitates an acute crisis do practitioners begin to entertain radical alternative conceptual schemes.\n\nA transition between competing paradigms cannot be resolved purely through empirical induction, for the criteria of evaluation themselves are steeped in paradigm-specific idioms. Thus, scientific revolutions resemble political transformations: they hinge upon persuasion, conceptual reorientation, and the generational replacement of conservative adherents rather than decisive laboratory proof.`
+        },
+        questionText: `Which of the following inferences regarding "normal science" is most strongly supported by the passage?`,
+        options: [
+          { id: 'A', text: 'It welcomes anomalies as immediate catalysts for abandoning foundational theories.' },
+          { id: 'B', text: 'It operates under a shared framework where contradictory evidence is initially marginalized.' },
+          { id: 'C', text: 'It relies primarily on political revolutions to resolve disputes between scientific researchers.' },
+          { id: 'D', text: 'It completely ceases to conduct empirical experiments until an anomaly is verified.' }
+        ],
+        correctOptionId: 'B',
+        explanation: {
+          steps: [
+            `Paragraph 2 explicitly states: "Anomalies—empirical findings that contradict dominant theoretical orthodoxies—are initially dismissed as observational artifacts or experimental errors."`,
+            `This confirms Option B: researchers operate within a shared consensus framework where contradictory evidence is initially marginalized.`,
+            `Option A directly contradicts the text ("initially dismissed").`,
+            `Option C confuses normal science with revolutionary paradigm shifts and takes a political metaphor literally.`,
+            `Option D makes an extreme, unsupported generalization.`
+          ],
+          shortcutMethod: 'Identify key sentence in Paragraph 2 on how anomalies are handled: "initially dismissed" = marginalized.',
+          coreFormula: 'Contextual Inferences must strictly track passage assertions without hyperbole.'
+        }
+      };
+    }
+
+    // Verbal Ability (Para Summary / Jumbles / Sentence Completion)
+    return {
+      id: qId,
+      section: 'VARC',
+      topic,
+      sourceType: 'AI_Generated',
+      sourceExam: 'AI Calibrated Verbal Ability (CAT Standard)',
+      difficulty,
+      questionText: `Select the sentence that summarizes the core argument of the paragraph:\n\n"The proliferation of generative algorithmic models has disrupted traditional pedagogical assessments that prioritize static textual output. When automated systems can synthesize cogent essays across diverse disciplines in seconds, evaluation must migrate from evaluating finished artifacts toward assessing iterative reasoning, intellectual curiosity, and oral defense of thesis claims."`,
+      options: [
+        { id: 'A', text: 'Educational institutions should ban generative algorithms to protect standard essay grading.' },
+        { id: 'B', text: 'Because generative models can instantly produce polished text, academic assessment must pivot to evaluating reasoning processes and oral defense.' },
+        { id: 'C', text: 'Traditional student essays have proven to be inferior in reasoning compared to AI-generated prose.' },
+        { id: 'D', text: 'Students must now specialize in computer science rather than traditional humanities disciplines.' }
+      ],
+      correctOptionId: 'B',
+      explanation: {
+        steps: [
+          `Premise: Generative models can easily produce finished textual artifacts.`,
+          `Conclusion: Assessment must migrate from finished artifacts toward the process of iterative reasoning and oral defense.`,
+          `Option B synthesizes both the causal catalyst and the recommended pedagogical shift faithfully.`,
+          `Option A advocates a ban, which is never proposed by the author.`,
+          `Options C and D introduce irrelevant and distorted claims.`
+        ],
+        shortcutMethod: 'Identify the "Cause -> Pivot": Generative text synthesis -> evaluation shifts to process and oral defense.',
+        trapWarning: 'Avoid prescriptive policy options (like Option A "should ban") when the author focuses on adaptive assessment.'
+      }
+    };
+  }
+
+  // 2. QUANT GENERATOR
   if (section === 'Quant') {
-    // Quant Problem Templates
     if (topic.toLowerCase().includes('time') || topic.toLowerCase().includes('speed') || topic.toLowerCase().includes('work')) {
       const v1 = 40 + (index * 10);
       const v2 = 60 + (index * 10);
@@ -153,7 +226,7 @@ function generateCalibratedQuestion(
     };
   }
 
-  // DILR Caselet Synthesizer
+  // 3. DILR Caselet Synthesizer
   return {
     id: qId,
     section: 'DILR',
@@ -203,7 +276,7 @@ function generateCalibratedQuestion(
  * 3. Tier 3: AI Calibrated Fallback Generator
  */
 export function fetchOrGeneratePracticeQuestions(
-  section: 'Quant' | 'DILR',
+  section: 'Quant' | 'DILR' | 'VARC',
   topic: string,
   options?: {
     customTopic?: string;

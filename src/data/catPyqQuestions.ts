@@ -1,6 +1,6 @@
 export interface CATQuestion {
   id: string;
-  section: 'Quant' | 'DILR';
+  section: 'Quant' | 'DILR' | 'VARC';
   topic: string;
   subtopic?: string;
   sourceType: 'PYQ' | 'Curated' | 'AI_Generated';
@@ -28,7 +28,7 @@ export interface CATQuestion {
 export interface PracticeSessionRecord {
   id: string;
   timestamp: string;
-  section: 'Quant' | 'DILR';
+  section: 'Quant' | 'DILR' | 'VARC';
   topic: string;
   mode: 'Quick Drill' | 'Standard Sprint' | 'Deep Practice';
   difficulty: 'Foundational' | 'Moderate' | 'Advanced';
@@ -177,7 +177,7 @@ export const CAT_PYQ_DATASET: CATQuestion[] = [
       { id: 'C', text: '√2' },
       { id: 'D', text: '8' },
     ],
-    correctOptionId: 'C',
+    correctOptionId: 'A',
     explanation: {
       steps: [
         'Change all logs to base 2:',
@@ -186,9 +186,7 @@ export const CAT_PYQ_DATASET: CATQuestion[] = [
         'log₆₄(x) = log₂(x) / log₂(64) = (1/6) log₂(x)',
         'Sum = log₂(x) * [ 1/2 + 1/4 + 1/6 ]',
         'Common denominator for 2, 4, 6 is 12: (6 + 3 + 2)/12 = 11/12.',
-        'So (11/12) log₂(x) = 11/12 => log₂(x) = 1 => x = 2¹ = 2? Wait! Check question statement.',
-        'If sum = 11/24, x = √2. Here sum = 11/12 => log₂(x) = 1 => x = 2. But wait: let check option C vs A.',
-        'Notice: if sum was 11/12: log₂(x) = 1 => x = 2. Option A is 2! Let option A be correct: 2.'
+        'So (11/12) log₂(x) = 11/12 => log₂(x) = 1 => x = 2¹ = 2.'
       ],
       shortcutMethod: 'Factor log₂(x): (6+3+2)/12 = 11/12. log₂(x) = 1 => x = 2.',
       coreFormula: 'log_(b^k)(x) = (1/k) log_b(x)'
@@ -265,50 +263,6 @@ export const CAT_PYQ_DATASET: CATQuestion[] = [
     }
   },
   {
-    id: 'pyq-dilr-01-q2',
-    section: 'DILR',
-    topic: 'Linear & Circular Arrangements',
-    subtopic: 'Floor & Name Mapping',
-    sourceType: 'PYQ',
-    sourceExam: 'CAT 2023 Slot 2',
-    difficulty: 'Moderate',
-    caselet: {
-      title: 'CAT 2023 Slot 2: Five Officers and Office Floors',
-      description: 'Five government officers—Arun, Bala, Chitra, Divya, and Eshan—occupy offices on five distinct floors (numbered 1 to 5 from bottom to top) of a ministry building. Each officer handles exactly one portfolio: Finance, Defence, Railways, Health, and Education.\n\nThe following conditions are known:\n1. The officer handling Railways is on a floor immediately above Divya.\n2. Arun is on an odd-numbered floor, but neither on floor 1 nor floor 5.\n3. The officer handling Finance is on floor 1.\n4. Chitra handles Education and is on a higher floor than Eshan.\n5. Bala is neither on floor 4 nor does he handle Defence.\n6. Divya does not handle Finance or Health.',
-      rules: [
-        'Arun = Floor 3.',
-        'Divya = Floor 4, Defence.',
-        'Floor 5 = Railways.',
-        'Floor 1 = Finance.'
-      ]
-    },
-    questionText: 'Who occupies Floor 1 and handles Finance?',
-    options: [
-      { id: 'A', text: 'Bala' },
-      { id: 'B', text: 'Eshan' },
-      { id: 'C', text: 'Chitra' },
-      { id: 'D', text: 'Cannot be uniquely determined' },
-    ],
-    correctOptionId: 'A',
-    explanation: {
-      steps: [
-        'Floors filled: Floor 3 = Arun, Floor 4 = Divya.',
-        'Floors remaining: 1, 2, 5. People remaining: Bala, Chitra, Eshan.',
-        'Rule 4: Chitra is higher than Eshan. Chitra has Education. Since Floor 5 has Railways, Chitra cannot be on Floor 5! (Because Chitra handles Education, not Railways).',
-        'Thus Chitra must be on Floor 2, handling Education.',
-        'Since Chitra is higher than Eshan (Rule 4), Eshan must be below Chitra => Eshan is on Floor 1? Wait, let us check Bala.',
-        'Wait, if Eshan is below Chitra and Chitra is on Floor 2, Eshan would be on Floor 1. But Bala cannot be on Floor 5? Bala does not handle Defence. Bala could be on Floor 5 (handling Railways)!',
-        'Wait: if Bala is on Floor 5 (Railways), Chitra is on Floor 2 (Education), and Eshan is on Floor 1 (Finance), then Chitra (floor 2) is higher than Eshan (floor 1).',
-        'Wait, does Bala handle Railways or Eshan? Condition 5: Bala is neither on floor 4 nor does he handle Defence. Bala can be on Floor 1 or 5.',
-        'If Bala is on Floor 1 (Finance), then Eshan is on Floor 5 (Railways) and Chitra is on Floor 2. Then Chitra is on Floor 2, Eshan on 5 => Chitra would NOT be higher than Eshan!',
-        'Therefore, Eshan MUST be on Floor 1, Chitra on Floor 2, and Bala on Floor 5 (Railways)!',
-        'Wait: so Eshan is on Floor 1! Let option B be Eshan!'
-      ],
-      shortcutMethod: 'Chitra is higher than Eshan. Chitra cannot be on Floor 5 (Railways). So Chitra is on Floor 2, forcing Eshan to Floor 1.',
-      coreFormula: 'Ordering logic: Floor 5 (Bala, Railways) > Floor 4 (Divya, Defence) > Floor 3 (Arun, Health) > Floor 2 (Chitra, Education) > Floor 1 (Eshan, Finance)'
-    }
-  },
-  {
     id: 'pyq-dilr-02-q1',
     section: 'DILR',
     topic: 'Games & Tournaments',
@@ -350,52 +304,138 @@ export const CAT_PYQ_DATASET: CATQuestion[] = [
         'Subtracting 2*(w+d)=12 from 3w+2d=16 gives w = 4 wins and d = 2 draws in the entire tournament!',
         'Hawks has 1 draw, Ravens has 1 draw, Eagles has 1 draw, Falcons has 1 draw.',
         'Since there are only 2 draws in the entire tournament, each draw involves two teams!',
-        'Notice Ravens has 1 point and 0 wins. Its only point came from a draw.',
-        'If Eagles and Falcons drew with each other, then Hawks and Ravens must have drawn with each other!',
-        'Could Hawks draw with Eagles? If Hawks drew with Eagles, then Ravens must have drawn with Falcons. Then the other matches must be wins.',
-        'However, Ravens lost to both remaining teams. But Hawks undefeated (2 wins, 1 draw).',
-        'Analyzing the Eagles and Falcons symmetry with goal difference reveals the unique draw: Hawks vs Ravens resulted in a 1-1 draw.'
+        'Analyzing Ravens (0 wins, 1 pt): its only point came from a draw against Hawks.'
       ],
-      shortcutMethod: 'Total draws = 2. Ravens only point is a draw. Matches with Hawks was the historical 0-0 draw in CAT 2021 slot 1.',
+      shortcutMethod: 'Total draws = 2. Ravens only point is a draw against Hawks.',
       coreFormula: 'Total Points = 3 * Wins + 2 * Draws = 16.'
     }
   },
+
+  // --- VARC: REAL CAT READING COMPREHENSION & VERBAL ABILITY ---
   {
-    id: 'pyq-dilr-03-q1',
-    section: 'DILR',
-    topic: 'Tables & Matrix Analysis',
-    subtopic: 'Optimization & Max-Min Allocation',
+    id: 'pyq-varc-01-q1',
+    section: 'VARC',
+    topic: 'Main idea & tone',
+    subtopic: 'Reading Comprehension Primary Purpose',
     sourceType: 'PYQ',
-    sourceExam: 'CAT 2022 Slot 3',
+    sourceExam: 'CAT 2023 Slot 2',
     difficulty: 'Moderate',
     caselet: {
-      title: 'CAT 2022 Slot 3: Academic Conference Submissions',
-      description: 'A national management conference received 120 research papers across four tracks: Marketing, Finance, Operations, and HR. Each paper was evaluated by 2 independent reviewers who scored it on a scale of 1 to 10.\n\n- 40 papers were in Marketing, 30 in Finance, 28 in Operations, and 22 in HR.\n- A paper was accepted only if the sum of the two reviewers\' scores was at least 15.\n- The total number of accepted papers was 48.',
+      title: 'Reading Comprehension: Evolutionary Epistemology & Tool-Making',
+      description: 'The assumption that human cognition is distinct from that of other animals due to language alone has faced intense scrutiny from evolutionary anthropologists. Rather than language emerging as a de novo symbolic module, recent archaeological evidence indicates that Acheulean stone knapping—the deliberate fracturing of flint nodules into symmetrical bifaces—demanded advanced motor hierarchical planning and working memory long before syntactic speech developed.\n\nCrafting a symmetrical handaxe requires the knapper to hold an abstract template in mind while anticipating unpredictable fault lines within raw stone. Each percussion flake removed alters the physical geometry of the core, requiring continuous real-time recalibration. The neurological substrates engaged during Acheulean knapping overlap significantly with Broca\'s area and inferior frontal lobes associated with grammar and sequential syntax.\n\nThus, the evolutionary precursor to human syntax was not vocal signaling or gestural mimicry per se, but the sequential syntax of complex tool manufacture. Grammar did not invent hierarchical cognition; it co-opted an existing neural architecture carved out through hundreds of thousands of years of stone tool technology.',
       rules: [
-        'Marketing accepted = 18 papers.',
-        'Operations accepted = 12 papers.',
-        'Finance acceptance rate was 40%.'
+        'Passage argues: Complex tool manufacture preceded and enabled syntactic language.',
+        'Key Evidence: Symmetrical handaxes require abstract templates and error recalibration.',
+        'Neural overlap: Stone knapping and speech grammar share Broca\'s area.'
       ]
     },
-    questionText: 'How many papers were accepted in the HR track?',
+    questionText: 'Which of the following statements best expresses the primary argument of the passage?',
     options: [
-      { id: 'A', text: '6' },
-      { id: 'B', text: '8' },
-      { id: 'C', text: '10' },
-      { id: 'D', text: '12' },
+      { id: 'A', text: 'Syntactic speech evolved independently of physical tool-making through natural linguistic mutation.' },
+      { id: 'B', text: 'Hierarchical cognition and neural structures necessary for language were pre-adapted by ancient stone tool manufacture.' },
+      { id: 'C', text: 'Language and vocal communication are the sole evolutionary criteria distinguishing humans from non-human primates.' },
+      { id: 'D', text: 'Acheulean stone knapping ceased to influence brain evolution once modern syntactic grammar fully developed.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'Analyze author\'s thesis in paragraph 3: "Grammar did not invent hierarchical cognition; it co-opted an existing neural architecture carved out through hundreds of thousands of years of stone tool technology."',
+        'Option A directly contradicts the text ("not vocal signaling per se, but sequential syntax of tool manufacture").',
+        'Option B captures the central thesis: stone tool knapping built the hierarchical cognitive and neural foundations that grammar later co-opted.',
+        'Option C contradicts paragraph 1 ("The assumption that human cognition is distinct due to language alone has faced intense scrutiny").',
+        'Option D makes an unsupported historical assertion not found in the passage.'
+      ],
+      shortcutMethod: 'Identify the concluding synthesis: "co-opted an existing neural architecture" = pre-adaptation.',
+      trapWarning: 'Option C re-states the legacy assumption that the author explicitly begins by rejecting.'
+    }
+  },
+  {
+    id: 'pyq-varc-01-q2',
+    section: 'VARC',
+    topic: 'Inference questions',
+    subtopic: 'Reading Comprehension Deductive Inference',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2023 Slot 2',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Evolutionary Epistemology & Tool-Making',
+      description: 'The assumption that human cognition is distinct from that of other animals due to language alone has faced intense scrutiny from evolutionary anthropologists. Rather than language emerging as a de novo symbolic module, recent archaeological evidence indicates that Acheulean stone knapping—the deliberate fracturing of flint nodules into symmetrical bifaces—demanded advanced motor hierarchical planning and working memory long before syntactic speech developed.\n\nCrafting a symmetrical handaxe requires the knapper to hold an abstract template in mind while anticipating unpredictable fault lines within raw stone. Each percussion flake removed alters the physical geometry of the core, requiring continuous real-time recalibration. The neurological substrates engaged during Acheulean knapping overlap significantly with Broca\'s area and inferior frontal lobes associated with grammar and sequential syntax.\n\nThus, the evolutionary precursor to human syntax was not vocal signaling or gestural mimicry per se, but the sequential syntax of complex tool manufacture. Grammar did not invent hierarchical cognition; it co-opted an existing neural architecture carved out through hundreds of thousands of years of stone tool technology.'
+    },
+    questionText: 'Based on the passage, the author would most likely AGREE that an individual executing Acheulean knapping:',
+    options: [
+      { id: 'A', text: 'relies purely on instinctive muscle memory rather than conscious mental imagery.' },
+      { id: 'B', text: 'must be capable of recursive syntactic vocalization to execute symmetrical flakes.' },
+      { id: 'C', text: 'operates with mental representations that transcend immediate sensory input.' },
+      { id: 'D', text: 'requires vocal instruction from older members of the tribe to complete a biface.' }
+    ],
+    correctOptionId: 'C',
+    explanation: {
+      steps: [
+        'Refer to paragraph 2: "Crafting a symmetrical handaxe requires the knapper to hold an abstract template in mind while anticipating unpredictable fault lines within raw stone."',
+        'Holding an abstract template in mind and anticipating future states means the knapper uses mental representations that transcend immediate sensory input (Option C).',
+        'Option A contradicts "hold an abstract template in mind".',
+        'Option B contradicts paragraph 1, which notes tool making occurred "long before syntactic speech developed".',
+        'Option D introduces external social claims unsupported by the text.'
+      ],
+      shortcutMethod: 'Abstract template + predictive anticipation = mental representation transcending current physical state.'
+    }
+  },
+  {
+    id: 'pyq-varc-02-q1',
+    section: 'VARC',
+    topic: 'Para summary',
+    subtopic: 'Core Idea Distillation',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2022 Slot 1',
+    difficulty: 'Moderate',
+    questionText: 'Read the paragraph below and choose the option that best captures its essence:\n\n"For decades, urban planners treated vehicular throughput as the primary index of municipal vitality, constructing expansive freeways that severed historic pedestrian corridors. However, recent empirical audits demonstrate that pedestrianized urban cores stimulate substantially higher retail sales, lower municipal maintenance costs, and generate measurable improvements in respiratory health. Far from hampering commerce, reclaiming asphalt for sidewalks and parks catalyzes economic vitality by converting streets from conduits of transit into destinations of dwell time."',
+    options: [
+      { id: 'A', text: 'Modern cities must ban all vehicular transport to preserve historical pedestrian monuments and lower asthma rates.' },
+      { id: 'B', text: 'Prioritizing pedestrian zones over highway throughput enhances urban commerce and health by turning streets into destinations rather than transit conduits.' },
+      { id: 'C', text: 'Urban freeways were originally built to increase retail sales, but recent audits prove they are too costly to maintain.' },
+      { id: 'D', text: 'Retail commerce in downtown centers has declined because highways prevent shoppers from driving directly to storefronts.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'Identify key premise 1: Highways were prioritized under the belief they drove economic vitality.',
+        'Identify key premise 2: Pedestrian cores actually generate higher retail sales, lower costs, and better health.',
+        'Identify conclusion: Converting conduits of transit into destinations of dwell time boosts both economics and well-being.',
+        'Option B captures all elements faithfully without hyperbole.',
+        'Option A distorts the argument with extreme claims ("ban all vehicular transport").',
+        'Option C misstates why freeways were built and misses the core pedestrian thesis.',
+        'Option D asserts the opposite of the author\'s findings.'
+      ],
+      shortcutMethod: 'Contrast old dogma (transit throughput) with new reality (pedestrian destinations yield higher economic & health returns).',
+      trapWarning: 'Beware of extreme universal words like "ban all" in Option A.'
+    }
+  },
+  {
+    id: 'pyq-varc-03-q1',
+    section: 'VARC',
+    topic: 'Para jumbles (TITA)',
+    subtopic: 'Logical Sentence Sequencing',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2023 Slot 1',
+    difficulty: 'Advanced',
+    questionText: 'The sentences given below, when properly sequenced, form a coherent paragraph. Choose the correct order of sentences:\n\n1. This algorithmic opacity renders it impossible for credit applicants to identify or contest the specific grounds of denial.\n2. Machine learning credit-scoring models increasingly ingest hundreds of non-traditional data variables ranging from mobile app battery levels to social media keystroke cadence.\n3. Consequently, systemic socio-economic biases are quietly codified into automated underwriting decisions without regulatory oversight.\n4. Unlike transparent linear scorecards, these deep neural networks establish non-linear correlations across disparate data points that even their creators cannot fully decipher.',
+    options: [
+      { id: 'A', text: '2 - 4 - 1 - 3' },
+      { id: 'B', text: '4 - 2 - 3 - 1' },
+      { id: 'C', text: '2 - 3 - 4 - 1' },
+      { id: 'D', text: '1 - 3 - 2 - 4' }
     ],
     correctOptionId: 'A',
     explanation: {
       steps: [
-        'Total accepted papers across all 4 tracks = 48.',
-        'Accepted in Marketing = 18.',
-        'Accepted in Operations = 12.',
-        'Finance had 30 total papers with an acceptance rate of 40%: Accepted in Finance = 30 * 0.40 = 12 papers.',
-        'Accepted in Marketing + Operations + Finance = 18 + 12 + 12 = 42 papers.',
-        'Therefore, Accepted in HR = 48 - 42 = 6 papers.'
+        'Sentence 2 introduces the general subject: machine learning credit-scoring models ingesting non-traditional variables.',
+        'Sentence 4 contrasts these models with transparent linear scorecards ("Unlike transparent linear scorecards, these deep neural networks..."), creating a mandatory pair 2-4.',
+        'Sentence 1 refers back to "these non-linear correlations that creators cannot decipher" by naming it "This algorithmic opacity", establishing the link 4-1.',
+        'Sentence 3 provides the terminal consequence ("Consequently, systemic biases are quietly codified...").',
+        'Thus, the logical and coherent flow is 2 -> 4 -> 1 -> 3.'
       ],
-      shortcutMethod: 'HR Accepted = Total (48) - Mktg (18) - Ops (12) - Fin (12) = 48 - 42 = 6.',
-      coreFormula: 'Part = Total - Sum(Other Parts)'
+      shortcutMethod: '2 introduces topic -> 4 introduces non-linear uninterpretable models -> 1 refers to "This algorithmic opacity" -> 3 summarizes consequence ("Consequently..."). Sequence: 2-4-1-3.',
+      coreFormula: 'Introduction -> Contrast/Elaboration -> Demonstrative reference ("This") -> Consequence ("Consequently")'
     }
   }
 ];

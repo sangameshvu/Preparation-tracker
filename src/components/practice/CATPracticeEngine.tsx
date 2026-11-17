@@ -36,7 +36,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
   const { addMistake } = useAppData();
 
   // Mode & Configuration State
-  const [section, setSection] = useState<'Quant' | 'DILR'>('Quant');
+  const [section, setSection] = useState<'Quant' | 'DILR' | 'VARC'>('Quant');
   const [selectedTopic, setSelectedTopic] = useState<string>('Percentages & Profit Loss');
   const [customTopic, setCustomTopic] = useState<string>('');
   const [drillMode, setDrillMode] = useState<'Quick Drill' | 'Standard Sprint' | 'Deep Practice'>('Standard Sprint');
@@ -306,11 +306,11 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 1. Select Section
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setSection('Quant')}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs sm:text-sm font-semibold transition-all ${
                     section === 'Quant'
                       ? 'border-blue-500 bg-blue-50/80 text-blue-700 shadow-sm dark:border-blue-500 dark:bg-blue-950/40 dark:text-blue-300'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300'
@@ -322,7 +322,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 <button
                   type="button"
                   onClick={() => setSection('DILR')}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border p-3.5 text-sm font-semibold transition-all ${
+                  className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs sm:text-sm font-semibold transition-all ${
                     section === 'DILR'
                       ? 'border-teal-500 bg-teal-50/80 text-teal-800 shadow-sm dark:border-teal-500 dark:bg-teal-950/40 dark:text-teal-300'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300'
@@ -330,6 +330,18 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 >
                   <span className="h-2 w-2 rounded-full bg-teal-600"></span>
                   Data Interpretation & LR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSection('VARC')}
+                  className={`flex items-center justify-center gap-2 rounded-2xl border p-3 text-xs sm:text-sm font-semibold transition-all ${
+                    section === 'VARC'
+                      ? 'border-amber-500 bg-amber-50/80 text-amber-800 shadow-sm dark:border-amber-500 dark:bg-amber-950/40 dark:text-amber-300'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-amber-600"></span>
+                  Verbal Ability & RC
                 </button>
               </div>
 
@@ -467,7 +479,9 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                       className={`rounded-lg px-2.5 py-1 text-xs font-bold ${
                         item.section === 'Quant'
                           ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                          : 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                          : item.section === 'DILR'
+                          ? 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                          : 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
                       }`}
                     >
                       {item.section}
@@ -510,7 +524,9 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
               className={`rounded-lg px-2.5 py-1 text-xs font-bold ${
                 currentQ.section === 'Quant'
                   ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                  : 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                  : currentQ.section === 'DILR'
+                  ? 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                  : 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
               }`}
             >
               {currentQ.section}
@@ -604,8 +620,12 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
           {currentQ.caselet ? (
             <div className="lg:col-span-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-card-dark overflow-y-auto max-h-[600px]">
               <div className="mb-4">
-                <span className="rounded-md bg-teal-50 px-2 py-0.5 text-xs font-bold text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
-                  DILR Caselet Data
+                <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${
+                  currentQ.section === 'VARC'
+                    ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                    : 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                }`}>
+                  {currentQ.section === 'VARC' ? 'RC Passage Context' : 'DILR Caselet Data'}
                 </span>
                 <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-white">
                   {currentQ.caselet.title}
