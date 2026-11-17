@@ -56,7 +56,9 @@ import {
   KeyRound,
   ShieldCheck,
   LogOut,
-  FolderPlus
+  FolderPlus,
+  Link as LinkIcon,
+  Copy
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -83,39 +85,22 @@ import { SectionType, NoteCategoryType, StudyNoteItem, NoteImageItem } from '../
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
-
 export const NotesPage: React.FC = () => {
   const { studyNotes, addStudyNote, updateStudyNote, deleteStudyNote, topics } = useAppData();
 
   // Active View: 'gallery' or 'editor'
   const [activeView, setActiveView] = useState<'gallery' | 'editor'>('gallery');
 
-  // Real Google Drive & Google Docs Cloud Connection State
-  const [googleClientId, setGoogleClientId] = useState<string>(() => {
-    return localStorage.getItem('cat2027_gdrive_client_id') || '';
-  });
-  const [googleAccessToken, setGoogleAccessToken] = useState<string>(() => {
-    return localStorage.getItem('cat2027_gdrive_access_token') || '';
-  });
-  const [googleDocsFolderId, setGoogleDocsFolderId] = useState<string>(() => {
-    return localStorage.getItem('cat2027_gdrive_folder_id') || '';
-  });
+  // Google Drive & Google Docs Folder Connection State (Frictionless / No developer key required)
   const [googleDocsFolderLink, setGoogleDocsFolderLink] = useState<string>(() => {
-    return localStorage.getItem('cat2027_gdrive_folder_link') || '';
+    return localStorage.getItem('cat2027_gdrive_folder_link') || 'https://drive.google.com/drive/u/0/search?q=title%3D%27CAT%20Notes%27%20and%20mimeType%3D%27application%2Fvnd.google-apps.folder%27';
   });
-  const [userGoogleEmail, setUserGoogleEmail] = useState<string>(() => {
-    return localStorage.getItem('cat2027_gdrive_user_email') || '';
-  });
-  const [isGoogleDriveConnected, setIsGoogleDriveConnected] = useState<boolean>(() => {
-    return localStorage.getItem('cat2027_gdrive_connected') === 'true' && Boolean(localStorage.getItem('cat2027_gdrive_access_token'));
+  const [isDriveFolderConfigured, setIsDriveFolderConfigured] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('cat2027_gdrive_folder_link'));
   });
 
   const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [customFolderInput, setCustomFolderInput] = useState('');
   const [isSyncingDrive, setIsSyncingDrive] = useState(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('Just now');
 
@@ -137,25 +122,13 @@ export const NotesPage: React.FC = () => {
   const [images, setImages] = useState<NoteImageItem[]>([]);
   const [isPinned, setIsPinned] = useState(false);
   const [googleDocId, setGoogleDocId] = useState<string | undefined>(undefined);
-  const [googleDocsUrl, setGoogleDocsUrl] = useState<string | undefined>(undefined);
+  const [googleDocsUrl, setGoogleDocsUrl] = useState<string>('');
 
   // Word/Docs Canvas Mode: 'canvas' (Document paper) | 'split' | 'raw'
   const [editorMode, setEditorMode] = useState<'canvas' | 'split' | 'raw'>('canvas');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load Google Identity Services (GIS) SDK
-  useEffect(() => {
-    if (!document.getElementById('google-gsi-client')) {
-      const script = document.createElement('script');
-      script.id = 'google-gsi-client';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
   // Relevant syllabus topics based on section in editor
   const relevantTopics = useMemo(() => {
@@ -202,147 +175,38 @@ export const NotesPage: React.FC = () => {
     return { words, characters, readingMinutes };
   }, [content]);
 
-  // Real Google Drive API: Create or Locate the 'CAT Notes' folder in user's Drive
-  const createOrLocateCatNotesFolder = async (token: string) => {
-    setIsSyncingDrive(true);
-    try {
-      // 1. Search for existing 'CAT Notes' folder in user's Google Drive
-      const searchRes = await fetch(
-        "https://www.googleapis.com/drive/v3/files?q=name='CAT Notes' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name,webViewLink)",
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (!searchRes.ok) {
-        throw new Error(`Google Drive API error: ${searchRes.statusText}`);
-      }
-
-      const searchData = await searchRes.json();
-      let fId = '';
-      let fLink = '';
-
-      if (searchData.files && searchData.files.length > 0) {
-        fId = searchData.files[0].id;
-        fLink = searchData.files[0].webViewLink || `https://drive.google.com/drive/folders/${fId}`;
-        toast.success(`Connected to existing "CAT Notes" folder in your Google Drive!`);
-      } else {
-        // 2. Create the 'CAT Notes' folder in user's Google Drive
-        const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: 'CAT Notes',
-            mimeType: 'application/vnd.google-apps.folder',
-            description: 'CAT 2027 Preparation Study Notes & Solved Problem Dossiers'
-          })
-        });
-
-        if (!createRes.ok) {
-          throw new Error('Failed to create "CAT Notes" folder on Google Drive');
-        }
-
-        const createData = await createRes.json();
-        fId = createData.id;
-        fLink = createData.webViewLink || `https://drive.google.com/drive/folders/${fId}`;
-        toast.success(`🎉 Created new "CAT Notes" folder in your Google Drive!`);
-      }
-
-      setGoogleDocsFolderId(fId);
-      setGoogleDocsFolderLink(fLink);
-      setIsGoogleDriveConnected(true);
-      setLastSyncedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-
-      localStorage.setItem('cat2027_gdrive_folder_id', fId);
-      localStorage.setItem('cat2027_gdrive_folder_link', fLink);
-      localStorage.setItem('cat2027_gdrive_connected', 'true');
-    } catch (err: any) {
-      console.error(err);
-      toast.error(`Google Drive error: ${err.message || 'Could not access Drive'}`);
-    } finally {
-      setIsSyncingDrive(false);
-    }
-  };
-
-  // Google OAuth 2.0 Sign In
-  const handleInitiateGoogleSignIn = () => {
-    if (!googleClientId.trim()) {
-      toast.error('Please enter your Google OAuth Client ID');
+  // Save custom Google Drive folder URL
+  const handleSaveDriveFolderLink = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!customFolderInput.trim()) {
+      toast.error('Please enter a Google Drive folder link');
       return;
     }
-
-    localStorage.setItem('cat2027_gdrive_client_id', googleClientId.trim());
-
-    if (!window.google?.accounts?.oauth2) {
-      toast.error('Google Identity Services SDK is still loading. Please retry in 2 seconds.');
-      return;
-    }
-
-    try {
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: googleClientId.trim(),
-        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/documents',
-        callback: async (tokenResponse: any) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            const token = tokenResponse.access_token;
-            setGoogleAccessToken(token);
-            localStorage.setItem('cat2027_gdrive_access_token', token);
-            setConnectModalOpen(false);
-            await createOrLocateCatNotesFolder(token);
-          } else if (tokenResponse?.error) {
-            toast.error(`Google Sign-In failed: ${tokenResponse.error}`);
-          }
-        }
-      });
-      tokenClient.requestAccessToken();
-    } catch (err: any) {
-      toast.error(`OAuth error: ${err.message}`);
-    }
-  };
-
-  // Manual Token connect (for quick testing with OAuth playground or existing token)
-  const handleManualTokenConnect = async () => {
-    if (!googleAccessToken.trim()) {
-      toast.error('Please enter a valid Google OAuth Access Token');
-      return;
-    }
-    localStorage.setItem('cat2027_gdrive_access_token', googleAccessToken.trim());
+    const cleanLink = customFolderInput.trim();
+    setGoogleDocsFolderLink(cleanLink);
+    setIsDriveFolderConfigured(true);
+    localStorage.setItem('cat2027_gdrive_folder_link', cleanLink);
     setConnectModalOpen(false);
-    await createOrLocateCatNotesFolder(googleAccessToken.trim());
+    toast.success('Saved CAT Notes folder link! Direct access enabled.');
   };
 
-  // Disconnect Google Drive
-  const handleDisconnectGoogleDrive = () => {
-    setIsGoogleDriveConnected(false);
-    setGoogleAccessToken('');
-    setGoogleDocsFolderId('');
-    setGoogleDocsFolderLink('');
-    localStorage.removeItem('cat2027_gdrive_access_token');
-    localStorage.removeItem('cat2027_gdrive_folder_id');
-    localStorage.removeItem('cat2027_gdrive_folder_link');
-    localStorage.setItem('cat2027_gdrive_connected', 'false');
-    toast.info('Disconnected from Google Drive');
+  // Open Drive folder
+  const handleOpenGoogleDriveFolder = () => {
+    const link = googleDocsFolderLink || 'https://drive.google.com/drive/u/0/my-drive';
+    window.open(link, '_blank', 'noopener,noreferrer');
   };
 
-  // Sync / Refresh with Google Drive
-  const handleSyncWithGoogleDrive = async () => {
-    if (googleAccessToken) {
-      await createOrLocateCatNotesFolder(googleAccessToken);
-    } else {
-      setConnectModalOpen(true);
-    }
+  // Open Google Drive to create the CAT Notes folder directly
+  const handleCreateFolderInGoogleDrive = () => {
+    window.open('https://drive.google.com/drive/u/0/my-drive', '_blank', 'noopener,noreferrer');
+    toast.info('Google Drive opened! Click "+ New" -> "New folder" and name it "CAT Notes".');
   };
 
   // Read Note: DIRECTLY OPENS THE DOCUMENT IN GOOGLE DOCS / DRIVE (NO MODAL)
   const handleReadNote = (note: StudyNoteItem) => {
-    // If note has a real Google Doc link, open it directly!
     let targetUrl = note.googleDocsUrl;
     if (!targetUrl || targetUrl.includes('gdoc_cat_') || targetUrl.includes('DocId')) {
-      // Direct Google Docs Document Creator or Drive Search
-      targetUrl = `https://docs.google.com/document/create`;
+      targetUrl = 'https://docs.google.com/document/create';
     }
 
     window.open(targetUrl, '_blank', 'noopener,noreferrer');
@@ -362,7 +226,7 @@ export const NotesPage: React.FC = () => {
     setImages([]);
     setIsPinned(false);
     setGoogleDocId(undefined);
-    setGoogleDocsUrl('https://docs.google.com/document/create');
+    setGoogleDocsUrl('');
     setEditorMode('canvas');
     setActiveView('editor');
   };
@@ -380,13 +244,19 @@ export const NotesPage: React.FC = () => {
     setImages(note.images || []);
     setIsPinned(Boolean(note.isPinned));
     setGoogleDocId(note.googleDocId);
-    setGoogleDocsUrl(note.googleDocsUrl || 'https://docs.google.com/document/create');
+    setGoogleDocsUrl(note.googleDocsUrl || '');
     setEditorMode('canvas');
     setActiveView('editor');
   };
 
-  // Save Note & Create in Google Docs / Drive
-  const handleSaveNote = async (e?: React.FormEvent) => {
+  // Open a brand new Google Doc in a new tab for drafting
+  const handleCreateNewGoogleDoc = () => {
+    window.open('https://docs.google.com/document/create', '_blank', 'noopener,noreferrer');
+    toast.info('New Google Doc created! Once you have its URL, you can paste it below.');
+  };
+
+  // Save Note
+  const handleSaveNote = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!title.trim()) {
       toast.error('Please enter a note document title');
@@ -396,40 +266,7 @@ export const NotesPage: React.FC = () => {
     const finalTopic = customTopic.trim() ? customTopic.trim() : (selectedTopic || 'General');
     const matchedTopic = topics.find((t) => t.topicName.toLowerCase() === finalTopic.toLowerCase());
 
-    let finalDocId = googleDocId;
-    let finalDocUrl = googleDocsUrl;
-
-    // If connected with Google Drive API and we have access token + folderId, create a real Google Doc!
-    if (isGoogleDriveConnected && googleAccessToken && googleDocsFolderId && !editingNoteId) {
-      try {
-        toast.info('Creating real Google Doc in "CAT Notes" folder on your Google Drive...');
-        const createDocRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${googleAccessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: title.trim(),
-            mimeType: 'application/vnd.google-apps.document',
-            parents: [googleDocsFolderId]
-          })
-        });
-
-        if (createDocRes.ok) {
-          const docData = await createDocRes.json();
-          finalDocId = docData.id;
-          finalDocUrl = docData.webViewLink || `https://docs.google.com/document/d/${docData.id}/edit`;
-          toast.success(`🎉 Real Google Doc created in "CAT Notes" on your Google Drive!`);
-        }
-      } catch (err) {
-        console.error('Failed to create doc in Drive:', err);
-      }
-    }
-
-    if (!finalDocUrl) {
-      finalDocUrl = 'https://docs.google.com/document/create';
-    }
+    const finalDocUrl = googleDocsUrl.trim() || 'https://docs.google.com/document/create';
 
     if (editingNoteId) {
       updateStudyNote(editingNoteId, {
@@ -442,11 +279,11 @@ export const NotesPage: React.FC = () => {
         content: content.trim(),
         images,
         isPinned,
-        googleDocId: finalDocId,
+        googleDocId: googleDocId || `doc-${Date.now()}`,
         googleDocsUrl: finalDocUrl,
         syncedWithGoogleDocs: true
       });
-      toast.success('Study note saved successfully');
+      toast.success('Study note and Google Doc link saved successfully');
     } else {
       addStudyNote({
         title: title.trim(),
@@ -458,7 +295,7 @@ export const NotesPage: React.FC = () => {
         content: content.trim(),
         images,
         isPinned,
-        googleDocId: finalDocId,
+        googleDocId: `doc-${Date.now()}`,
         googleDocsUrl: finalDocUrl,
         syncedWithGoogleDocs: true
       });
@@ -468,33 +305,11 @@ export const NotesPage: React.FC = () => {
     setActiveView('gallery');
   };
 
-  // Delete Note and remove from Google Drive folder
-  const handleDeleteNoteWithSync = async (note: StudyNoteItem) => {
-    if (window.confirm(`Are you sure you want to delete "${note.title}"? It will be removed from your CAT notes and Google Docs.`)) {
-      // If real Google Doc ID and access token exist, delete from Google Drive
-      if (isGoogleDriveConnected && googleAccessToken && note.googleDocId && !note.googleDocId.includes('gdoc_cat_') && !note.googleDocId.includes('DocId')) {
-        try {
-          await fetch(`https://www.googleapis.com/drive/v3/files/${note.googleDocId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${googleAccessToken}` }
-          });
-          toast.info('Deleted document from Google Drive');
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
+  // Delete Note
+  const handleDeleteNote = (note: StudyNoteItem) => {
+    if (window.confirm(`Are you sure you want to delete "${note.title}"?`)) {
       deleteStudyNote(note.id);
       toast.success('Note removed from library');
-    }
-  };
-
-  // Open Drive folder
-  const handleOpenGoogleDriveFolder = () => {
-    if (googleDocsFolderLink) {
-      window.open(googleDocsFolderLink, '_blank', 'noopener,noreferrer');
-    } else {
-      window.open('https://drive.google.com/drive/search?q=CAT%20Notes', '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -630,20 +445,13 @@ export const NotesPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Study Notes & Docs</h1>
-                {isGoogleDriveConnected ? (
-                  <Badge variant="blue" className="text-[11px] gap-1 font-medium bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Google Drive Connected (CAT Notes)
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[11px] gap-1 font-medium text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-300">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    Google Drive Not Connected
-                  </Badge>
-                )}
+                <Badge variant="blue" className="text-[11px] gap-1 font-medium bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Google Drive CAT Notes
+                </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Word & Google Docs-grade study canvas. Click on any document to read it directly in Google Docs / Google Drive.
+                Word & Google Docs-grade study canvas. Click on any document card to read it directly in Google Docs.
               </p>
             </div>
           </div>
@@ -657,10 +465,10 @@ export const NotesPage: React.FC = () => {
                 size="sm"
                 onClick={() => setConnectModalOpen(true)}
                 className="h-9 gap-1.5 text-xs border-border/80"
-                title="Connect or configure Google Drive"
+                title="Configure or link your Google Drive folder"
               >
                 <FolderSync className="h-3.5 w-3.5 text-blue-600" />
-                <span>{isGoogleDriveConnected ? 'Drive Settings' : 'Connect Google Drive'}</span>
+                <span>Drive Settings</span>
               </Button>
 
               <Button
@@ -700,26 +508,17 @@ export const NotesPage: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-foreground">Google Drive "CAT Notes" Integration</span>
-                  {isGoogleDriveConnected ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300">
-                      Active
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-500/15 dark:text-amber-300">
-                      Authorization Required
-                    </span>
-                  )}
+                  <span className="text-xs font-bold text-foreground">Google Drive "CAT Notes" Workspace</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300">
+                    Ready
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Target Cloud Folder: <strong className="text-blue-700 dark:text-blue-400 font-mono">My Drive / CAT Notes /</strong>
-                  {isGoogleDriveConnected
-                    ? ' • Connected to your personal Google Drive account. Documents open directly in Google Docs.'
-                    : ' • Click "Connect Drive" to authorize Google to create the "CAT Notes" folder and documents in your personal Google account.'}
+                  Target Cloud Folder: <strong className="text-blue-700 dark:text-blue-400 font-mono">My Drive / CAT Notes /</strong> • Notes open directly in Google Docs with full formatting.
                 </p>
                 <div className="flex items-center gap-4 text-[11px] text-muted-foreground mt-1">
-                  <span>Last reconciled: <strong className="text-foreground">{lastSyncedTime}</strong></span>
-                  <span>Synced documents: <strong className="text-foreground">{counts.gdocsSynced} of {counts.total}</strong></span>
+                  <span>Linked notes: <strong className="text-foreground">{counts.total} documents</strong></span>
+                  <span>Direct Google Docs access enabled</span>
                 </div>
               </div>
             </div>
@@ -737,27 +536,16 @@ export const NotesPage: React.FC = () => {
                 <ExternalLink className="h-3 w-3 ml-0.5 text-muted-foreground" />
               </Button>
 
-              {!isGoogleDriveConnected ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setConnectModalOpen(true)}
-                  className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                >
-                  <KeyRound className="h-3.5 w-3.5" />
-                  <span>Connect Drive</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDisconnectGoogleDrive}
-                  className="h-8 text-xs text-muted-foreground hover:text-rose-600"
-                  title="Disconnect Google Drive account"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </Button>
-              )}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleCreateNewGoogleDoc}
+                className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                title="Create a new Google Doc directly in your Google account"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ New Google Doc</span>
+              </Button>
             </div>
           </div>
 
@@ -780,7 +568,7 @@ export const NotesPage: React.FC = () => {
               <span className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 block">{counts.quickRef}</span>
             </div>
             <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-xs col-span-2 sm:col-span-1">
-              <span className="text-[11px] text-muted-foreground font-medium block">Notebook Scans</span>
+              <span className="text-[11px] text-muted-foreground font-medium block">Notebook Photos</span>
               <span className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5 block">{counts.totalImages}</span>
             </div>
           </div>
@@ -1007,7 +795,7 @@ export const NotesPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteNoteWithSync(note)}
+                          onClick={() => handleDeleteNote(note)}
                           className="h-7 w-7 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                           title="Delete Document"
                         >
@@ -1053,7 +841,7 @@ export const NotesPage: React.FC = () => {
                 <FolderCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 <span>CAT Notes</span>
                 <span className="text-border">•</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Auto-Synced</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Ready</span>
               </div>
             </div>
 
@@ -1061,12 +849,12 @@ export const NotesPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(googleDocsUrl || 'https://docs.google.com/document/create', '_blank', 'noopener,noreferrer')}
-                className="h-8 gap-1.5 text-xs border-border/80"
-                title="Open in official Google Docs web app"
+                onClick={() => window.open(googleDocsUrl.trim() || 'https://docs.google.com/document/create', '_blank', 'noopener,noreferrer')}
+                className="h-8 gap-1.5 text-xs border-border/80 text-blue-600 dark:text-blue-400 font-semibold"
+                title="Open directly in Google Docs"
               >
                 <FolderSync className="h-3.5 w-3.5 text-blue-600" />
-                <span className="hidden sm:inline">Open in Google Docs</span>
+                <span>Open in Google Docs</span>
                 <ExternalLink className="h-3 w-3 text-muted-foreground" />
               </Button>
 
@@ -1093,82 +881,108 @@ export const NotesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Form Metadata Ribbon (Category, Section, Topic, Date) */}
-          <div className="p-3.5 rounded-2xl border border-border/60 bg-muted/30 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            {/* Section */}
-            <div>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Section</label>
-              <Select value={section} onValueChange={(val: any) => setSection(val)}>
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Quant">Quantitative Aptitude (QA)</SelectItem>
-                  <SelectItem value="DILR">Data Interpretation & Logical Reasoning (DILR)</SelectItem>
-                  <SelectItem value="VARC">Verbal Ability & Reading Comp (VARC)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Note Type */}
-            <div>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Document Category</label>
-              <Select value={noteType} onValueChange={(val: any) => setNoteType(val)}>
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Notes">Concept Notes & Theory</SelectItem>
-                  <SelectItem value="QA">Solved Questions & Answers (Q&A)</SelectItem>
-                  <SelectItem value="Quick Ref">Quick Reference & Formula Sheet</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Topic Selection */}
-            <div>
-              <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Topic Covered</label>
-              <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                <SelectTrigger className="h-8 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-56">
-                  {relevantTopics.map((top) => (
-                    <SelectItem key={top.id} value={top.topicName}>
-                      {top.topicName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Date Created & Pin */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Created Date</label>
-                <Input
-                  type="date"
-                  value={createdDate}
-                  onChange={(e) => setCreatedDate(e.target.value)}
-                  className="h-8 text-xs bg-background"
-                />
+          {/* Form Metadata Ribbon (Category, Section, Topic, Date, and Google Doc Link) */}
+          <div className="p-3.5 rounded-2xl border border-border/60 bg-muted/30 space-y-3 text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Section */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Section</label>
+                <Select value={section} onValueChange={(val: any) => setSection(val)}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Quant">Quantitative Aptitude (QA)</SelectItem>
+                    <SelectItem value="DILR">Data Interpretation & Logical Reasoning (DILR)</SelectItem>
+                    <SelectItem value="VARC">Verbal Ability & Reading Comp (VARC)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="pt-5">
-                <button
-                  type="button"
-                  onClick={() => setIsPinned(!isPinned)}
-                  className={cn(
-                    'h-8 px-2.5 rounded-lg border text-xs flex items-center gap-1 transition-colors',
-                    isPinned
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-bold'
-                      : 'border-border/80 text-muted-foreground hover:bg-muted'
-                  )}
-                  title="Pin note to top of gallery"
-                >
-                  <Pin className={cn('h-3.5 w-3.5', isPinned && 'fill-current rotate-45')} />
-                  <span className="hidden sm:inline">Pin</span>
-                </button>
+
+              {/* Note Type */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Document Category</label>
+                <Select value={noteType} onValueChange={(val: any) => setNoteType(val)}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Notes">Concept Notes & Theory</SelectItem>
+                    <SelectItem value="QA">Solved Questions & Answers (Q&A)</SelectItem>
+                    <SelectItem value="Quick Ref">Quick Reference & Formula Sheet</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* Topic Selection */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Topic Covered</label>
+                <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                  <SelectTrigger className="h-8 text-xs bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {relevantTopics.map((top) => (
+                      <SelectItem key={top.id} value={top.topicName}>
+                        {top.topicName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date Created & Pin */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Created Date</label>
+                  <Input
+                    type="date"
+                    value={createdDate}
+                    onChange={(e) => setCreatedDate(e.target.value)}
+                    className="h-8 text-xs bg-background"
+                  />
+                </div>
+                <div className="pt-5">
+                  <button
+                    type="button"
+                    onClick={() => setIsPinned(!isPinned)}
+                    className={cn(
+                      'h-8 px-2.5 rounded-lg border text-xs flex items-center gap-1 transition-colors',
+                      isPinned
+                        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-bold'
+                        : 'border-border/80 text-muted-foreground hover:bg-muted'
+                    )}
+                    title="Pin note to top of gallery"
+                  >
+                    <Pin className={cn('h-3.5 w-3.5', isPinned && 'fill-current rotate-45')} />
+                    <span className="hidden sm:inline">Pin</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Google Doc URL Direct Link Input */}
+            <div className="pt-2 border-t border-border/50 flex flex-col sm:flex-row sm:items-center gap-2">
+              <div className="flex items-center gap-1.5 shrink-0 text-muted-foreground font-semibold text-[11px]">
+                <LinkIcon className="h-3.5 w-3.5 text-blue-600" />
+                <span>Google Doc URL:</span>
+              </div>
+              <Input
+                placeholder="https://docs.google.com/document/d/..."
+                value={googleDocsUrl}
+                onChange={(e) => setGoogleDocsUrl(e.target.value)}
+                className="h-8 text-xs font-mono bg-background flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCreateNewGoogleDoc}
+                className="h-8 text-xs shrink-0 text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Draft in Google Docs
+              </Button>
             </div>
           </div>
 
@@ -1557,7 +1371,7 @@ export const NotesPage: React.FC = () => {
       )}
 
       {/* ========================================================= */}
-      {/* GOOGLE DRIVE SETUP & CONNECTION MODAL                     */}
+      {/* GOOGLE DRIVE SETUP MODAL (No Developer Keys Required)      */}
       {/* ========================================================= */}
       <Dialog open={connectModalOpen} onOpenChange={setConnectModalOpen}>
         <DialogContent className="max-w-md p-6">
@@ -1567,108 +1381,73 @@ export const NotesPage: React.FC = () => {
                 <FolderSync className="h-4 w-4" />
               </div>
               <DialogTitle className="text-base font-bold text-foreground">
-                Connect Google Drive & Docs
+                Google Drive "CAT Notes" Setup
               </DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground mt-1">
-              Connect your personal Google account so CAT Crack can automatically create the <strong>"CAT Notes"</strong> folder and store live documents directly in your Google Drive.
+              Connect your personal Google Drive so all study notes and documents open directly in Google Docs.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 text-xs space-y-1.5">
-              <span className="font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
-                Why Google Authorization is Needed
+            {/* Step 1: Create or Open 'CAT Notes' in Google Drive */}
+            <div className="p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 text-xs space-y-2">
+              <span className="font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                <FolderPlus className="h-4 w-4 text-blue-600" />
+                Step 1: Open Google Drive & Create "CAT Notes" Folder
               </span>
               <p className="text-blue-800/80 dark:text-blue-300/80 leading-relaxed text-[11px]">
-                Google's privacy policies require your permission before any application can create folders or read/write files in your private Google Drive. Once authorized, all documents are created directly in your own account.
+                Click below to open your personal Google Drive, click <strong>"+ New"</strong> → <strong>"New folder"</strong>, and name it <strong>CAT Notes</strong>.
               </p>
-            </div>
-
-            {/* Option A: Sign In With Google via Google Client ID */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                <span>Google OAuth Client ID</span>
-                <a
-                  href="https://console.cloud.google.com/apis/credentials"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
-                >
-                  Get Client ID <ExternalLink className="h-2.5 w-2.5" />
-                </a>
-              </label>
-              <Input
-                placeholder="xxxx-xxxx.apps.googleusercontent.com"
-                value={googleClientId}
-                onChange={(e) => setGoogleClientId(e.target.value)}
-                className="h-8 text-xs font-mono"
-              />
               <Button
-                onClick={handleInitiateGoogleSignIn}
+                type="button"
+                onClick={handleCreateFolderInGoogleDrive}
                 variant="default"
                 size="sm"
                 className="w-full h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold gap-1.5"
               >
-                <FolderCheck className="h-3.5 w-3.5" />
-                <span>Sign in with Google & Create "CAT Notes"</span>
+                <FolderOpen className="h-3.5 w-3.5" />
+                <span>Open Google Drive Now</span>
+                <ExternalLink className="h-3 w-3 ml-0.5" />
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 my-2 text-[10px] text-muted-foreground uppercase font-bold text-center">
-              <div className="flex-1 h-px bg-border" />
-              <span>OR Quick OAuth Token</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            {/* Option B: Direct Access Token */}
-            <div className="space-y-2">
+            {/* Step 2: Paste folder link (optional) */}
+            <form onSubmit={handleSaveDriveFolderLink} className="space-y-2">
               <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                <span>Direct Access Token (from OAuth Playground)</span>
-                <a
-                  href="https://developers.google.com/oauthplayground"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
-                >
-                  OAuth Playground <ExternalLink className="h-2.5 w-2.5" />
-                </a>
+                <span>Step 2: Paste Folder Link (Optional)</span>
+                <span className="text-[10px] text-muted-foreground">Stored locally in browser</span>
               </label>
               <Input
-                placeholder="ya29.a0AfH6SM..."
-                value={googleAccessToken}
-                onChange={(e) => setGoogleAccessToken(e.target.value)}
+                placeholder="https://drive.google.com/drive/folders/..."
+                value={customFolderInput}
+                onChange={(e) => setCustomFolderInput(e.target.value)}
                 className="h-8 text-xs font-mono"
               />
+              <p className="text-[10px] text-muted-foreground">
+                Right-click your "CAT Notes" folder in Google Drive, select "Copy link", and paste here.
+              </p>
               <Button
-                onClick={handleManualTokenConnect}
+                type="submit"
                 variant="outline"
                 size="sm"
-                className="w-full h-8 text-xs gap-1.5"
+                className="w-full h-8 text-xs gap-1.5 border-border/80"
               >
                 <Check className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Verify Token & Initialize "CAT Notes" Folder</span>
+                <span>Save Folder Link</span>
               </Button>
-            </div>
+            </form>
 
-            {/* Direct Drive Folder & Docs Creation Links */}
+            {/* Quick Action: New Google Doc */}
             <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-muted-foreground">Draft a new document:</span>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open('https://drive.google.com/drive/my-drive', '_blank')}
-                className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                onClick={handleCreateNewGoogleDoc}
+                className="text-xs text-blue-600 hover:text-blue-700 h-7 px-2 font-semibold"
               >
-                Open Google Drive
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.open('https://docs.google.com/document/create', '_blank')}
-                className="text-xs text-blue-600 hover:text-blue-700 h-7 px-2"
-              >
-                + New Google Doc
+                + Create New Google Doc
               </Button>
             </div>
           </div>
