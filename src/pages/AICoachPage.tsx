@@ -17,10 +17,10 @@ import {
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { MarkdownRenderer } from '../components/ui/MarkdownRenderer';
+import { generateCoachResponse } from '../utils/catCoachBrain';
 
 interface ChatMessage {
   id: string;
@@ -47,6 +47,7 @@ export const AICoachPage: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,6 +56,13 @@ export const AICoachPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isThinking]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+    }
+  }, [inputMessage]);
 
   // Weak topics list
   const weakTopics = topics
@@ -128,49 +136,23 @@ export const AICoachPage: React.FC = () => {
 
     // 2. Intelligent Context-Aware Fallback Engine
     setTimeout(() => {
-      let responseText = '';
-      let proposal: ChatMessage['actionProposal'] | undefined = undefined;
-
-      const lower = text.toLowerCase();
-
-      if (lower.includes('progress') || lower.includes('weak') || lower.includes('status')) {
-        responseText = `### Strategic Progress Audit:\n\n1. **Syllabus Pace:** You are currently in **Week ${stats.currentWeek} (Phase ${stats.currentPhase.phaseNumber})**. Your overall multi-stage topic completion is at **${stats.overallCompletionPct}%**.\n2. **Weak Spots Needing Focus:** You currently have **${weakTopics.length} topics** marked at confidence level 1 or 2 (e.g. *${weakTopics.slice(0, 4).join(', ')}*).\n3. **Tactical Recommendation:** In CAT, accuracy and selective problem solving trump superficial syllabus coverage. Focus on getting your weak arithmetic and algebra topics up to at least Level 3 before advancing.`;
-      } else if (lower.includes('today') || lower.includes('plan') || lower.includes('schedule')) {
-        responseText = `### Recommended Daily Study Plan for Week ${stats.currentWeek}:\n\n- **Block 1 (45 mins):** Reading Comprehension – Read 1 long-form Aeon Essay and solve 1 un-timed passage identifying the central argument.\n- **Block 2 (60 mins):** Quant Focus – Work on **${activePlan.quantPlan.slice(0, 45)}...**\n- **Block 3 (45 mins):** DILR Practice – Solve 2 problem sets from **${activePlan.dilrPlan.slice(0, 40)}...**\n- **Block 4 (30 mins):** Mistake Revisit – Review your pending mistake queue (${stats.pendingMistakesCount} items).`;
-        proposal = {
-          type: 'add_task',
-          title: `Daily Sprint: ${activePlan.quantPlan.slice(0, 30)} Practice`,
-          details: `Scheduled 60-min practice block for Week ${stats.currentWeek} syllabus.`
-        };
-      } else if (lower.includes('next') || lower.includes('topic')) {
-        const nextPending = topics.find((t) => !topicProgress[t.id]?.conceptDone) || topics[0];
-        responseText = `### Recommended Next Topic: **${nextPending.topicName}** (${nextPending.section})\n\n- **Area:** ${nextPending.area}\n- **Planned Week:** Week ${nextPending.planWeek}\n- **Subtopics:** ${nextPending.subtopics || 'Foundational problem sets'}\n- **Why this topic:** Following the recommended 9-step learning sequence in the CAT Blueprint, mastering foundations before moving into advanced applications yields the highest return on time investment.`;
-        proposal = {
-          type: 'add_task',
-          title: `Study Concepts: ${nextPending.topicName}`,
-          details: `Cover core theory and initial 20 practice questions for ${nextPending.topicName}.`
-        };
-      } else if (lower.includes('mock') || lower.includes('score') || lower.includes('simcat') || lower.includes('aimcat')) {
-        if (stats.totalMocksAttempted === 0) {
-          responseText = `You have not logged any genuine mock exams yet (your sample mock SIMCAT 1 is currently isolated). The 52-week plan schedules **Mock 0 (baseline)** at **Week 31**, followed by intensive 2-3 mocks/week in Phase 4 (Weeks 41-51).\n\nWhen you do take mocks, remember the golden rule from the guide: **Your analysis should take longer than the mock itself (≥ 3 hours).**`;
-        } else {
-          responseText = `### Mock Performance Breakdown:\n\n- **Total Mocks Attempted:** ${stats.totalMocksAttempted}\n- **Latest Score:** ${stats.latestMockScore} points\n- **Best Score:** ${stats.bestMockScore} points\n- **Average Score:** ${stats.averageMockScore} points\n\n**Key Rule for Next Mock:** Strict set-selection discipline. If a DILR set is not cracked within 8 minutes, switch immediately to preserve your 10+ score target.`;
-        }
-      } else {
-        responseText = `Regarding **"${text}"**:\n\nBased on your active preparation parameters for CAT 2027:\n- Maintain your target of **${weeklyPlans.find((w) => w.weekNumber === stats.currentWeek)?.hoursTarget || '12-15'} study hours this week**.\n- Ensure daily reading habit of 25–30 minutes across economics, psychology, and philosophy to build VARC endurance.\n- Regularly re-solve questions in your Mistake Log (${stats.pendingMistakesCount} pending) to prevent repeating conceptual slips under timed exam pressure.\n\nWould you like me to schedule a specific study task for this?`;
-      }
+      const coachResult = generateCoachResponse(text, {
+        stats,
+        weakTopics,
+        activePlan
+      });
 
       const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: responseText,
+        text: coachResult.text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        actionProposal: proposal
+        actionProposal: coachResult.actionProposal
       };
 
       setMessages((prev) => [...prev, aiMsg]);
       setIsThinking(false);
-    }, 600);
+    }, 400);
   };
 
   const handleApplyProposal = (proposal: NonNullable<ChatMessage['actionProposal']>) => {
@@ -336,15 +318,31 @@ export const AICoachPage: React.FC = () => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex w-full gap-2"
+              className="flex w-full items-end gap-2"
             >
-              <Input
-                placeholder="Ask your AI coach about topics, strategies, or study pacing..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                className="text-xs"
-              />
-              <Button type="submit" variant="default" size="sm" className="h-9 px-4 gap-1.5">
+              <div className="relative flex-1">
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  placeholder="Ask your AI coach about topics, formulas, strategies, or study pacing..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  className="w-full text-xs min-h-[40px] max-h-[180px] py-2.5 px-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-purple-600/30 resize-none leading-relaxed transition-[height]"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={!inputMessage.trim() || isThinking}
+                variant="default"
+                size="sm"
+                className="h-10 px-4 gap-1.5 shrink-0 mb-0.5 cursor-pointer"
+              >
                 <Send className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Ask Coach</span>
               </Button>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SlideOver } from '../ui/SlideOver';
 import { useAppData } from '../../context/AppDataContext';
 import {
@@ -11,12 +12,15 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Plus
+  Plus,
+  Maximize2,
+  Minimize2,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { MarkdownRenderer } from '../ui/MarkdownRenderer';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { generateCoachResponse } from '../../utils/catCoachBrain';
 
 interface ChatMessage {
   id: string;
@@ -36,7 +40,9 @@ interface AICoachDrawerProps {
 }
 
 export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange }) => {
+  const navigate = useNavigate();
   const { stats, weeklyPlans, topics, topicProgress, mistakes, mockTests, addTask } = useAppData();
+  const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: 'welcome-1',
@@ -48,6 +54,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,6 +65,13 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
       setTimeout(scrollToBottom, 150);
     }
   }, [open, messages, isThinking]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+    }
+  }, [inputMessage]);
 
   // Extract weak topics
   const weakTopics = topics
@@ -116,56 +130,23 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
 
       // 2. High-performance in-browser diagnostic engine (Zero data egress)
       setTimeout(() => {
-        const lower = text.toLowerCase();
-        let reply = '';
-        let proposal: ChatMessage['actionProposal'] | undefined = undefined;
-
-        if (lower.includes('plan') || lower.includes('week') || lower.includes('schedule')) {
-          reply = `### Strategy for Week ${stats.currentWeek} (Phase ${stats.currentPhase.phaseNumber})\n\n` +
-            `Your targets for this week:\n` +
-            `- **Quant:** ${activePlan.quantPlan}\n` +
-            `- **DILR:** ${activePlan.dilrPlan}\n` +
-            `- **VARC:** ${activePlan.varcPlan}\n` +
-            `- **Target Study Time:** ${activePlan.hoursTarget}\n\n` +
-            `**Coach Advice:** Allocate 40% of your time to DILR caselet solving and 30% to Quantitative drill sets.`;
-        } else if (lower.includes('weak') || lower.includes('revise') || lower.includes('today')) {
-          if (weakTopics.length > 0) {
-            reply = `### Recommended Revision Priority Today\n\nYou currently have **${weakTopics.length} weak topics**:\n\n` +
-              weakTopics.slice(0, 4).map((t, i) => `${i + 1}. **${t}**`).join('\n') +
-              `\n\n**Action Plan:** Dedicate 45 minutes to solving 10 quality practice questions on **${weakTopics[0]}** before moving to new syllabus material.`;
-            proposal = {
-              type: 'add_task',
-              title: `Revise weak topic: ${weakTopics[0]}`,
-              details: 'Dedicated 45-minute practice set recommended by AI Study Coach.'
-            };
-          } else {
-            reply = `### Outstanding Progress!\n\nYou currently have zero topics rated at confidence ≤ 2. Keep up the high retention rate! Focus today on current week's roadmap in **${activePlan.quantPlan}**.`;
-          }
-        } else if (lower.includes('mock') || lower.includes('test') || lower.includes('score')) {
-          const mockCount = mockTests.length;
-          reply = `### Mock Test Performance Review\n\n` +
-            `- **Total Mocks Attempted:** ${mockCount}\n` +
-            `- **Average Score:** ${stats.averageMockScore ? stats.averageMockScore.toFixed(1) : 'No mocks yet'}\n` +
-            `- **Best Score:** ${stats.bestMockScore || 'N/A'}\n\n` +
-            `**Strategic Tip:** In CAT mocks, question selection is 70% of the game. Apply the **ABC Rule** (Abhi karo, Baad mein karo, Chhodo) to avoid getting trapped in calculation-heavy sets.`;
-        } else {
-          reply = `I have analyzed your study metrics for **Phase ${stats.currentPhase.phaseNumber}**:\n\n` +
-            `- You have **${stats.daysRemaining} days** remaining until CAT 2027.\n` +
-            `- **${stats.pendingMistakesCount} errors** logged in your revision queue (${stats.overdueMistakesCount} overdue).\n\n` +
-            `Would you like me to create a focused study schedule, analyze weak areas, or review mock exam heuristics?`;
-        }
+        const coachResult = generateCoachResponse(text, {
+          stats,
+          weakTopics,
+          activePlan
+        });
 
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: reply,
+          text: coachResult.text,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          actionProposal: proposal
+          actionProposal: coachResult.actionProposal
         };
 
         setMessages((prev) => [...prev, aiMsg]);
         setIsThinking(false);
-      }, 500);
+      }, 400);
     } catch {
       setIsThinking(false);
     }
@@ -188,7 +169,32 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
     <SlideOver
       open={open}
       onOpenChange={onOpenChange}
-      size="lg"
+      size={isMaximized ? 'fullscreen' : 'lg'}
+      headerActions={
+        <div className="flex items-center gap-1 mr-1">
+          <button
+            type="button"
+            onClick={() => setIsMaximized((prev) => !prev)}
+            title={isMaximized ? "Restore drawer size" : "Maximize coach panel"}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            aria-label={isMaximized ? "Restore drawer size" : "Maximize coach panel"}
+          >
+            {isMaximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onOpenChange(false);
+              navigate('/ai-coach');
+            }}
+            title="Open dedicated coach page"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            aria-label="Open dedicated coach page"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </button>
+        </div>
+      }
       title={
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
@@ -211,21 +217,21 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
           <button
             type="button"
             onClick={() => handleSendMessage('Plan my week based on current progress')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left"
+            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
           >
             📅 Plan my week
           </button>
           <button
             type="button"
             onClick={() => handleSendMessage('What should I revise today?')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left"
+            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
           >
             🎯 What should I revise today?
           </button>
           <button
             type="button"
             onClick={() => handleSendMessage('Analyse my mock test performance')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left"
+            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
           >
             📊 Analyse my mocks
           </button>
@@ -269,7 +275,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
                     <Button
                       size="sm"
                       onClick={() => handleApplyProposal(m.actionProposal!)}
-                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg mt-1"
+                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg mt-1 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />
                       Add to Today's Tasks
@@ -301,19 +307,29 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
             e.preventDefault();
             handleSendMessage();
           }}
-          className="flex items-center gap-2"
+          className="flex items-end gap-2"
         >
-          <Input
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Ask about strategy, syllabus, mocks, weak areas..."
-            className="text-xs h-10 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 border-border"
-          />
+          <div className="relative flex-1">
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Ask about formulas, DILR heuristics, VARC tone, syllabus, mocks..."
+              className="w-full text-xs min-h-[40px] max-h-[160px] py-2.5 px-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-blue-600/30 resize-none leading-relaxed transition-[height]"
+            />
+          </div>
           <Button
             type="submit"
             disabled={!inputMessage.trim() || isThinking}
             size="sm"
-            className="h-10 px-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shrink-0"
+            className="h-10 px-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shrink-0 cursor-pointer mb-0.5"
           >
             <Send className="h-4 w-4" />
           </Button>
@@ -322,7 +338,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
           <span className="flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-emerald-600" /> Client-side diagnostic engine (100% private)
           </span>
-          <span>CAT 2027 Syllabus Calibrated</span>
+          <span>Enter to send • Shift+Enter for newline</span>
         </div>
       </div>
     </SlideOver>

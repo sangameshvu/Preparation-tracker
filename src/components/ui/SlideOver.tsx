@@ -10,7 +10,8 @@ export interface SlideOverProps {
   description?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  headerActions?: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'fullscreen';
   className?: string;
 }
 
@@ -21,6 +22,7 @@ export const SlideOver: React.FC<SlideOverProps> = ({
   description,
   children,
   footer,
+  headerActions,
   size = 'md',
   className
 }) => {
@@ -29,7 +31,8 @@ export const SlideOver: React.FC<SlideOverProps> = ({
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-2xl',
-    full: 'max-w-4xl'
+    full: 'max-w-4xl',
+    fullscreen: 'max-w-none w-full sm:max-w-5xl'
   };
 
   return (
@@ -60,10 +63,13 @@ export const SlideOver: React.FC<SlideOverProps> = ({
                 </DialogPrimitive.Description>
               )}
             </div>
-            <DialogPrimitive.Close className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary/40">
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </DialogPrimitive.Close>
+            <div className="flex items-center gap-1.5">
+              {headerActions}
+              <DialogPrimitive.Close className="rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary/40 cursor-pointer">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+            </div>
           </div>
 
           {/* Body content */}

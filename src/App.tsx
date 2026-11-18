@@ -54,6 +54,7 @@ export const App: React.FC = () => {
               <Route path="routines" element={<DailyRoutinesPage />} />
               <Route path="guide" element={<PrepGuidePage />} />
               <Route path="ai-coach" element={<AICoachPage />} />
+              <Route path="coach" element={<Navigate to="/ai-coach" replace />} />
               <Route path="settings" element={<ProfileSettingsPage />} />
               <Route path="admin" element={<AdminPanelPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
