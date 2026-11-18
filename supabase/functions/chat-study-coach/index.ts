@@ -152,8 +152,11 @@ Pedagogical Core Principles:
       }
     }
 
+    let isFallback = false;
+
     // 3. Fallback: Intelligent Deterministic Coaching Engine
     if (!reply) {
+      isFallback = true;
       const lower = message.toLowerCase();
       const currentWeek = context.stats?.currentWeek || 1;
       const overdueMistakes = context.stats?.overdueMistakesCount || 0;
@@ -223,6 +226,7 @@ Focus on executing this week's plan cleanly. Keep your accuracy above 80% before
     return new Response(
       JSON.stringify({
         reply,
+        isFallback,
         actionProposals,
         timestamp: new Date().toISOString(),
       }),

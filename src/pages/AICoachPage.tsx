@@ -90,52 +90,61 @@ export const AICoachPage: React.FC = () => {
     try {
       // 1. If Supabase is configured, attempt secure Edge Function call
       if (isSupabaseConfigured && supabase) {
-        const historyPayload = messages.slice(-6).map((m) => ({
-          role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
-          content: m.text
-        }));
+        try {
+          const historyPayload = messages.slice(-6).map((m) => ({
+            role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
+            content: m.text
+          }));
 
-        const { data, error } = await supabase.functions.invoke('chat-study-coach', {
-          body: {
-            message: text.trim(),
-            history: historyPayload,
-            context: {
-              stats,
-              currentPhase: stats.currentPhase,
-              weakestTopics: weakTopics.slice(0, 5),
+          const { data, error } = await supabase.functions.invoke('chat-study-coach', {
+            body: {
+              message: text.trim(),
+              history: historyPayload,
+              context: {
+                stats,
+                currentPhase: stats.currentPhase,
+                weakestTopics: weakTopics.slice(0, 5),
+              }
             }
-          }
-        });
+          });
 
-        if (!error && data && data.reply) {
-          let proposal: ChatMessage['actionProposal'] | undefined = undefined;
-          if (data.actionProposals && data.actionProposals.length > 0) {
-            proposal = {
-              type: 'add_task',
-              title: data.actionProposals[0].title,
-              details: `Suggested by AI Coach based on current preparation status.`
+          // Verify if response is genuine LLM output vs unconfigured canned fallback
+          const isCannedFallback = !data?.reply ||
+            Boolean(data?.isFallback) ||
+            data.reply.includes('Strategy Check-in:') ||
+            data.reply.includes('Here is your current status overview:') ||
+            data.reply.includes('Recommended Daily Blueprint for Week') ||
+            data.reply.includes('Strategic Mock Philosophy for CAT 2027') ||
+            data.reply.includes('Overcoming Weak Areas (Diagnostic Framework)');
+
+          if (!error && data && data.reply && !isCannedFallback) {
+            let proposal: ChatMessage['actionProposal'] | undefined = undefined;
+            if (data.actionProposals && data.actionProposals.length > 0) {
+              proposal = {
+                type: 'add_task',
+                title: data.actionProposals[0].title,
+                details: `Suggested by AI Coach based on current preparation status.`
+              };
+            }
+
+            const aiMsg: ChatMessage = {
+              id: `ai-${Date.now()}`,
+              sender: 'ai',
+              text: data.reply,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              actionProposal: proposal
             };
+
+            setMessages((prev) => [...prev, aiMsg]);
+            setIsThinking(false);
+            return;
           }
-
-          const aiMsg: ChatMessage = {
-            id: `ai-${Date.now()}`,
-            sender: 'ai',
-            text: data.reply,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            actionProposal: proposal
-          };
-
-          setMessages((prev) => [...prev, aiMsg]);
-          setIsThinking(false);
-          return;
+        } catch (edgeErr) {
+          console.warn('Edge function invoke failed, using local pedagogical brain:', edgeErr);
         }
       }
-    } catch (e) {
-      console.warn('Edge function unavailable, using local intelligent coach engine.', e);
-    }
 
-    // 2. Intelligent Context-Aware Fallback Engine
-    setTimeout(() => {
+      // 2. High-performance in-browser diagnostic & pedagogical engine
       const coachResult = generateCoachResponse(text, {
         stats,
         weakTopics,
@@ -152,7 +161,9 @@ export const AICoachPage: React.FC = () => {
 
       setMessages((prev) => [...prev, aiMsg]);
       setIsThinking(false);
-    }, 400);
+    } catch {
+      setIsThinking(false);
+    }
   };
 
   const handleApplyProposal = (proposal: NonNullable<ChatMessage['actionProposal']>) => {
