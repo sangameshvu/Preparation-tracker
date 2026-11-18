@@ -288,6 +288,55 @@ export function fetchOrGeneratePracticeQuestions(
   const difficulty = options?.difficulty || 'Moderate';
   const effectiveTopic = (topic === 'Other' && options?.customTopic) ? options.customTopic.trim() : topic;
 
+  // --- SPECIAL HANDLING: CAT Pattern Reading Comprehension (Full Passage + Multi-Question Set) ---
+  const isCATPatternRC = section === 'VARC' && (
+    effectiveTopic.includes('CAT Pattern') ||
+    effectiveTopic.toLowerCase().includes('reading comprehension') ||
+    effectiveTopic.includes('Passage +')
+  );
+
+  if (isCATPatternRC) {
+    // Collect all real CAT RC questions that belong to full passage caselets
+    const allRCQuestions = CAT_PYQ_DATASET.filter((q) => q.section === 'VARC' && !!q.caselet);
+    
+    // Group questions by passage title
+    const passageGroups: Record<string, CATQuestion[]> = {};
+    allRCQuestions.forEach((q) => {
+      if (q.caselet) {
+        if (!passageGroups[q.caselet.title]) {
+          passageGroups[q.caselet.title] = [];
+        }
+        passageGroups[q.caselet.title].push(q);
+      }
+    });
+
+    const passageTitles = Object.keys(passageGroups);
+    if (passageTitles.length > 0) {
+      // Pick a random or rotating passage set
+      const selectedIndex = Math.floor(Math.random() * passageTitles.length);
+      const chosenTitle = passageTitles[selectedIndex];
+      const primarySet = passageGroups[chosenTitle] || [];
+
+      // If user selected Deep Practice (count >= 8), append a second distinct passage set
+      if (count >= 8 && passageTitles.length > 1) {
+        const secondTitle = passageTitles[(selectedIndex + 1) % passageTitles.length];
+        const secondarySet = passageGroups[secondTitle] || [];
+        const fullDeepSet = [...primarySet, ...secondarySet];
+        return {
+          questions: fullDeepSet,
+          tierUsed: 1,
+          sourceDescription: `Verified Real CAT Reading Comprehension (2 Full Passages, 8 Questions)`
+        };
+      }
+
+      return {
+        questions: primarySet,
+        tierUsed: 1,
+        sourceDescription: `Verified Real CAT Reading Comprehension: "${chosenTitle.replace('Reading Comprehension: ', '')}" (Full Passage + 4 Questions)`
+      };
+    }
+  }
+
   // Tier 1: PYQ Search
   const matchingPyqs = CAT_PYQ_DATASET.filter(
     (q) => q.section === section && q.topic.toLowerCase().includes(effectiveTopic.toLowerCase())

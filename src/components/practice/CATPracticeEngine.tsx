@@ -15,7 +15,10 @@ import {
   PlusCircle,
   Clock,
   Layers,
-  Award
+  Award,
+  BookOpen,
+  ExternalLink,
+  Flame
 } from 'lucide-react';
 import { initialTopics } from '../../data/topics';
 import { CATQuestion, PracticeSessionRecord } from '../../data/catPyqQuestions';
@@ -71,12 +74,64 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
   // Recent practice history
   const [history, setHistory] = useState<PracticeSessionRecord[]>([]);
 
+  // Daily Aeon Reading Habit State (Key: cat2027_aeon_reading)
+  const [aeonHabit, setAeonHabit] = useState<{
+    lastReadDate?: string;
+    streak: number;
+    totalRead: number;
+  }>(() => {
+    try {
+      const raw = localStorage.getItem('cat2027_aeon_reading');
+      return raw ? JSON.parse(raw) : { streak: 0, totalRead: 0 };
+    } catch {
+      return { streak: 0, totalRead: 0 };
+    }
+  });
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isAeonReadToday = aeonHabit.lastReadDate === todayStr;
+
+  const handleToggleAeonRead = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const updated = isAeonReadToday
+      ? {
+          lastReadDate: undefined,
+          streak: Math.max(0, aeonHabit.streak - 1),
+          totalRead: Math.max(0, aeonHabit.totalRead - 1)
+        }
+      : {
+          lastReadDate: todayStr,
+          streak: (aeonHabit.lastReadDate === yesterdayStr ? aeonHabit.streak : 0) + 1,
+          totalRead: aeonHabit.totalRead + 1
+        };
+
+    setAeonHabit(updated);
+    localStorage.setItem('cat2027_aeon_reading', JSON.stringify(updated));
+    if (!isAeonReadToday) {
+      toast.success('Awesome! Marked today\'s Aeon essay as read. Reading streak updated!');
+    } else {
+      toast.info('Marked Aeon essay as unread.');
+    }
+  };
+
   useEffect(() => {
     setHistory(getPracticeSessions());
   }, [sessionFinished]);
 
   // Topic options filtered by section
   const availableTopics = useMemo(() => {
+    if (section === 'VARC') {
+      const list = initialTopics
+        .filter((t) => t.section === 'VARC')
+        .map((t) => t.topicName);
+      return [
+        'CAT Pattern: Reading Comprehension (Passage + 4 Qs)',
+        ...Array.from(new Set(list))
+      ];
+    }
     const list = initialTopics
       .filter((t) => t.section === section)
       .map((t) => t.topicName);
@@ -345,11 +400,54 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 </button>
               </div>
 
+              {/* Quick Mode Toggle for VARC */}
+              {section === 'VARC' && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                    VARC Practice Mode
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTopic('CAT Pattern: Reading Comprehension (Passage + 4 Qs)')}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                        selectedTopic.includes('CAT Pattern')
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🎯 CAT Pattern (Full RC Set)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const fallback = availableTopics.find((t) => !t.includes('CAT Pattern')) || 'Main idea & tone';
+                        setSelectedTopic(fallback);
+                      }}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                        !selectedTopic.includes('CAT Pattern')
+                          ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-slate-700'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      📚 Topic-Wise Practice
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Topic Dropdown */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  Topic Selection
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    Topic Selection
+                  </label>
+                  {section === 'VARC' && selectedTopic.includes('CAT Pattern') && (
+                    <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                      Standard CAT Pattern
+                    </span>
+                  )}
+                </div>
                 <select
                   value={selectedTopic}
                   onChange={(e) => setSelectedTopic(e.target.value)}
@@ -363,6 +461,19 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                   <option value="Other">Other (Type Custom Topic...)</option>
                 </select>
               </div>
+
+              {/* Informative Callout for CAT Pattern RC Mode */}
+              {section === 'VARC' && selectedTopic.includes('CAT Pattern') && (
+                <div className="rounded-2xl border border-amber-200/90 bg-amber-50/80 p-3.5 text-xs text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                    <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>Official CAT VARC Pattern: 1 Full RC Passage + 4 Connected Questions</span>
+                  </div>
+                  <p className="leading-relaxed text-amber-900/90 dark:text-amber-300/90">
+                    Not isolated single questions—this tests real exam stamina. You read an authentic 650–800 word passage on the left and navigate 4 connected questions (Primary Purpose, Contextual Inferences, Author's Tone, and Critical Reasoning) on the right.
+                  </p>
+                </div>
+              )}
 
               {/* Custom Topic Input */}
               {selectedTopic === 'Other' && (
@@ -458,6 +569,105 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 <Play className="h-4 w-4 fill-current" />
                 Launch Practice Simulator
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* DEDICATED SECTION FOR AEON ESSAY & DAILY READING HABIT */}
+        <div className="rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/40 p-6 shadow-sm dark:border-amber-900/40 dark:from-amber-950/20 dark:via-[#121826] dark:to-orange-950/20 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 font-bold shrink-0 mt-0.5">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Daily Aeon Essay Reading Section
+                  </h3>
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    CAT Reading Gold Standard
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                  Direct navigation to today's published long-form Aeon essay (2,500–4,000 words). Develops reading endurance, unfamiliar subject tolerance, and argument-tracking agility for CAT VARC.
+                </p>
+              </div>
+            </div>
+
+            {/* Habit Streak Badge */}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
+                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>{aeonHabit.streak} Day Streak</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Row: Read Today's Essay & Toggle Habit */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <a
+              href="https://aeon.co/essays"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <span>Read Today's Aeon Essay</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+
+            <a
+              href="https://aeon.co/ideas"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+            >
+              <span>Explore Aeon Ideas (1k words)</span>
+              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+            </a>
+
+            <button
+              type="button"
+              onClick={handleToggleAeonRead}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                isAeonReadToday
+                  ? 'border border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                  : 'border border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:text-emerald-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+              }`}
+            >
+              <CheckCircle2 className={`h-4 w-4 ${isAeonReadToday ? 'text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950' : 'text-slate-400'}`} />
+              <span>{isAeonReadToday ? 'Today\'s Essay Completed ✓' : 'Mark Today\'s Essay as Read'}</span>
+            </button>
+
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-auto">
+              Total Read: <strong className="font-mono text-slate-900 dark:text-white">{aeonHabit.totalRead} essays</strong>
+            </span>
+          </div>
+
+          {/* Curated High-Frequency CAT Genres on Aeon */}
+          <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-2">
+              Browse Aeon by High-Frequency CAT Genres:
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {[
+                { label: '🧠 Philosophy & Mind', url: 'https://aeon.co/philosophy' },
+                { label: '🧬 Science & Cognition', url: 'https://aeon.co/science' },
+                { label: '🏛️ History & Anthropology', url: 'https://aeon.co/history' },
+                { label: '🌐 Society & Politics', url: 'https://aeon.co/society' },
+                { label: '🎨 Culture & Arts', url: 'https://aeon.co/culture' }
+              ].map((genre) => (
+                <a
+                  key={genre.label}
+                  href={genre.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-amber-200/70 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:border-amber-400 hover:text-amber-800 dark:border-amber-900/50 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-amber-700 dark:hover:text-amber-200 transition-colors"
+                >
+                  <span>{genre.label}</span>
+                  <ExternalLink className="h-2.5 w-2.5 text-slate-400" />
+                </a>
+              ))}
             </div>
           </div>
         </div>

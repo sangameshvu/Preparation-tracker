@@ -19,7 +19,8 @@ import {
   BookOpen,
   Layers,
   History,
-  Check
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -233,6 +234,17 @@ export const HomePage: React.FC = () => {
             >
               Practice Topic
             </Button>
+            <a
+              href="https://aeon.co/essays"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs rounded-xl px-3 py-2 font-semibold transition-all cursor-pointer"
+              title="Navigate directly to today's published long-form essay on Aeon"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-amber-300" />
+              <span>Today's Aeon Essay</span>
+              <ExternalLink className="h-3 w-3 opacity-70" />
+            </a>
           </div>
 
           {/* Ambient inner glow */}

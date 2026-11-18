@@ -4,7 +4,7 @@ import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { CATPracticeEngine } from '../components/practice/CATPracticeEngine';
 import { MockTrackerPage } from './MockTrackerPage';
 import { MistakeLogPage } from './MistakeLogPage';
-import { Target, Award, AlertTriangle } from 'lucide-react';
+import { Target, Award, AlertTriangle, BookOpen, ExternalLink } from 'lucide-react';
 
 interface PracticePageProps {
   defaultTab?: 'practice' | 'mocks' | 'mistakes';
@@ -32,7 +32,19 @@ export const PracticePage: React.FC<PracticePageProps> = ({ defaultTab = 'practi
           </p>
         </div>
 
-        <div className="w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <a
+            href="https://aeon.co/essays"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-900/50 bg-amber-50/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors shadow-2xs"
+            title="Read today's published long-form essay on Aeon (2,500–4,000 words)"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Today's Aeon Essay</span>
+            <ExternalLink className="h-3 w-3 opacity-70" />
+          </a>
+
           <SegmentedTabs
             value={currentTab}
             onChange={handleTabChange}

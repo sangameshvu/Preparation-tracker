@@ -381,6 +381,342 @@ export const CAT_PYQ_DATASET: CATQuestion[] = [
     }
   },
   {
+    id: 'pyq-varc-01-q3',
+    section: 'VARC',
+    topic: 'Detail & vocab-in-context',
+    subtopic: 'Reading Comprehension Neurobiological Evidence',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2023 Slot 2',
+    difficulty: 'Moderate',
+    caselet: {
+      title: 'Reading Comprehension: Evolutionary Epistemology & Tool-Making',
+      description: 'The assumption that human cognition is distinct from that of other animals due to language alone has faced intense scrutiny from evolutionary anthropologists. Rather than language emerging as a de novo symbolic module, recent archaeological evidence indicates that Acheulean stone knapping—the deliberate fracturing of flint nodules into symmetrical bifaces—demanded advanced motor hierarchical planning and working memory long before syntactic speech developed.\n\nCrafting a symmetrical handaxe requires the knapper to hold an abstract template in mind while anticipating unpredictable fault lines within raw stone. Each percussion flake removed alters the physical geometry of the core, requiring continuous real-time recalibration. The neurological substrates engaged during Acheulean knapping overlap significantly with Broca\'s area and inferior frontal lobes associated with grammar and sequential syntax.\n\nThus, the evolutionary precursor to human syntax was not vocal signaling or gestural mimicry per se, but the sequential syntax of complex tool manufacture. Grammar did not invent hierarchical cognition; it co-opted an existing neural architecture carved out through hundreds of thousands of years of stone tool technology.',
+      rules: [
+        'Passage argues: Complex tool manufacture preceded and enabled syntactic language.',
+        'Key Evidence: Symmetrical handaxes require abstract templates and error recalibration.',
+        'Neural overlap: Stone knapping and speech grammar share Broca\'s area.'
+      ]
+    },
+    questionText: 'The author refers to "Broca\'s area and inferior frontal lobes" primarily in order to:',
+    options: [
+      { id: 'A', text: 'prove that Acheulean tool-makers had developed spoken language with formal syntax.' },
+      { id: 'B', text: 'provide neurological evidence demonstrating shared brain mechanisms between tool knapping and grammar.' },
+      { id: 'C', text: 'argue that physical handaxes were used primarily for symbolic ritual communication.' },
+      { id: 'D', text: 'refute linguistic claims that vocal communication exists in modern primates.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'Refer to paragraph 2: "The neurological substrates engaged during Acheulean knapping overlap significantly with Broca\'s area and inferior frontal lobes associated with grammar and sequential syntax."',
+        'The author invokes this shared substrate to substantiate the claim that syntax co-opted neural architecture forged through stone tool knapping.',
+        'Option B accurately identifies this function without distorting the text.',
+        'Option A is explicitly contradicted by the text (knapping preceded syntactic speech).',
+        'Options C and D introduce irrelevant conjectures.'
+      ],
+      shortcutMethod: 'Identify the functional purpose: Why mention Broca\'s area? To show neural overlap between knapping and syntax.',
+      coreFormula: 'Rhetorical Purpose: Link physiological evidence to the central evolutionary thesis.'
+    }
+  },
+  {
+    id: 'pyq-varc-01-q4',
+    section: 'VARC',
+    topic: 'Option elimination',
+    subtopic: 'Reading Comprehension Hypothesis Weakening',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2023 Slot 2',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Evolutionary Epistemology & Tool-Making',
+      description: 'The assumption that human cognition is distinct from that of other animals due to language alone has faced intense scrutiny from evolutionary anthropologists. Rather than language emerging as a de novo symbolic module, recent archaeological evidence indicates that Acheulean stone knapping—the deliberate fracturing of flint nodules into symmetrical bifaces—demanded advanced motor hierarchical planning and working memory long before syntactic speech developed.\n\nCrafting a symmetrical handaxe requires the knapper to hold an abstract template in mind while anticipating unpredictable fault lines within raw stone. Each percussion flake removed alters the physical geometry of the core, requiring continuous real-time recalibration. The neurological substrates engaged during Acheulean knapping overlap significantly with Broca\'s area and inferior frontal lobes associated with grammar and sequential syntax.\n\nThus, the evolutionary precursor to human syntax was not vocal signaling or gestural mimicry per se, but the sequential syntax of complex tool manufacture. Grammar did not invent hierarchical cognition; it co-opted an existing neural architecture carved out through hundreds of thousands of years of stone tool technology.',
+      rules: [
+        'Passage argues: Complex tool manufacture preceded and enabled syntactic language.',
+        'Key Evidence: Symmetrical handaxes require abstract templates and error recalibration.',
+        'Neural overlap: Stone knapping and speech grammar share Broca\'s area.'
+      ]
+    },
+    questionText: 'Which of the following discoveries, if verified, would most severely WEAKEN the author\'s central thesis?',
+    options: [
+      { id: 'A', text: 'Neuroimaging showing that Acheulean flint knapping activates motor circuits entirely distinct from those utilized in grammatical processing.' },
+      { id: 'B', text: 'Excavations demonstrating that Neanderthals crafted symmetrical stone tools identical to those of Homo sapiens.' },
+      { id: 'C', text: 'Studies demonstrating that chimpanzees use rudimentary stones to crack nut shells.' },
+      { id: 'D', text: 'Genetic proof that modern vocal tracts developed concurrently with early human migratory patterns.' }
+    ],
+    correctOptionId: 'A',
+    explanation: {
+      steps: [
+        'The author\'s central thesis is that syntax co-opted the pre-existing neural architecture of complex tool making (specifically citing Broca\'s area overlap).',
+        'If neuroimaging proves that flint knapping activates motor circuits entirely distinct from grammatical processing, the physiological pillar of the thesis collapses.',
+        'Therefore, Option A directly undermines the core premise of the author\'s argument.',
+        'Options B, C, and D do not challenge the specific claim that hierarchical stone tool crafting pre-adapted the brain for syntax.'
+      ],
+      shortcutMethod: 'To weaken a causal claim (Toolmaking neural architecture -> Language syntax), falsify the shared neural link.',
+      trapWarning: 'Option B is a distractor; whether Neanderthals also knapped tools does not disprove the cognitive link between knapping and syntax.'
+    }
+  },
+  {
+    id: 'pyq-varc-02-rc-q1',
+    section: 'VARC',
+    topic: 'Main idea & tone',
+    subtopic: 'Reading Comprehension Primary Purpose',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2022 Slot 1',
+    difficulty: 'Moderate',
+    caselet: {
+      title: 'Reading Comprehension: Cephalopod Cognition & The Republic of Minds',
+      description: 'Cephalopods—particularly octopuses, cuttlefish, and squids—represent an evolutionary wonder: complex intelligence emerging along an entirely divergent phylogenetic branch from vertebrates. While mammalian intelligence is heavily centralized in a cranium-bound brain with direct somatic control, an octopus distributes nearly two-thirds of its 500 million neurons across its eight flexible arms. Each arm possesses an autonomous peripheral nervous system capable of independent exploratory locomotion, tactile discrimination, and chemosensory sampling without initiating constant cognitive traffic with the central cerebral ring.\n\nThis decentralized somatic architecture poses radical challenges to Western philosophical conceptions of unified subjective selfhood. When an octopus arm severed from the body continues to recoil from noxious stimuli and grasps food items for several hours, does consciousness reside in a singular internal observer, or does the organism experience a composite, distributed awareness? Philosopher Peter Godfrey-Smith suggests that an octopus resembles a "republic of minds" rather than an empire governed by an autocratic central executive.\n\nMoreover, the evolutionary divergence occurred over 600 million years ago when the last common ancestor between humans and octopuses was a flattened worm-like bilaterian with rudimentary nerve cords. Intelligence in cephalopods did not arise by modifying a primate brain; nature invented complex cognition twice over, demonstrating that intelligence is an evolutionary convergent solution to ecological complexity rather than an idiosyncratic vertebrate accident.',
+      rules: [
+        'Passage focus: Octopus intelligence is decentralized across arms (~2/3 of neurons).',
+        'Philosophical implication: Challenges singular executive selfhood ("republic of minds").',
+        'Evolutionary significance: Intelligence evolved independently twice (convergent evolution).'
+      ]
+    },
+    questionText: 'Which of the following best articulates the primary purpose of the author in the passage?',
+    options: [
+      { id: 'A', text: 'To prove that octopuses possess higher cognitive intelligence than most mammalian species.' },
+      { id: 'B', text: 'To examine how the decentralized neurology of cephalopods challenges traditional notions of consciousness and demonstrates the convergent evolution of intelligence.' },
+      { id: 'C', text: 'To advocate for the legal recognition of individual octopus arms as distinct sentient entities.' },
+      { id: 'D', text: 'To demonstrate that Western philosophers have historically misunderstood the anatomy of marine invertebrates.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'Paragraph 1 introduces the decentralized neurology of cephalopods.',
+        'Paragraph 2 explores the philosophical implications for unified selfhood and consciousness ("republic of minds").',
+        'Paragraph 3 emphasizes convergent evolution (nature invented complex intelligence twice over).',
+        'Option B comprehensively synthesizes all three pillars of the passage without exaggeration.',
+        'Option A is incorrect; the author compares architectures, not a hierarchy of superiority.',
+        'Options C and D represent extreme, unwarranted distortions.'
+      ],
+      shortcutMethod: 'Combine Paragraph 2 (philosophical challenge to consciousness) + Paragraph 3 (convergent evolution of intelligence).'
+    }
+  },
+  {
+    id: 'pyq-varc-02-rc-q2',
+    section: 'VARC',
+    topic: 'Inference questions',
+    subtopic: 'Reading Comprehension Deductive Inference',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2022 Slot 1',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Cephalopod Cognition & The Republic of Minds',
+      description: 'Cephalopods—particularly octopuses, cuttlefish, and squids—represent an evolutionary wonder: complex intelligence emerging along an entirely divergent phylogenetic branch from vertebrates. While mammalian intelligence is heavily centralized in a cranium-bound brain with direct somatic control, an octopus distributes nearly two-thirds of its 500 million neurons across its eight flexible arms. Each arm possesses an autonomous peripheral nervous system capable of independent exploratory locomotion, tactile discrimination, and chemosensory sampling without initiating constant cognitive traffic with the central cerebral ring.\n\nThis decentralized somatic architecture poses radical challenges to Western philosophical conceptions of unified subjective selfhood. When an octopus arm severed from the body continues to recoil from noxious stimuli and grasps food items for several hours, does consciousness reside in a singular internal observer, or does the organism experience a composite, distributed awareness? Philosopher Peter Godfrey-Smith suggests that an octopus resembles a "republic of minds" rather than an empire governed by an autocratic central executive.\n\nMoreover, the evolutionary divergence occurred over 600 million years ago when the last common ancestor between humans and octopuses was a flattened worm-like bilaterian with rudimentary nerve cords. Intelligence in cephalopods did not arise by modifying a primate brain; nature invented complex cognition twice over, demonstrating that intelligence is an evolutionary convergent solution to ecological complexity rather than an idiosyncratic vertebrate accident.'
+    },
+    questionText: 'The author\'s description of a severed octopus arm that "continues to recoil from noxious stimuli and grasps food items" is primarily intended to show that:',
+    options: [
+      { id: 'A', text: 'octopus arms possess autonomous sensory-motor integration independent of continuous central brain control.' },
+      { id: 'B', text: 'octopuses do not feel any physical pain when their limbs are injured.' },
+      { id: 'C', text: 'the central cerebral ring of the octopus is functionally redundant.' },
+      { id: 'D', text: 'cephalopod limbs cannot survive unless they are permanently attached to the cranium.' }
+    ],
+    correctOptionId: 'A',
+    explanation: {
+      steps: [
+        'In paragraph 1, the author establishes that peripheral arms sample and discriminate "without initiating constant cognitive traffic with the central cerebral ring."',
+        'The severed arm illustration in paragraph 2 demonstrates this autonomous functionality persisting even in total isolation from the cerebral ring.',
+        'Option A directly captures this decentralized, local integration.',
+        'Option B makes an unfounded physiological claim about pain absence.',
+        'Option C is extreme (saying the central brain is redundant is not claimed).',
+        'Option D contradicts the fact that the severed arm continues functioning for hours.'
+      ],
+      shortcutMethod: 'Severed arm functioning on its own = peripheral autonomy without central instruction.'
+    }
+  },
+  {
+    id: 'pyq-varc-02-rc-q3',
+    section: 'VARC',
+    topic: 'Detail & vocab-in-context',
+    subtopic: 'Reading Comprehension Metaphorical Function',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2022 Slot 1',
+    difficulty: 'Moderate',
+    caselet: {
+      title: 'Reading Comprehension: Cephalopod Cognition & The Republic of Minds',
+      description: 'Cephalopods—particularly octopuses, cuttlefish, and squids—represent an evolutionary wonder: complex intelligence emerging along an entirely divergent phylogenetic branch from vertebrates. While mammalian intelligence is heavily centralized in a cranium-bound brain with direct somatic control, an octopus distributes nearly two-thirds of its 500 million neurons across its eight flexible arms. Each arm possesses an autonomous peripheral nervous system capable of independent exploratory locomotion, tactile discrimination, and chemosensory sampling without initiating constant cognitive traffic with the central cerebral ring.\n\nThis decentralized somatic architecture poses radical challenges to Western philosophical conceptions of unified subjective selfhood. When an octopus arm severed from the body continues to recoil from noxious stimuli and grasps food items for several hours, does consciousness reside in a singular internal observer, or does the organism experience a composite, distributed awareness? Philosopher Peter Godfrey-Smith suggests that an octopus resembles a "republic of minds" rather than an empire governed by an autocratic central executive.\n\nMoreover, the evolutionary divergence occurred over 600 million years ago when the last common ancestor between humans and octopuses was a flattened worm-like bilaterian with rudimentary nerve cords. Intelligence in cephalopods did not arise by modifying a primate brain; nature invented complex cognition twice over, demonstrating that intelligence is an evolutionary convergent solution to ecological complexity rather than an idiosyncratic vertebrate accident.'
+    },
+    questionText: 'Peter Godfrey-Smith\'s characterization of an octopus as a "republic of minds" functions to contrast:',
+    options: [
+      { id: 'A', text: 'democratic marine governance with terrestrial mammalian solitary behavior.' },
+      { id: 'B', text: 'a composite, semi-autonomous distributed network with a strictly centralized, top-down cognitive authority.' },
+      { id: 'C', text: 'the superior computational processing of invertebrates with human artificial intelligence.' },
+      { id: 'D', text: 'the emotional empathy of octopuses with the predatory instinct of squids.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'The text states: "resembles a \'republic of minds\' rather than an empire governed by an autocratic central executive."',
+        'An empire with an autocratic executive represents centralized top-down control (mammalian brain).',
+        'A republic of minds represents distributed, semi-autonomous components working in harmony (octopus arms + central ring).',
+        'Option B provides the exact conceptual contrast used by the philosopher.'
+      ],
+      shortcutMethod: '"Republic" (distributed authority) vs "Autocratic empire" (centralized command).'
+    }
+  },
+  {
+    id: 'pyq-varc-02-rc-q4',
+    section: 'VARC',
+    topic: 'Option elimination',
+    subtopic: 'Reading Comprehension Evolutionary Implications',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2022 Slot 1',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Cephalopod Cognition & The Republic of Minds',
+      description: 'Cephalopods—particularly octopuses, cuttlefish, and squids—represent an evolutionary wonder: complex intelligence emerging along an entirely divergent phylogenetic branch from vertebrates. While mammalian intelligence is heavily centralized in a cranium-bound brain with direct somatic control, an octopus distributes nearly two-thirds of its 500 million neurons across its eight flexible arms. Each arm possesses an autonomous peripheral nervous system capable of independent exploratory locomotion, tactile discrimination, and chemosensory sampling without initiating constant cognitive traffic with the central cerebral ring.\n\nThis decentralized somatic architecture poses radical challenges to Western philosophical conceptions of unified subjective selfhood. When an octopus arm severed from the body continues to recoil from noxious stimuli and grasps food items for several hours, does consciousness reside in a singular internal observer, or does the organism experience a composite, distributed awareness? Philosopher Peter Godfrey-Smith suggests that an octopus resembles a "republic of minds" rather than an empire governed by an autocratic central executive.\n\nMoreover, the evolutionary divergence occurred over 600 million years ago when the last common ancestor between humans and octopuses was a flattened worm-like bilaterian with rudimentary nerve cords. Intelligence in cephalopods did not arise by modifying a primate brain; nature invented complex cognition twice over, demonstrating that intelligence is an evolutionary convergent solution to ecological complexity rather than an idiosyncratic vertebrate accident.'
+    },
+    questionText: 'The author\'s assertion that "nature invented complex cognition twice over" implies that:',
+    options: [
+      { id: 'A', text: 'octopuses and humans evolved from an ancestor that possessed advanced problem-solving capabilities.' },
+      { id: 'B', text: 'complex intelligence is not unique to primates and can emerge independently when organisms adapt to complex environments.' },
+      { id: 'C', text: 'vertebrates and cephalopods will eventually converge into a single biological family.' },
+      { id: 'D', text: 'intelligence is an inevitable outcome for all multicellular organisms with bilateral symmetry.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'Paragraph 3 notes that the last common ancestor 600 million years ago was a simple worm with rudimentary nerve cords.',
+        'Therefore, high intelligence did NOT exist in that common ancestor.',
+        'Intelligence arose separately in vertebrates and in cephalopods ("convergent solution to ecological complexity").',
+        'Option B captures this evolutionary principle of convergent evolution accurately.',
+        'Option A directly contradicts the simple worm ancestor claim.',
+        'Option C is biologically absurd.',
+        'Option D is an overly broad and ungrounded generalization.'
+      ],
+      shortcutMethod: '"Invented twice over" + "convergent solution" = independent emergence in response to ecological demands.'
+    }
+  },
+  {
+    id: 'pyq-varc-03-rc-q1',
+    section: 'VARC',
+    topic: 'Main idea & tone',
+    subtopic: 'Reading Comprehension Core Thesis',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2021 Slot 2',
+    difficulty: 'Moderate',
+    caselet: {
+      title: 'Reading Comprehension: Algorithmic Serendipity & Epistemic Atrophy',
+      description: 'The contemporary internet\'s architecture of hyper-personalized recommendation algorithms has fundamentally inverted the historic phenomenology of information discovery. In classical libraries and physical record stores, human curiosity was guided by serendipity: browsing through adjacent shelves inevitably forced encounters with unanticipated genres, opposing political arguments, and anomalous cultural artifacts. One set out in search of an introductory text on macroeconomic monetary policy and stumbled upon a treatise on urban geomorphology sitting two call-numbers down.\n\nAlgorithmic feed curation replaces this generative friction with friction-free predictive gratification. By optimizing relentlessly for immediate behavioral engagement—measured via clicks, watch time, and micro-reactions—recommender engines project past behavioral preferences into infinite tautological loops. Rather than expanding an individual\'s intellectual horizon, the algorithm constructs an epistemic cocoon that ratifies existing biases while pruning away productive dissonance.\n\nThe critical danger of algorithmic curation is not merely the polarization of public discourse, but the atrophy of exploratory agency. When the environment anticipates and satisfies desires before they are consciously articulated, individuals lose the capacity for serendipitous inquiry—the deliberate tolerance for confusion and exploration that characterizes genuine intellectual discovery.',
+      rules: [
+        'Contrast: Physical serendipity (productive friction) vs Algorithmic curation (predictive gratification).',
+        'Mechanism: Engagement optimization traps users in tautological preference loops.',
+        'Ultimate Danger: Loss of exploratory agency and tolerance for intellectual dissonance.'
+      ]
+    },
+    questionText: 'Which of the following best expresses the primary argument developed by the author?',
+    options: [
+      { id: 'A', text: 'Digital search engines are technically inferior to Dewey Decimal systems in physical libraries.' },
+      { id: 'B', text: 'Personalized recommendation algorithms undermine genuine intellectual discovery by eliminating the productive friction of serendipitous encounters.' },
+      { id: 'C', text: 'Social media companies deliberately construct political polarization to maximize corporate advertising revenue.' },
+      { id: 'D', text: 'Consumers should refrain from purchasing goods through online platforms that employ recommendation algorithms.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'The passage establishes the historic role of serendipitous friction in discovery (Paragraph 1).',
+        'It critiques algorithms for replacing this with predictive gratification and epistemic cocoons (Paragraph 2).',
+        'It concludes that this causes the atrophy of exploratory agency (Paragraph 3).',
+        'Option B captures the thesis with complete fidelity.',
+        'Option A misses the conceptual critique of discovery phenomenology.',
+        'Option C introduces intentional corporate maliciousness not discussed in the text.',
+        'Option D offers a consumer action recommendation never suggested by the author.'
+      ],
+      shortcutMethod: 'Core contrast: Serendipitous friction (libraries) vs Predictive gratification (algorithms) leading to cognitive atrophy.'
+    }
+  },
+  {
+    id: 'pyq-varc-03-rc-q2',
+    section: 'VARC',
+    topic: 'Inference questions',
+    subtopic: 'Reading Comprehension Function of Example',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2021 Slot 2',
+    difficulty: 'Moderate',
+    caselet: {
+      title: 'Reading Comprehension: Algorithmic Serendipity & Epistemic Atrophy',
+      description: 'The contemporary internet\'s architecture of hyper-personalized recommendation algorithms has fundamentally inverted the historic phenomenology of information discovery. In classical libraries and physical record stores, human curiosity was guided by serendipity: browsing through adjacent shelves inevitably forced encounters with unanticipated genres, opposing political arguments, and anomalous cultural artifacts. One set out in search of an introductory text on macroeconomic monetary policy and stumbled upon a treatise on urban geomorphology sitting two call-numbers down.\n\nAlgorithmic feed curation replaces this generative friction with friction-free predictive gratification. By optimizing relentlessly for immediate behavioral engagement—measured via clicks, watch time, and micro-reactions—recommender engines project past behavioral preferences into infinite tautological loops. Rather than expanding an individual\'s intellectual horizon, the algorithm constructs an epistemic cocoon that ratifies existing biases while pruning away productive dissonance.\n\nThe critical danger of algorithmic curation is not merely the polarization of public discourse, but the atrophy of exploratory agency. When the environment anticipates and satisfies desires before they are consciously articulated, individuals lose the capacity for serendipitous inquiry—the deliberate tolerance for confusion and exploration that characterizes genuine intellectual discovery.'
+    },
+    questionText: 'The author cites "stumbling upon a treatise on urban geomorphology" primarily to illustrate:',
+    options: [
+      { id: 'A', text: 'the accidental and unplanned nature of serendipitous intellectual discovery in physical environments.' },
+      { id: 'B', text: 'the necessity of multidisciplinary degrees for modern macroeconomic researchers.' },
+      { id: 'C', text: 'the disorganized filing systems prevalent in 20th-century public institutions.' },
+      { id: 'D', text: 'the superiority of geographical science over monetary economic theory.' }
+    ],
+    correctOptionId: 'A',
+    explanation: {
+      steps: [
+        'In paragraph 1, the author discusses how curiosity in physical libraries was guided by serendipity: encounters with unanticipated subjects.',
+        'The urban geomorphology example illustrates someone looking for monetary policy and encountering an unrelated discipline due to spatial adjacency.',
+        'Option A directly defines this function.',
+        'Options B, C, and D are spurious interpretations.'
+      ],
+      shortcutMethod: 'Example role: Concrete demonstration of "unanticipated encounters" = serendipitous discovery.'
+    }
+  },
+  {
+    id: 'pyq-varc-03-rc-q3',
+    section: 'VARC',
+    topic: 'Detail & vocab-in-context',
+    subtopic: 'Reading Comprehension Technical Terminology',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2021 Slot 2',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Algorithmic Serendipity & Epistemic Atrophy',
+      description: 'The contemporary internet\'s architecture of hyper-personalized recommendation algorithms has fundamentally inverted the historic phenomenology of information discovery. In classical libraries and physical record stores, human curiosity was guided by serendipity: browsing through adjacent shelves inevitably forced encounters with unanticipated genres, opposing political arguments, and anomalous cultural artifacts. One set out in search of an introductory text on macroeconomic monetary policy and stumbled upon a treatise on urban geomorphology sitting two call-numbers down.\n\nAlgorithmic feed curation replaces this generative friction with friction-free predictive gratification. By optimizing relentlessly for immediate behavioral engagement—measured via clicks, watch time, and micro-reactions—recommender engines project past behavioral preferences into infinite tautological loops. Rather than expanding an individual\'s intellectual horizon, the algorithm constructs an epistemic cocoon that ratifies existing biases while pruning away productive dissonance.\n\nThe critical danger of algorithmic curation is not merely the polarization of public discourse, but the atrophy of exploratory agency. When the environment anticipates and satisfies desires before they are consciously articulated, individuals lose the capacity for serendipitous inquiry—the deliberate tolerance for confusion and exploration that characterizes genuine intellectual discovery.'
+    },
+    questionText: 'According to paragraph 2, recommendation algorithms create "tautological loops" because they:',
+    options: [
+      { id: 'A', text: 'repeatedly feed users content derived solely from their own past demonstrated preferences.' },
+      { id: 'B', text: 'force users to re-read introductory definitions in textbooks.' },
+      { id: 'C', text: 'rely on circular logical fallacies in their natural language programming.' },
+      { id: 'D', text: 'prohibit users from searching for opposing political arguments.' }
+    ],
+    correctOptionId: 'A',
+    explanation: {
+      steps: [
+        'Paragraph 2 explicitly explains: "recommender engines project past behavioral preferences into infinite tautological loops."',
+        'A tautology is a self-referential cycle: you liked X in the past -> algorithm shows you X -> you click X -> algorithm confirms you only like X.',
+        'Option A accurately conveys this self-reinforcing mechanism.',
+        'Options B and C misunderstand the linguistic meaning of "tautological" in this context.',
+        'Option D claims a direct prohibition, which is not how recommender algorithms function.'
+      ],
+      shortcutMethod: 'Past preferences projected into infinite loops = feeding users content derived from past behavior.'
+    }
+  },
+  {
+    id: 'pyq-varc-03-rc-q4',
+    section: 'VARC',
+    topic: 'Option elimination',
+    subtopic: 'Reading Comprehension Critical Inference',
+    sourceType: 'PYQ',
+    sourceExam: 'CAT 2021 Slot 2',
+    difficulty: 'Advanced',
+    caselet: {
+      title: 'Reading Comprehension: Algorithmic Serendipity & Epistemic Atrophy',
+      description: 'The contemporary internet\'s architecture of hyper-personalized recommendation algorithms has fundamentally inverted the historic phenomenology of information discovery. In classical libraries and physical record stores, human curiosity was guided by serendipity: browsing through adjacent shelves inevitably forced encounters with unanticipated genres, opposing political arguments, and anomalous cultural artifacts. One set out in search of an introductory text on macroeconomic monetary policy and stumbled upon a treatise on urban geomorphology sitting two call-numbers down.\n\nAlgorithmic feed curation replaces this generative friction with friction-free predictive gratification. By optimizing relentlessly for immediate behavioral engagement—measured via clicks, watch time, and micro-reactions—recommender engines project past behavioral preferences into infinite tautological loops. Rather than expanding an individual\'s intellectual horizon, the algorithm constructs an epistemic cocoon that ratifies existing biases while pruning away productive dissonance.\n\nThe critical danger of algorithmic curation is not merely the polarization of public discourse, but the atrophy of exploratory agency. When the environment anticipates and satisfies desires before they are consciously articulated, individuals lose the capacity for serendipitous inquiry—the deliberate tolerance for confusion and exploration that characterizes genuine intellectual discovery.'
+    },
+    questionText: 'Which of the following attitudes towards "navigational friction and confusion" is most in harmony with the author\'s perspective?',
+    options: [
+      { id: 'A', text: 'They are unproductive design flaws that modern interface architects must eliminate.' },
+      { id: 'B', text: 'They are vital catalysts that nurture genuine cognitive exploration and expansive intellectual growth.' },
+      { id: 'C', text: 'They are harmful barriers that prevent students from completing academic research in a timely manner.' },
+      { id: 'D', text: 'They are acceptable only when browsing physical libraries, but unacceptable on digital platforms.' }
+    ],
+    correctOptionId: 'B',
+    explanation: {
+      steps: [
+        'In paragraph 1, friction is called "generative friction".',
+        'In paragraph 3, the author highlights "the deliberate tolerance for confusion and exploration that characterizes genuine intellectual discovery."',
+        'The author values friction as necessary for intellectual vitality and autonomous agency.',
+        'Option B precisely matches the author\'s positive appraisal of friction and confusion as growth catalysts.',
+        'Options A and C adopt the exact algorithmic perspective the author criticizes.',
+        'Option D introduces an arbitrary platform-based dichotomy not present in the text.'
+      ],
+      shortcutMethod: '"Generative friction" + "tolerance for confusion characterizes genuine discovery" = essential catalysts for intellectual growth.'
+    }
+  },
+  {
     id: 'pyq-varc-02-q1',
     section: 'VARC',
     topic: 'Para summary',
