@@ -72,6 +72,8 @@ interface AppDataContextType {
   updateResource: (id: string, updates: Partial<ResourceItem>) => void;
   addResource: (resource: Omit<ResourceItem, 'id'>) => void;
   deleteResource: (id: string) => void;
+  reorderResources: (newResources: ResourceItem[]) => void;
+  resetResources: () => void;
   routines: DailyRoutineTemplate[];
   updateRoutine: (id: string, updates: Partial<DailyRoutineTemplate>) => void;
   stickyNotes: StickyNoteItem[];
@@ -579,6 +581,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setResources((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const reorderResources = (newResources: ResourceItem[]) => {
+    setResources(newResources);
+  };
+
+  const resetResources = () => {
+    setResources(initialResources);
+  };
+
   const updateRoutine = (id: string, updates: Partial<DailyRoutineTemplate>) => {
     setRoutines((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
@@ -790,6 +800,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         updateResource,
         addResource,
         deleteResource,
+        reorderResources,
+        resetResources,
         routines,
         updateRoutine,
         stickyNotes,
