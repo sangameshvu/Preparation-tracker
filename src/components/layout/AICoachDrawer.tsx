@@ -219,7 +219,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
       }
     >
       {/* Quick Prompts Bar */}
-      <div className="space-y-1.5 pb-2 border-b border-border/60">
+      <div className="space-y-1.5 pb-2 border-b border-border/40">
         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Suggested Inquiries
         </span>
@@ -227,21 +227,21 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
           <button
             type="button"
             onClick={() => handleSendMessage('Plan my week based on current progress')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
+            className="text-xs px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all border border-border/40 text-left cursor-pointer"
           >
             📅 Plan my week
           </button>
           <button
             type="button"
             onClick={() => handleSendMessage('What should I revise today?')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
+            className="text-xs px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all border border-border/40 text-left cursor-pointer"
           >
             🎯 What should I revise today?
           </button>
           <button
             type="button"
             onClick={() => handleSendMessage('Analyse my mock test performance')}
-            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 text-foreground transition-colors border border-border/50 text-left cursor-pointer"
+            className="text-xs px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all border border-border/40 text-left cursor-pointer"
           >
             📊 Analyse my mocks
           </button>
@@ -257,8 +257,8 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
               <div
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                   isAi
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-200 dark:bg-slate-700 text-foreground'
+                    ? 'glass-tint text-white shadow-xs'
+                    : 'glass-thin text-foreground'
                 }`}
               >
                 {isAi ? <Bot className="h-3.5 w-3.5" /> : 'You'}
@@ -268,8 +268,8 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
                 <div
                   className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     isAi
-                      ? 'bg-slate-100/80 dark:bg-slate-800/80 border border-border/60 text-foreground'
-                      : 'bg-blue-600 text-white shadow-xs font-medium'
+                      ? 'glass-thin text-foreground border border-white/60 dark:border-white/10 shadow-xs'
+                      : 'glass-tint text-white shadow-md font-medium'
                   }`}
                 >
                   <MarkdownRenderer content={m.text} />
@@ -277,7 +277,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
 
                 {/* Proposal action card */}
                 {m.actionProposal && (
-                  <div className="rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 p-3 text-xs space-y-1.5">
+                  <div className="rounded-xl border border-blue-400/40 glass-thin p-3 text-xs space-y-1.5 shadow-xs">
                     <span className="font-bold text-blue-900 dark:text-blue-200 block">
                       Recommended Task:
                     </span>
@@ -285,7 +285,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
                     <Button
                       size="sm"
                       onClick={() => handleApplyProposal(m.actionProposal!)}
-                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg mt-1 cursor-pointer"
+                      className="h-7 text-xs font-semibold rounded-lg mt-1 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />
                       Add to Today's Tasks
@@ -311,7 +311,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
       </div>
 
       {/* Input Field (Footer slot) */}
-      <div className="sticky bottom-0 -mx-6 -mb-6 p-4 glass-thick border-t border-border">
+      <div className="sticky bottom-0 -mx-6 -mb-6 p-4 glass-thick border-t border-border/40">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -332,14 +332,14 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
                 }
               }}
               placeholder="Ask about formulas, DILR heuristics, VARC tone, syllabus, mocks..."
-              className="w-full text-xs min-h-[40px] max-h-[160px] py-2.5 px-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 border border-border text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-blue-600/30 resize-none leading-relaxed transition-[height]"
+              className="w-full text-xs min-h-[40px] max-h-[160px] py-2.5 px-3 rounded-xl glass-thin shadow-inner border border-white/40 dark:border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ring-offset-background resize-none leading-relaxed transition-[height]"
             />
           </div>
           <Button
             type="submit"
             disabled={!inputMessage.trim() || isThinking}
             size="sm"
-            className="h-10 px-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shrink-0 cursor-pointer mb-0.5"
+            className="h-10 px-3.5 font-semibold rounded-xl shrink-0 cursor-pointer mb-0.5"
           >
             <Send className="h-4 w-4" />
           </Button>

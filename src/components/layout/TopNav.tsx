@@ -45,7 +45,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between glass-regular rounded-none border-b border-t-0 border-l-0 border-r-0 px-3 sm:px-6 md:px-8 transition-colors shadow-2xs">
+    <header className="sticky top-3 z-20 mx-3 sm:mx-6 md:mx-8 mb-2 flex h-14 sm:h-16 items-center justify-between glass-regular rounded-2xl sm:rounded-[28px] border px-3 sm:px-6 md:px-8 transition-colors shadow-lg">
       {/* Left: Dynamic Page Title */}
       <div className="flex items-center gap-2 min-w-0 shrink">
         <div className="flex flex-col min-w-0">
@@ -63,13 +63,13 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-full glass-thin hover:opacity-90 text-xs text-muted-foreground transition-all cursor-pointer shadow-2xs"
+          className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-full glass-thin hover:opacity-90 text-xs text-muted-foreground transition-all cursor-pointer shadow-inner"
         >
           <div className="flex items-center gap-2 truncate">
             <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <span className="truncate">Search syllabus, notes, mocks...</span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-card border border-border rounded-md text-muted-foreground font-semibold shadow-2xs">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono glass-subtier rounded-md text-muted-foreground font-semibold shadow-2xs">
             ⌘K
           </kbd>
         </button>
@@ -82,7 +82,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           type="button"
           onClick={onOpenCommandPalette}
           aria-label="Search"
-          className="flex sm:hidden h-8 w-8 items-center justify-center rounded-full border border-border/80 bg-slate-100/70 dark:bg-slate-800/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+          className="flex sm:hidden h-8 w-8 items-center justify-center rounded-full glass-thin text-muted-foreground hover:text-foreground transition-all cursor-pointer"
         >
           <Search className="h-4 w-4" />
         </button>
@@ -91,7 +91,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={onOpenCoach}
-          className="inline-flex items-center justify-center gap-1.5 h-8 px-2 sm:px-3 rounded-full border border-blue-500/35 bg-card hover:bg-blue-50/70 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold text-xs transition-all shadow-2xs cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 h-8 px-2 sm:px-3 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-blue-600 dark:text-blue-400 font-semibold text-xs transition-all shadow-xs cursor-pointer"
           title="Open AI Study Coach"
         >
           <Sparkles className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
@@ -102,7 +102,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         <Button
           size="sm"
           onClick={onOpenQuickAdd}
-          className="hidden md:inline-flex h-8 gap-1.5 text-xs font-semibold shadow-xs bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3"
+          className="hidden md:inline-flex h-8 gap-1.5 text-xs font-semibold shadow-md rounded-full px-3.5"
         >
           <Plus className="h-3.5 w-3.5" />
           <span>Quick Add</span>
@@ -113,7 +113,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           type="button"
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-foreground transition-colors cursor-pointer"
+          className="flex h-8 w-8 items-center justify-center rounded-full glass-thin text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           {theme === 'dark' ? (
             <Sun className="h-4 w-4 text-amber-500" />

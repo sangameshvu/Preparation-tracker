@@ -99,15 +99,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        'relative hidden md:flex flex-col glass-regular rounded-none border-r border-l-0 border-t-0 border-b-0 transition-all duration-250 ease-out select-none z-30 shrink-0',
+        'relative hidden md:flex flex-col glass-regular rounded-[28px] m-4 mr-0 border transition-all duration-250 ease-out select-none z-30 shrink-0 shadow-xl overflow-hidden',
         collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200/50 dark:border-white/10">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-border/40">
         {!collapsed ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs shrink-0 font-black text-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl glass-tint text-white shadow-xs shrink-0 font-black text-sm">
               CAT
             </div>
             <div className="flex flex-col leading-none min-w-0">
@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
         ) : (
-          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs font-black text-xs">
+          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl glass-tint text-white shadow-xs font-black text-xs">
             CAT
           </div>
         )}
@@ -130,8 +130,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onToggleCollapse}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
-            'flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-foreground transition-colors cursor-pointer',
-            collapsed && 'absolute -right-3.5 top-5 bg-card shadow-xs'
+            'flex h-7 w-7 items-center justify-center rounded-lg glass-thin text-muted-foreground hover:text-foreground transition-colors cursor-pointer',
+            collapsed && 'absolute -right-3.5 top-5 shadow-xs'
           )}
         >
           {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
@@ -157,8 +157,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out group',
                   active
-                    ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+                    ? 'glass-thin bg-blue-500/15 text-blue-700 dark:text-blue-300 font-bold border border-blue-400/40 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
                 )}
                 title={collapsed ? item.name : undefined}
               >
@@ -204,8 +204,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out cursor-pointer',
                   isLibraryActive
-                    ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+                    ? 'glass-thin bg-blue-500/15 text-blue-700 dark:text-blue-300 font-bold border border-blue-400/40 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
                 )}
                 title={collapsed ? 'Library' : undefined}
               >
@@ -220,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 side="right"
                 align="start"
                 sideOffset={12}
-                className="z-50 w-64 rounded-2xl border border-border bg-card p-2 shadow-xl focus:outline-hidden"
+                className="z-50 w-64 rounded-2xl glass-thick p-2 shadow-xl focus:outline-hidden"
               >
                 <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Reference & Resources
@@ -236,7 +236,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           setLibraryOpen(false);
                           navigate(sub.path);
                         }}
-                        className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+                        className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
                       >
                         <SubIcon className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                         <div>
@@ -261,8 +261,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={cn(
               'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-medium transition-all duration-200 ease-out group',
               isRouteActive('/settings')
-                ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-600/15 dark:text-blue-400 dark:border-blue-500/25 font-semibold shadow-xs'
-                : 'text-muted-foreground hover:text-foreground hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
+                ? 'glass-thin bg-blue-500/15 text-blue-700 dark:text-blue-300 font-bold border border-blue-400/40 shadow-xs'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
             )}
             title={collapsed ? 'Settings' : undefined}
           >
@@ -273,29 +273,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Bottom AI Coach Trigger Card */}
-      <div className="p-3 border-t border-border/60 shrink-0">
+      <div className="p-3 border-t border-border/40 shrink-0">
         <button
           type="button"
           onClick={onOpenCoach}
           className={cn(
-            'w-full flex items-center justify-between rounded-2xl border border-blue-500/25 bg-blue-50/50 hover:bg-blue-100/60 dark:bg-blue-950/20 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-300 transition-all duration-200 p-2.5 text-left cursor-pointer group shadow-2xs',
+            'w-full flex items-center justify-between rounded-2xl glass-tint text-white transition-all duration-200 p-2.5 text-left cursor-pointer group shadow-md hover:scale-[1.02] active:scale-[0.98]',
             collapsed && 'justify-center p-2'
           )}
           title="Ask AI Study Coach"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white shadow-xs">
               <Bot className="h-4 w-4" />
             </div>
             {!collapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">Study Coach</span>
-                <span className="text-[10px] text-muted-foreground truncate">Strategy Copilot</span>
+                <span className="text-xs font-bold truncate text-white">Study Coach</span>
+                <span className="text-[10px] text-blue-100 truncate">Strategy Copilot</span>
               </div>
             )}
           </div>
           {!collapsed && (
-            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-blue-600 text-white shadow-2xs">
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-white/20 text-white shadow-2xs">
               AI
             </span>
           )}
