@@ -10,6 +10,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      /* Complete suppression of Netlify Collaborative / Feedback / Deploy watermark & drawer */
+      netlify-drawer,
+      [data-netlify-drawer],
+      #netlify-drawer,
+      .netlify-drawer,
+      [data-netlify-deploy-preview-badge],
+      #netlify-preview-badge,
+      iframe[src*="netlify"],
+      div[class*="netlify-drawer"],
+      div[class*="NetlifyDrawer"],
+      div[id*="netlify-drawer"] {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        clip: rect(0, 0, 0, 0) !important;
+        z-index: -99999 !important;
+      }
+    </style>
   </head>
   <body class="min-h-screen bg-background font-sans antialiased text-foreground selection:bg-purple-500/20 selection:text-purple-300">
     <div id="root"></div>

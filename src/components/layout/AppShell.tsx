@@ -51,7 +51,7 @@ export const AppShell: React.FC = () => {
       <button
         type="button"
         onClick={() => setCoachOpen(true)}
-        className="hidden md:flex fixed bottom-6 right-6 z-40 items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group"
+        className="hidden md:flex fixed bottom-8 right-8 z-50 items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group"
       >
         <Sparkles className="h-4 w-4 text-blue-200 group-hover:rotate-12 transition-transform" />
         <span>Ask Coach</span>

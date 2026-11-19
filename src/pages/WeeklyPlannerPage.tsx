@@ -225,56 +225,68 @@ export const WeeklyPlannerPage: React.FC = () => {
           </Dialog>
         </div>
 
-        {/* Daily Goals Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
-          {dailyGoals.map((goal) => (
-            <div
-              key={goal.id}
-              className={`group flex items-center justify-between p-3 rounded-lg border text-xs transition-all ${
-                goal.completed
-                  ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
-                  : 'border-border/80 bg-card hover:border-slate-300 text-foreground'
-              }`}
-            >
+        {/* Daily Goals Vertical List (User Request) */}
+        <div className="flex flex-col gap-2.5 pt-4">
+          {dailyGoals.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic py-3 text-center">
+              No daily goals scheduled. Add one above to keep your daily momentum going!
+            </p>
+          ) : (
+            dailyGoals.map((goal) => (
               <div
-                onClick={() => toggleDailyGoal(goal.id)}
-                className="flex items-center gap-3 cursor-pointer flex-1 overflow-hidden"
+                key={goal.id}
+                className={`group flex items-center justify-between p-3 rounded-xl border text-xs transition-all ${
+                  goal.completed
+                    ? 'border-emerald-200 bg-emerald-50/70 text-emerald-950 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300'
+                    : 'border-border/80 bg-card hover:border-slate-300 text-foreground'
+                }`}
               >
                 <div
-                  className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 border ${
-                    goal.completed ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600'
-                  }`}
+                  onClick={() => toggleDailyGoal(goal.id)}
+                  className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
                 >
-                  {goal.completed && <Check className="h-2.5 w-2.5" />}
+                  <div
+                    className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 border ${
+                      goal.completed ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 dark:border-slate-600'
+                    }`}
+                  >
+                    {goal.completed && <Check className="h-2.5 w-2.5" />}
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 truncate">
+                    <span className={`font-semibold truncate text-xs ${goal.completed ? 'line-through opacity-75' : ''}`}>
+                      {goal.title}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-muted-foreground border border-border/60">
+                        {goal.section}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {goal.targetMinutes} mins
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col truncate">
-                  <span className={`font-semibold truncate text-xs ${goal.completed ? 'line-through opacity-75' : ''}`}>
-                    {goal.title}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {goal.section} • {goal.targetMinutes} mins
-                  </span>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground opacity-70 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600 shrink-0"
+                  onClick={() => deleteDailyGoal(goal.id)}
+                  title="Delete Goal"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600"
-                onClick={() => deleteDailyGoal(goal.id)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </Card>
 
       {/* VIEW 1: SPRINT VIEW (Default) */}
       {viewMode === 'weekly' && (
         <div className="space-y-6">
-          {/* Week Selector Bar */}
-          <div className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-card shadow-xs">
-            <div className="flex items-center gap-2">
+          {/* Week Selector Bar (Responsive on Mobile) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-border/80 bg-card shadow-xs">
+            <div className="flex items-center justify-between sm:justify-start gap-2">
               <Button
                 variant="outline"
                 size="icon"
@@ -286,7 +298,7 @@ export const WeeklyPlannerPage: React.FC = () => {
               </Button>
               <div className="flex items-center gap-2 px-1">
                 <span className="font-mono font-bold text-sm text-foreground">Week {selectedPlan.weekNumber}</span>
-                <span className="text-xs text-muted-foreground hidden sm:inline">
+                <span className="text-xs text-muted-foreground">
                   ({selectedPlan.startDate} to {selectedPlan.endDate})
                 </span>
               </div>
@@ -301,7 +313,7 @@ export const WeeklyPlannerPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               {selectedPlan.isBufferWeek && (
                 <Badge variant="warning" className="animate-pulse gap-1 text-[11px]">
                   <ShieldAlert className="h-3 w-3" />

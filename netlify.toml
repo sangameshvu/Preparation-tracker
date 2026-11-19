@@ -4,6 +4,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  DISABLE_NETLIFY_DRAWER = "true"
+  NETLIFY_DRAWER = "false"
 
 [[redirects]]
   from = "/*"

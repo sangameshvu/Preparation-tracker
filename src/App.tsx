@@ -60,7 +60,7 @@ export const App: React.FC = () => {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="top-right" richColors />
         </BrowserRouter>
       </AppDataProvider>
     </ThemeProvider>

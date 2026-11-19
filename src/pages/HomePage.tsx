@@ -217,7 +217,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Clean White Primary Button (Prevents blue-on-blue blending) */}
-          <div className="pt-6 relative z-10 flex items-center gap-3">
+          <div className="pt-6 relative z-10 flex items-center flex-wrap gap-2.5">
             <Button
               size="sm"
               onClick={() => navigate('/plan')}
@@ -238,7 +238,7 @@ export const HomePage: React.FC = () => {
               href="https://aeon.co/essays"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs rounded-xl px-3 py-2 font-semibold transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs rounded-xl px-3 py-2 font-semibold transition-all cursor-pointer"
               title="Navigate directly to today's published long-form essay on Aeon"
             >
               <BookOpen className="h-3.5 w-3.5 text-amber-300" />
@@ -394,31 +394,33 @@ export const HomePage: React.FC = () => {
                 )}
               </div>
 
-              {/* Inline Add Goal Form */}
-              <form onSubmit={handleAddGoal} className="pt-2 flex items-center gap-2">
+              {/* Inline Add Goal Form (Responsive on Mobile) */}
+              <form onSubmit={handleAddGoal} className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Input
                   value={newGoalTitle}
                   onChange={(e) => setNewGoalTitle(e.target.value)}
                   placeholder="Add target (e.g. 15 Algebra PYQs, 2 Matrix Sets)..."
-                  className="text-xs h-9 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border-border"
+                  className="text-xs h-9 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border-border flex-1"
                 />
-                <select
-                  value={newGoalSection}
-                  onChange={(e) => setNewGoalSection(e.target.value as any)}
-                  className="h-9 px-2 text-xs rounded-xl border border-border bg-slate-100/70 dark:bg-slate-800/60 font-semibold"
-                >
-                  <option value="Quant">Quant</option>
-                  <option value="DILR">DILR</option>
-                  <option value="VARC">VARC</option>
-                </select>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  <span>Add</span>
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <select
+                    value={newGoalSection}
+                    onChange={(e) => setNewGoalSection(e.target.value as any)}
+                    className="h-9 px-3 text-xs rounded-xl border border-border bg-slate-100/70 dark:bg-slate-800/60 font-semibold flex-1 sm:flex-none"
+                  >
+                    <option value="Quant">Quant</option>
+                    <option value="DILR">DILR</option>
+                    <option value="VARC">VARC</option>
+                  </select>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    <span>Add</span>
+                  </Button>
+                </div>
               </form>
 
               {/* Collapsible Recent Activity Accordion */}
