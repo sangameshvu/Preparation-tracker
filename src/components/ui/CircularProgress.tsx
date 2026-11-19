@@ -19,7 +19,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
   label,
   sublabel,
   color = 'text-blue-600 dark:text-blue-500',
-  trackColor = 'text-slate-100 dark:text-slate-800',
+  trackColor = 'text-black/10 dark:text-white/10',
   className
 }) => {
   const clamped = Math.min(100, Math.max(0, value));

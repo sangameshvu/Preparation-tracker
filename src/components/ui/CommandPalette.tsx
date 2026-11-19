@@ -58,9 +58,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-200" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-[20%] z-50 w-full max-w-xl -translate-x-1/2 rounded-3xl border border-border bg-card p-0 shadow-2xl transition-all duration-200 overflow-hidden focus:outline-hidden">
+        <DialogPrimitive.Content className="fixed left-1/2 top-[20%] z-50 w-full max-w-xl -translate-x-1/2 rounded-3xl glass-thick p-0 shadow-2xl transition-all duration-200 overflow-hidden focus:outline-hidden">
           <DialogPrimitive.Title className="sr-only">Command Palette</DialogPrimitive.Title>
-          <Command className="flex h-full w-full flex-col overflow-hidden bg-card text-foreground">
+          <Command className="flex h-full w-full flex-col overflow-hidden bg-transparent text-foreground">
             {/* Search Input Bar */}
             <div className="flex items-center border-b border-border/70 px-4 py-3.5">
               <Search className="mr-3 h-4 w-4 shrink-0 text-muted-foreground" />

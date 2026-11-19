@@ -62,7 +62,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
               itemPadding[size],
               fullWidth && 'flex-1',
               isActive
-                ? 'bg-white dark:bg-slate-800 text-foreground font-bold shadow-xs border border-white/80 dark:border-white/10 rounded-full'
+                ? 'glass-regular text-foreground font-bold shadow-xs border border-white/80 dark:border-white/10 rounded-full'
                 : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >

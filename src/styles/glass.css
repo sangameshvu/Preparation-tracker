@@ -445,3 +445,55 @@ html[data-glass="off"] {
     border-color: rgba(255, 255, 255, 0.45) !important;
   }
 }
+
+/* Sonner Toast liquid glass styling */
+[data-sonner-toaster] [data-sonner-toast] {
+  background: var(--glass-regular-bg) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: inset 0 1px 0 var(--glass-specular-top), inset 0 -1px 0 var(--glass-specular-bottom), var(--glass-depth-shadow) !important;
+  border-radius: 18px !important;
+  color: var(--foreground) !important;
+}
+
+[data-glass="reduced"] [data-sonner-toaster] [data-sonner-toast] {
+  backdrop-filter: blur(8px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+}
+
+[data-glass="off"] [data-sonner-toaster] [data-sonner-toast] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #FFFFFF !important;
+}
+.dark[data-glass="off"] [data-sonner-toaster] [data-sonner-toast] {
+  background: #121826 !important;
+}
+
+/* Glass Destructive (Rose/Red tinted glass) */
+.glass-destructive {
+  background: rgba(239, 68, 68, 0.15);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(239, 68, 68, 0.2), var(--glass-depth-shadow);
+  color: #B91C1C;
+}
+.dark .glass-destructive {
+  background: rgba(225, 29, 72, 0.22);
+  border-color: rgba(244, 63, 94, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.3), var(--glass-depth-shadow);
+  color: #FDA4AF;
+}
+[data-glass="off"] .glass-destructive {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #FEE2E2 !important;
+  color: #991B1B !important;
+}
+.dark[data-glass="off"] .glass-destructive {
+  background: #4C0519 !important;
+  color: #FECDD3 !important;
+}
+

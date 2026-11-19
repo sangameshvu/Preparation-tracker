@@ -14,7 +14,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <div
       className={cn(
-        'animate-pulse bg-slate-200/80 dark:bg-slate-800/80',
+        'glass-thin animate-pulse border border-white/40 dark:border-white/10 bg-black/5 dark:bg-white/5 relative overflow-hidden',
         variant === 'rounded' && 'rounded-2xl',
         variant === 'rectangular' && 'rounded-none',
         variant === 'circular' && 'rounded-full',

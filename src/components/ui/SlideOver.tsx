@@ -44,11 +44,14 @@ export const SlideOver: React.FC<SlideOverProps> = ({
         {/* Slide-over panel */}
         <DialogPrimitive.Content
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl border-l border-white/60 dark:border-white/10 shadow-2xl transition ease-out duration-250 sm:rounded-l-3xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
+            'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col glass-thick shadow-2xl transition ease-out duration-250 sm:rounded-l-3xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
             sizeClasses[size],
             className
           )}
         >
+          {/* Mobile Sheet Grabber Handle */}
+          <div className="sm:hidden mx-auto mt-3 mb-1 h-1.5 w-12 shrink-0 rounded-full bg-slate-300/80 dark:bg-slate-600/80" />
+
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-border/70 shrink-0">
             <div>

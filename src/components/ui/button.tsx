@@ -4,32 +4,36 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ring-offset-background disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer active:scale-[0.98] active:brightness-110',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow hover:bg-primary/90 active:scale-[0.98]',
+          'glass-tint text-white shadow-md hover:brightness-105',
+        primary:
+          'glass-tint text-white shadow-md hover:brightness-105',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]',
+          'glass-destructive focus-visible:ring-rose-500',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
+          'glass-thin text-foreground hover:bg-black/5 dark:hover:bg-white/10',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'glass-thin text-foreground hover:bg-black/5 dark:hover:bg-white/10',
+        ghost:
+          'bg-transparent text-foreground hover:glass-thin',
+        link:
+          'text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline active:scale-100',
         purple:
-          'bg-blue-600 text-white shadow hover:bg-blue-700 active:scale-[0.98]',
+          'glass-tint text-white shadow-md hover:brightness-105',
         blue:
-          'bg-blue-600 text-white shadow hover:bg-blue-700 active:scale-[0.98]',
+          'glass-tint text-white shadow-md hover:brightness-105',
         emerald:
-          'bg-emerald-600 text-white shadow hover:bg-emerald-700 active:scale-[0.98]',
+          'bg-emerald-600/90 text-white shadow-md hover:bg-emerald-600',
       },
       size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-10 rounded-lg px-8 text-base',
-        icon: 'h-9 w-9',
+        default: 'h-9 px-4 py-2 rounded-xl',
+        sm: 'h-8 rounded-lg px-3 text-xs',
+        lg: 'h-10 rounded-xl px-6 text-sm sm:text-base',
+        icon: 'h-9 w-9 rounded-xl',
       },
     },
     defaultVariants: {
