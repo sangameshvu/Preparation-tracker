@@ -209,11 +209,11 @@ export const TopicTrackerPage: React.FC = () => {
       </div>
 
       {/* 3. Topics Master Table */}
-      <Card className="rounded-xl border border-border/80 shadow-xs overflow-hidden">
-        <CardContent className="p-0">
+      <div className="rounded-2xl sm:rounded-3xl glass-thick shadow-xs overflow-hidden border">
+        <div className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50 dark:bg-slate-900/60 border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <thead className="glass-thin border-b border-border/60 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-3 w-10 text-center cursor-pointer" onClick={() => toggleSort('sortOrder')}>
                     #
@@ -254,7 +254,7 @@ export const TopicTrackerPage: React.FC = () => {
 
                   return (
                     <React.Fragment key={topic.id}>
-                      <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-900/40 transition-colors">
+                      <tr className="hover:glass-thin transition-colors">
                         <td className="py-3 px-3 font-mono text-center text-muted-foreground">
                           {topic.sortOrder}
                         </td>
@@ -435,8 +435,8 @@ export const TopicTrackerPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

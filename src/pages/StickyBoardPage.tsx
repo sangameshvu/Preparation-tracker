@@ -41,32 +41,32 @@ export const StickyBoardPage: React.FC = () => {
     {
       name: 'lavender',
       hex: '#8B5CF6',
-      bg: 'bg-purple-50/95 border-purple-200/90 text-purple-950 dark:bg-purple-950/40 dark:border-purple-500/30 dark:text-purple-100 shadow-sm',
+      bg: 'glass-regular bg-purple-500/12 border-purple-400/40 text-purple-950 dark:bg-purple-500/20 dark:border-purple-400/30 dark:text-purple-100 shadow-md',
     },
     {
       name: 'emerald',
       hex: '#10B981',
-      bg: 'bg-emerald-50/95 border-emerald-200/90 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500/30 dark:text-emerald-100 shadow-sm',
+      bg: 'glass-regular bg-emerald-500/12 border-emerald-400/40 text-emerald-950 dark:bg-emerald-500/20 dark:border-emerald-400/30 dark:text-emerald-100 shadow-md',
     },
     {
       name: 'amber',
       hex: '#F59E0B',
-      bg: 'bg-amber-50/95 border-amber-200/90 text-amber-950 dark:bg-amber-950/40 dark:border-amber-500/30 dark:text-amber-100 shadow-sm',
+      bg: 'glass-regular bg-amber-500/12 border-amber-400/40 text-amber-950 dark:bg-amber-500/20 dark:border-amber-400/30 dark:text-amber-100 shadow-md',
     },
     {
       name: 'rose',
       hex: '#F43F5E',
-      bg: 'bg-rose-50/95 border-rose-200/90 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500/30 dark:text-rose-100 shadow-sm',
+      bg: 'glass-regular bg-rose-500/12 border-rose-400/40 text-rose-950 dark:bg-rose-500/20 dark:border-rose-400/30 dark:text-rose-100 shadow-md',
     },
     {
       name: 'cyan',
       hex: '#06B6D4',
-      bg: 'bg-cyan-50/95 border-cyan-200/90 text-cyan-950 dark:bg-cyan-950/40 dark:border-cyan-500/30 dark:text-cyan-100 shadow-sm',
+      bg: 'glass-regular bg-cyan-500/12 border-cyan-400/40 text-cyan-950 dark:bg-cyan-500/20 dark:border-cyan-400/30 dark:text-cyan-100 shadow-md',
     },
     {
       name: 'charcoal',
       hex: '#27272A',
-      bg: 'bg-zinc-100 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-100 shadow-sm',
+      bg: 'glass-regular bg-slate-500/12 border-slate-400/40 text-slate-950 dark:bg-slate-500/20 dark:border-slate-400/30 dark:text-slate-100 shadow-md',
     },
   ] as const;
 

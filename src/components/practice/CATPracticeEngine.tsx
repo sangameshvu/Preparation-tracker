@@ -728,24 +728,24 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
     return (
       <div className="space-y-4">
         {/* Top Header Bar */}
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-thick px-4 py-3 shadow-sm">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-thick px-4 py-3 shadow-lg border">
           <div className="flex items-center gap-3">
             <span
               className={`rounded-lg px-2.5 py-1 text-xs font-bold ${
                 currentQ.section === 'Quant'
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                  ? 'glass-thin text-blue-700 dark:text-blue-300'
                   : currentQ.section === 'DILR'
-                  ? 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
-                  : 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                  ? 'glass-thin text-teal-800 dark:text-teal-300'
+                  : 'glass-thin text-amber-800 dark:text-amber-300'
               }`}
             >
               {currentQ.section}
             </span>
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[200px]">
+            <span className="text-xs font-semibold text-foreground truncate max-w-[200px]">
               {currentQ.topic}
             </span>
             {currentQ.sourceExam && (
-              <span className="hidden sm:inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <span className="hidden sm:inline-flex rounded-full glass-thin px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                 {currentQ.sourceExam}
               </span>
             )}
@@ -756,7 +756,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
             <button
               type="button"
               onClick={() => setShowCalculator(!showCalculator)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="flex items-center gap-1.5 rounded-xl glass-thin px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
               <CalcIcon className="h-3.5 w-3.5" />
               <span>CAT Calculator</span>
@@ -764,10 +764,10 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
 
             {/* Timer */}
             <div
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-mono text-xs font-bold tabular-nums ${
+              className={`flex items-center gap-1.5 rounded-full glass-regular px-3.5 py-1 font-mono text-xs font-bold tabular-nums border shadow-xs ${
                 timeRemaining < 120
-                  ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 animate-pulse'
-                  : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200'
+                  ? 'text-rose-600 dark:text-rose-400 animate-pulse'
+                  : 'text-foreground'
               }`}
             >
               <Timer className="h-3.5 w-3.5" />
@@ -778,7 +778,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
             <button
               type="button"
               onClick={finishSession}
-              className="rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+              className="rounded-xl glass-tint px-3.5 py-1.5 text-xs font-bold text-white shadow-md active:scale-95 transition-all"
             >
               Submit Test
             </button>
@@ -828,29 +828,29 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* DILR Caselet / RC Passage Split Panel */}
           {currentQ.caselet ? (
-            <div className="lg:col-span-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#121826] overflow-y-auto max-h-[600px]">
+            <div className="lg:col-span-6 rounded-3xl glass-thick p-6 shadow-xl border overflow-y-auto max-h-[600px]">
               <div className="mb-4">
                 <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${
                   currentQ.section === 'VARC'
-                    ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                    : 'bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                    ? 'glass-thin text-amber-800 dark:text-amber-300'
+                    : 'glass-thin text-teal-800 dark:text-teal-300'
                 }`}>
                   {currentQ.section === 'VARC' ? 'Reading Comprehension Passage' : 'DILR Caselet Data'}
                 </span>
-                <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="mt-2 text-base font-bold text-foreground">
                   {currentQ.caselet.title}
                 </h3>
               </div>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
                 {currentQ.caselet.description}
               </p>
 
               {currentQ.caselet.rules && (
-                <div className="mt-4 space-y-1.5 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/70">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                <div className="mt-4 space-y-1.5 rounded-2xl glass-subtier p-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Given Conditions:
                   </span>
-                  <ul className="list-disc pl-4 text-xs space-y-1 text-slate-700 dark:text-slate-300">
+                  <ul className="list-disc pl-4 text-xs space-y-1 text-foreground">
                     {currentQ.caselet.rules.map((rule, idx) => (
                       <li key={idx}>{rule}</li>
                     ))}
@@ -862,19 +862,19 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <tr className="border-b border-border">
                         {currentQ.caselet.tableData.headers.map((h, idx) => (
-                          <th key={idx} className="pb-2 font-bold text-slate-700 dark:text-slate-200">
+                          <th key={idx} className="pb-2 font-bold text-foreground">
                             {h}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-border/60">
                       {currentQ.caselet.tableData.rows.map((row, rIdx) => (
                         <tr key={rIdx}>
                           {row.map((cell, cIdx) => (
-                            <td key={cIdx} className="py-2 text-slate-600 dark:text-slate-300">
+                            <td key={cIdx} className="py-2 text-muted-foreground">
                               {cell}
                             </td>
                           ))}
@@ -889,21 +889,21 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
 
           {/* Question & Options Column */}
           <div className={`${currentQ.caselet ? 'lg:col-span-6' : 'lg:col-span-8'} space-y-6`}>
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#121826]">
+            <div className="rounded-3xl glass-thick p-6 shadow-xl border">
               {/* Question Number and Status */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 dark:border-slate-800">
-                <span className="text-sm font-bold text-slate-900 dark:text-white">
+              <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
+                <span className="text-sm font-bold text-foreground">
                   Question {currentIndex + 1} of {questions.length}
                 </span>
                 <div className="flex items-center gap-2">
                   {isMarked && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                    <span className="inline-flex items-center gap-1 rounded-full glass-thin px-2.5 py-0.5 text-xs font-semibold text-purple-700 dark:text-purple-300">
                       <Bookmark className="h-3 w-3 fill-current" />
                       Marked for Review
                     </span>
                   )}
                   {selectedOpt && (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                    <span className="rounded-full glass-thin px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                       Answered
                     </span>
                   )}
@@ -1012,8 +1012,8 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
 
           {/* Question Palette Sidebar */}
           <div className={`${currentQ.caselet ? 'lg:col-span-12' : 'lg:col-span-4'} space-y-4`}>
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-[#121826]">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-3">
+            <div className="rounded-3xl glass-regular p-5 shadow-xl border">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                 Question Palette
               </h4>
               <div className="grid grid-cols-5 gap-2">
@@ -1022,13 +1022,13 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                   const isRev = !!markedForReview[q.id];
                   const isCurr = idx === currentIndex;
 
-                  let bgClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                  let bgClass = 'glass-thin text-foreground';
                   if (isAns && isRev) {
-                    bgClass = 'bg-purple-600 text-white';
+                    bgClass = 'bg-purple-600 text-white shadow-xs';
                   } else if (isAns) {
-                    bgClass = 'bg-emerald-600 text-white';
+                    bgClass = 'bg-emerald-600 text-white shadow-xs';
                   } else if (isRev) {
-                    bgClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-400';
+                    bgClass = 'glass-thin text-purple-700 dark:text-purple-300 border border-purple-400';
                   }
 
                   return (
@@ -1037,7 +1037,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
                       className={`h-9 rounded-xl text-xs font-bold transition-all ${bgClass} ${
-                        isCurr ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900 scale-105' : ''
+                        isCurr ? 'ring-2 ring-blue-500 ring-offset-2 scale-105' : ''
                       }`}
                     >
                       {idx + 1}

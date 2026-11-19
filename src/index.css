@@ -162,15 +162,15 @@
 
 /* Today Dashboard 3 Stat Tiles */
 .card-stat-topics {
-  @apply bg-blue-50/70 border border-blue-100 text-blue-900 dark:bg-blue-950/20 dark:border-blue-900/40 dark:text-blue-200;
+  @apply glass-regular bg-blue-500/10 border-blue-500/30 text-blue-900 dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-200;
 }
 
 .card-stat-mocks {
-  @apply bg-slate-50 border border-slate-200/80 text-slate-900 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-200;
+  @apply glass-regular bg-slate-500/10 border-slate-500/30 text-slate-900 dark:bg-slate-500/15 dark:border-slate-500/30 dark:text-slate-200;
 }
 
 .card-stat-overdue {
-  @apply bg-rose-50 border border-rose-200 text-rose-900 dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-200;
+  @apply glass-regular bg-rose-500/10 border-rose-500/30 text-rose-900 dark:bg-rose-500/15 dark:border-rose-500/30 dark:text-rose-200;
 }
 
 /* Custom modern scrollbars */

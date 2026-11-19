@@ -233,8 +233,8 @@ export const AICoachPage: React.FC = () => {
                   <div
                     className={`p-3.5 rounded-2xl ${
                       msg.sender === 'user'
-                        ? 'bg-purple-600 text-white rounded-br-none shadow-sm'
-                        : 'bg-card border border-border/80 text-foreground rounded-bl-none leading-relaxed shadow-xs'
+                        ? 'glass-tint text-white rounded-br-none shadow-md font-medium'
+                        : 'glass-thin border border-white/60 dark:border-white/10 text-foreground rounded-bl-none leading-relaxed shadow-xs'
                     }`}
                   >
                     {msg.sender === 'ai' ? (
@@ -246,19 +246,19 @@ export const AICoachPage: React.FC = () => {
 
                   {/* Non-Destructive Action Proposal Card */}
                   {msg.actionProposal && (
-                    <div className="p-3 rounded-xl border border-purple-500/30 bg-purple-50 dark:bg-purple-950/20 text-xs space-y-2">
+                    <div className="p-3 rounded-xl border border-blue-400/40 glass-thin text-xs space-y-2 shadow-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-purple-700 dark:text-purple-300 text-[11px] flex items-center gap-1">
+                        <span className="font-bold text-blue-700 dark:text-blue-300 text-[11px] flex items-center gap-1">
                           <Target className="h-3.5 w-3.5" /> Action Proposal
                         </span>
-                        <Badge variant="purple" className="text-[9px]">Requires Confirmation</Badge>
+                        <Badge variant="blue" className="text-[9px]">Requires Confirmation</Badge>
                       </div>
                       <p className="text-foreground font-semibold">{msg.actionProposal.title}</p>
                       <p className="text-muted-foreground text-[11px]">{msg.actionProposal.details}</p>
                       <Button
                         size="sm"
                         variant="default"
-                        className="h-7 text-xs w-full gap-1 mt-1"
+                        className="h-7 text-xs w-full gap-1 mt-1 font-semibold"
                         onClick={() => handleApplyProposal(msg.actionProposal!)}
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" />
@@ -273,7 +273,7 @@ export const AICoachPage: React.FC = () => {
                 </div>
 
                 {msg.sender === 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground mt-0.5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg glass-thin text-foreground mt-0.5">
                     <User className="h-4 w-4" />
                   </div>
                 )}
@@ -282,7 +282,7 @@ export const AICoachPage: React.FC = () => {
 
             {isThinking && (
               <div className="flex gap-3 text-xs items-center text-muted-foreground">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15 text-purple-400 border border-purple-500/25">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg glass-thin text-blue-500 border border-blue-400/40">
                   <Bot className="h-4 w-4 animate-spin" />
                 </div>
                 <span>Analyzing preparation metrics and generating tactical advice...</span>
@@ -292,35 +292,35 @@ export const AICoachPage: React.FC = () => {
           </CardContent>
 
           {/* Quick Prompt Chips */}
-          <div className="px-4 py-2 border-t border-border/50 bg-muted/10 flex flex-wrap gap-1.5">
+          <div className="px-4 py-2 border-t border-border/40 glass-thin flex flex-wrap gap-1.5">
             <button
               onClick={() => handleSendMessage('Analyze my current preparation progress and weak spots')}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-foreground transition-colors cursor-pointer"
+              className="text-[11px] px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all cursor-pointer"
             >
               📊 Progress Audit
             </button>
             <button
               onClick={() => handleSendMessage('Generate a realistic study plan for today based on my active week')}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-foreground transition-colors cursor-pointer"
+              className="text-[11px] px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all cursor-pointer"
             >
               📅 Plan Today's Study
             </button>
             <button
               onClick={() => handleSendMessage('Recommend what topic I should study next')}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-foreground transition-colors cursor-pointer"
+              className="text-[11px] px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all cursor-pointer"
             >
               🎯 Next Topic Recommendation
             </button>
             <button
               onClick={() => handleSendMessage('Audit my mock exam strategy and mistake patterns')}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 hover:bg-secondary text-foreground transition-colors cursor-pointer"
+              className="text-[11px] px-2.5 py-1 rounded-full glass-thin hover:bg-black/5 dark:hover:bg-white/10 text-foreground transition-all cursor-pointer"
             >
               🔍 Mock Strategy & Mistakes
             </button>
           </div>
 
           {/* Input Footer */}
-          <CardFooter className="p-3 border-t border-border/70">
+          <CardFooter className="p-3 border-t border-border/40 glass-thick">
             <form
               onSubmit={(e) => {
                 e.preventDefault();

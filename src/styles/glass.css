@@ -497,3 +497,26 @@ html[data-glass="off"] {
   color: #FECDD3 !important;
 }
 
+/* 4. SPECULAR CURSOR-FOLLOW HIGHLIGHT (Desktop Pointer Devices) */
+@media (pointer: fine) {
+  .specular-follow {
+    position: relative;
+    overflow: hidden;
+  }
+  .specular-follow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle 140px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.16), transparent 75%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: inherit;
+    z-index: 1;
+  }
+  .specular-follow:hover::after {
+    opacity: 1;
+  }
+}
+
+

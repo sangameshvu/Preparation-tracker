@@ -495,11 +495,11 @@ export const NotesPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredNotes.map((note) => {
             return (
-              <Card
+              <div
                 key={note.id}
                 className={cn(
-                  'flex flex-col border transition-all duration-200 hover:shadow-md hover:border-blue-500/50 bg-card rounded-2xl overflow-hidden cursor-pointer group',
-                  note.isPinned && 'ring-1 ring-blue-500/30'
+                  'flex flex-col glass-thick rounded-2xl overflow-hidden cursor-pointer group transition-all duration-200 hover:-translate-y-1 hover:shadow-xl border',
+                  note.isPinned && 'ring-2 ring-blue-500/50'
                 )}
                 onClick={() => handleReadNote(note)}
               >
@@ -612,7 +612,7 @@ export const NotesPage: React.FC = () => {
                     </Button>
                   </div>
                 </CardFooter>
-              </Card>
+              </div>
             );
           })}
         </div>

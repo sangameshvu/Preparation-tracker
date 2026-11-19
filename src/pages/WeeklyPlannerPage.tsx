@@ -637,10 +637,10 @@ export const WeeklyPlannerPage: React.FC = () => {
           {(['Not Started', 'In Progress', 'Review', 'Completed'] as TaskStatus[]).map((col) => {
             const colTasks = tasks.filter((t) => t.status === col);
             return (
-              <div key={col} className="flex flex-col rounded-xl border border-border/80 bg-slate-50/50 dark:bg-slate-900/20 p-3">
+              <div key={col} className="flex flex-col rounded-2xl glass-regular p-3 shadow-xs">
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
                   <span className="text-xs font-bold text-foreground">{col}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-muted-foreground">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full glass-thin text-muted-foreground">
                     {colTasks.length}
                   </span>
                 </div>
@@ -649,7 +649,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                     <p className="text-[11px] text-muted-foreground text-center py-6 italic">No tasks</p>
                   ) : (
                     colTasks.map((t) => (
-                      <div key={t.id} className="p-2.5 rounded-lg border border-border/70 bg-card text-xs space-y-1.5 shadow-2xs">
+                      <div key={t.id} className="p-2.5 rounded-xl glass-subtier text-xs space-y-1.5 shadow-2xs border border-white/40 dark:border-white/10">
                         <p className="font-medium text-foreground">{t.title}</p>
                         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                           <span className="text-blue-600 font-semibold">{t.section}</span>
@@ -667,7 +667,7 @@ export const WeeklyPlannerPage: React.FC = () => {
 
       {/* VIEW 4: 52-WEEK TABLE */}
       {viewMode === 'table' && (
-        <Card className="rounded-xl border border-border/80 shadow-xs overflow-hidden">
+        <div className="rounded-2xl sm:rounded-3xl glass-thick shadow-xs overflow-hidden">
           <div className="p-4 border-b border-border/60 flex items-center justify-between">
             <span className="text-sm font-bold text-foreground">All 52 Preparation Weeks</span>
             <div className="flex items-center gap-2">
@@ -689,7 +689,7 @@ export const WeeklyPlannerPage: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-900/50 text-muted-foreground font-semibold border-b border-border/60">
+              <thead className="glass-thin text-muted-foreground font-semibold border-b border-border/60">
                 <tr>
                   <th className="p-3">Week</th>
                   <th className="p-3">Phase</th>
@@ -708,14 +708,14 @@ export const WeeklyPlannerPage: React.FC = () => {
                       setSelectedWeekNum(plan.weekNumber);
                       setViewMode('weekly');
                     }}
-                    className={`cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors ${
-                      plan.weekNumber === stats.currentWeek ? 'bg-blue-50/40 dark:bg-blue-950/20 font-medium' : ''
+                    className={`cursor-pointer hover:glass-thin transition-colors ${
+                      plan.weekNumber === stats.currentWeek ? 'glass-thin font-medium' : ''
                     }`}
                   >
                     <td className="p-3 font-mono font-bold">
                       W{plan.weekNumber}
                       {plan.isBufferWeek && (
-                        <span className="ml-1.5 text-[10px] text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-1 py-0.2 rounded font-sans">
+                        <span className="ml-1.5 text-[10px] text-amber-600 bg-amber-500/10 px-1 py-0.2 rounded font-sans">
                           Buffer
                         </span>
                       )}
@@ -726,7 +726,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                     <td className="p-3 max-w-[200px] truncate">{plan.varcPlan}</td>
                     <td className="p-3 font-mono">{plan.hoursTarget}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-muted-foreground">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold glass-thin text-muted-foreground">
                         {plan.status}
                       </span>
                     </td>
@@ -735,7 +735,7 @@ export const WeeklyPlannerPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );

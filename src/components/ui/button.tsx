@@ -9,9 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'glass-tint text-white shadow-md hover:brightness-105',
+          'glass-tint text-white shadow-md hover:brightness-105 specular-follow',
         primary:
-          'glass-tint text-white shadow-md hover:brightness-105',
+          'glass-tint text-white shadow-md hover:brightness-105 specular-follow',
         destructive:
           'glass-destructive focus-visible:ring-rose-500',
         outline:
@@ -23,9 +23,9 @@ const buttonVariants = cva(
         link:
           'text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline active:scale-100',
         purple:
-          'glass-tint text-white shadow-md hover:brightness-105',
+          'glass-tint text-white shadow-md hover:brightness-105 specular-follow',
         blue:
-          'glass-tint text-white shadow-md hover:brightness-105',
+          'glass-tint text-white shadow-md hover:brightness-105 specular-follow',
         emerald:
           'bg-emerald-600/90 text-white shadow-md hover:bg-emerald-600',
       },
