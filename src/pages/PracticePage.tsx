@@ -27,9 +27,6 @@ export const PracticePage: React.FC<PracticePageProps> = ({ defaultTab = 'practi
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Practice & Test Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            CAT PYQ & AI topic drills, full simulated mock exams, and spaced repetition error log.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">

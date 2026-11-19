@@ -281,9 +281,6 @@ export const NotesPage: React.FC = () => {
                   Google Drive CAT Notes
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Create and organize your CAT notes directly in Google Drive. Click any note to open it instantly in Google Docs.
-              </p>
             </div>
           </div>
         </div>
@@ -326,7 +323,7 @@ export const NotesPage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Folder: <strong className="text-blue-700 dark:text-blue-400 font-mono">My Drive / CAT Notes /</strong> • Notes are drafted in Google Docs and organized here with section and topic metadata.
+              Folder: <strong className="text-blue-700 dark:text-blue-400 font-mono">My Drive / CAT Notes /</strong>
             </p>
             <div className="flex items-center gap-4 text-[11px] text-muted-foreground mt-1">
               <span>Saved notes: <strong className="text-foreground">{counts.total} documents</strong></span>

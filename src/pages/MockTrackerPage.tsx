@@ -316,9 +316,6 @@ export const MockTrackerPage: React.FC = () => {
               Exam Ready
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Simulate timed CAT test conditions, record full-length test results, and analyze sectional score progression.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

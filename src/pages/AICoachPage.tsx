@@ -190,9 +190,6 @@ export const AICoachPage: React.FC = () => {
             Active Context Ingestion
           </Badge>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Context-aware AI companion with live access to your 52-week plan, 53 topics, mock trajectories, and mistake logs.
-        </p>
       </div>
 
       {/* Main Workspace (Grid: Chat + Live Context Dossier) */}

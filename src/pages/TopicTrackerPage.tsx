@@ -145,9 +145,6 @@ export const TopicTrackerPage: React.FC = () => {
               ? 'Data Interpretation & Logical Reasoning'
               : 'Verbal Ability & Reading Comprehension'}
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Complete 53-topic catalog. Track syllabus stages, problem practice drills, PYQs, and 5-level confidence.
-          </p>
         </div>
 
         {/* Section Metrics Badge */}

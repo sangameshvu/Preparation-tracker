@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { WeekStatus, TaskStatus, PriorityType, SectionType, StudyTask } from '../types';
+import { cn } from '../lib/utils';
 
 export const WeeklyPlannerPage: React.FC = () => {
   const {
@@ -101,6 +102,42 @@ export const WeeklyPlannerPage: React.FC = () => {
 
   // Days of week for the 7-day grid view (Reference 2 style)
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const isOddWeek = selectedPlan.weekNumber % 2 !== 0;
+
+  const getDailyAllocation = (idx: number) => {
+    if (idx === 5) {
+      return {
+        badgeLabel: 'Revision',
+        badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+        title: 'Weekly Revision (Part 1)',
+        description: 'Revise all topics, notes & formulas covered this week.'
+      };
+    }
+    if (idx === 6) {
+      return {
+        badgeLabel: 'Review',
+        badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+        title: 'Weekly Revision (Part 2)',
+        description: 'Audit Mistake Log, clear errors & weekly recap.'
+      };
+    }
+    const isDiDay = isOddWeek ? idx % 2 === 0 : idx % 2 !== 0;
+    if (isDiDay) {
+      return {
+        badgeLabel: 'DI Sets',
+        badgeClass: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20',
+        title: 'VARC + DI',
+        description: 'Daily RC/editorial + 2 Data Interpretation caselets.'
+      };
+    } else {
+      return {
+        badgeLabel: 'Quant',
+        badgeClass: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+        title: 'VARC + QA',
+        description: 'Daily RC/VA drills + Quant concept theory & drills.'
+      };
+    }
+  };
 
   return (
     <div className="space-y-6 pb-12 font-sans">
@@ -113,9 +150,6 @@ export const WeeklyPlannerPage: React.FC = () => {
               Phase {selectedPlan.phaseNumber}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Productivity roadmap from Day 1 to CAT 2027. Manage sprints, daily goals, 7-day calendar, and buffer weeks.
-          </p>
         </div>
 
         {/* View Switcher Tabs */}
@@ -157,9 +191,6 @@ export const WeeklyPlannerPage: React.FC = () => {
                   {completedGoalsCount} of {dailyGoals.length} Done ({dailyGoalsPct}%)
                 </span>
               </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Set non-negotiable daily habits. Checking a goal records deliberate progress in your history.
-              </p>
             </div>
           </div>
 
@@ -364,6 +395,30 @@ export const WeeklyPlannerPage: React.FC = () => {
             </div>
           )}
 
+          {/* Alternating Schedule Distribution Banner */}
+          <div className="p-4 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-white/60 dark:border-white/10 shadow-xs">
+            <div className="flex items-center gap-3">
+              <Badge variant="blue" className="text-xs font-bold px-2.5 py-1">
+                {isOddWeek ? 'Cycle A (Odd Week)' : 'Cycle B (Even Week)'}
+              </Badge>
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  {isOddWeek
+                    ? 'Mon / Wed / Fri: DI Sets • Tue / Thu: Quantitative Aptitude'
+                    : 'Mon / Wed / Fri: Quantitative Aptitude • Tue / Thu: DI Sets'}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Daily VARC every day • Saturday & Sunday: Comprehensive Weekly Revision
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">
+                Weekend: Weekly Revision
+              </span>
+            </div>
+          </div>
+
           {/* 3 Subject Targets */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="rounded-xl border border-border/80 border-t-4 border-t-blue-600 shadow-xs">
@@ -418,7 +473,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                     Week {selectedPlan.weekNumber} Tasks ({weekTasks.length})
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Target: {selectedPlan.hoursTarget} hrs • Manage weekly deliverables with precision.
+                    Target: {selectedPlan.hoursTarget} hrs
                   </CardDescription>
                 </div>
               </div>
@@ -518,54 +573,60 @@ export const WeeklyPlannerPage: React.FC = () => {
       {/* VIEW 2: 7-DAY CALENDAR GRID (Reference 2 Inspired Notion Style) */}
       {viewMode === 'calendar' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-            <span>Week {selectedPlan.weekNumber} Schedule • {selectedPlan.startDate} to {selectedPlan.endDate}</span>
-            <span>Target: {selectedPlan.hoursTarget} hrs</span>
+          <div className="p-3.5 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="font-bold text-foreground">
+                Week {selectedPlan.weekNumber} Alternating Schedule:
+              </span>
+              <span className="text-muted-foreground">
+                {isOddWeek
+                  ? 'Cycle A (Mon/Wed/Fri DI • Tue/Thu QA)'
+                  : 'Cycle B (Mon/Wed/Fri QA • Tue/Thu DI)'}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
+              <span className="font-bold text-amber-600 dark:text-amber-400">Daily VARC</span>
+              <span>•</span>
+              <span className="font-bold text-purple-600 dark:text-purple-400">Sat & Sun Revision</span>
+              <span>•</span>
+              <span>Target: {selectedPlan.hoursTarget} hrs</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-            {daysOfWeek.map((day, idx) => (
-              <div key={day} className="flex flex-col rounded-xl border border-border/80 bg-card p-3 shadow-xs min-h-[220px]">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
-                  <span className="text-xs font-bold text-foreground">{day.slice(0, 3)}</span>
-                  <span className="text-[11px] font-mono text-muted-foreground">Day {idx + 1}</span>
-                </div>
+            {daysOfWeek.map((day, idx) => {
+              const allocation = getDailyAllocation(idx);
+              return (
+                <div key={day} className="flex flex-col rounded-2xl glass-card p-3 shadow-xs min-h-[220px]">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50">
+                    <span className="text-xs font-bold text-foreground">{day.slice(0, 3)}</span>
+                    <span className="text-[11px] font-mono text-muted-foreground">Day {idx + 1}</span>
+                  </div>
 
-                <div className="space-y-2 flex-1">
-                  {idx === 0 && (
-                    <div className="p-2 rounded-lg bg-blue-50 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300 text-[11px] font-medium leading-tight border border-blue-200/60">
-                      QA Core Theory & Formulas
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-1 mb-1">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                        {idx < 5 ? 'Daily VARC' : 'Consolidation'}
+                      </span>
+                      <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', allocation.badgeClass)}>
+                        {allocation.badgeLabel}
+                      </span>
                     </div>
-                  )}
-                  {idx === 1 && (
-                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 text-[11px] font-medium leading-tight border border-emerald-200/60">
-                      DILR 2 Unseen Sets Practice
-                    </div>
-                  )}
-                  {idx === 2 && (
-                    <div className="p-2 rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 text-[11px] font-medium leading-tight border border-amber-200/60">
-                      VARC 3 RCs + Tone Analysis
-                    </div>
-                  )}
-                  {idx === 5 && (
-                    <div className="p-2 rounded-lg bg-purple-50 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300 text-[11px] font-medium leading-tight border border-purple-200/60">
-                      Sectional Test & Mistake Log
-                    </div>
-                  )}
-                  {idx === 6 && (
-                    <div className="p-2 rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 text-[11px] font-medium leading-tight border border-slate-200/60">
-                      Weekly Buffer & Revision
-                    </div>
-                  )}
 
-                  {weekTasks.filter((_, i) => i % 7 === idx).map((t) => (
-                    <div key={t.id} className="p-1.5 rounded bg-muted/60 text-[10px] text-foreground font-medium truncate">
-                      ✓ {t.title}
+                    <div className="p-2 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/40 text-[11px] leading-tight space-y-1">
+                      <p className="font-bold text-foreground">{allocation.title}</p>
+                      <p className="text-[10px] text-muted-foreground leading-normal">{allocation.description}</p>
                     </div>
-                  ))}
+
+                    {weekTasks.filter((_, i) => i % 7 === idx).map((t) => (
+                      <div key={t.id} className="p-1.5 rounded-lg bg-muted/60 text-[10px] text-foreground font-medium truncate">
+                        ✓ {t.title}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

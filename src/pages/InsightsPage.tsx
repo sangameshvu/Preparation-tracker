@@ -26,9 +26,6 @@ export const InsightsPage: React.FC<InsightsPageProps> = ({ defaultTab = 'analyt
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Performance Insights & History
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Sectional mastery distribution, mock percentile trajectories, and daily study activity logs.
-          </p>
         </div>
 
         <div className="w-full sm:w-auto">

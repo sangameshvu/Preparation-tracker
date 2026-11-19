@@ -217,7 +217,6 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
           </span>
         </div>
       }
-      description="Personalized diagnostic mentor & strategy assistant"
     >
       {/* Quick Prompts Bar */}
       <div className="space-y-1.5 pb-2 border-b border-border/60">

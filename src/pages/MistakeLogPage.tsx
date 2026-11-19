@@ -164,9 +164,6 @@ export const MistakeLogPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Mistake Log & Root-Cause Remediation</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Log every incorrect, skipped or slow question. Spaced repetition engine automatically schedules re-solving in 7 days.
-          </p>
         </div>
         <Button onClick={handleOpenAdd} variant="default" size="sm" className="gap-1.5 shadow-sm">
           <Plus className="h-4 w-4" />

@@ -61,26 +61,26 @@ export const initialDailyGoals: DailyGoalItem[] = [
   {
     id: 'goal-1',
     date: today,
-    title: 'Solve 20 Quant Questions on Percentages & Ratios',
-    section: 'Quant',
-    targetMinutes: 60,
+    title: 'Daily VARC: Read 1 Editorial / Aeon Essay & Solve 1 Full RC',
+    section: 'VARC',
+    targetMinutes: 40,
     completed: true,
     completedAt: new Date().toISOString()
   },
   {
     id: 'goal-2',
     date: today,
-    title: 'Read 1 Long Editorial & Summarize in 3 Bullet Points',
-    section: 'VARC',
-    targetMinutes: 35,
+    title: 'Alternating Focus: Solve 20 Quant Concept Practice Questions',
+    section: 'Quant',
+    targetMinutes: 50,
     completed: false
   },
   {
     id: 'goal-3',
     date: today,
-    title: 'Solve 2 Unseen DILR Matrix Arrangement Sets',
-    section: 'DILR',
-    targetMinutes: 45,
+    title: 'Weekly Progress Review: Revisit 1 Mistake Log Problem',
+    section: 'General',
+    targetMinutes: 30,
     completed: false
   }
 ];

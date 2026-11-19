@@ -128,9 +128,6 @@ export const StickyBoardPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Sticky Board</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Quick formula pins, strategy reminders, and bite-sized revision post-its.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={handleOpenAdd} variant="default" size="sm" className="gap-1.5 shadow-sm">

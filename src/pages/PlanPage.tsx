@@ -26,9 +26,6 @@ export const PlanPage: React.FC<PlanPageProps> = ({ defaultTab = 'planner' }) =>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Plan & Preparation Roadmap
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            52-week structured curriculum, daily goals, and comprehensive 53-topic mastery tracker.
-          </p>
         </div>
 
         <div className="w-full sm:w-auto">

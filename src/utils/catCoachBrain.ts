@@ -322,30 +322,31 @@ Understanding the scoring matrix prevents panic and helps set realistic sectiona
   // 5. DAILY ROUTINE, WORKING PROFESSIONAL & STUDY HABITS
   // -------------------------------------------------------------------------
 
-  if (lower.includes('routine') || lower.includes('working') || lower.includes('job') || lower.includes('time management') || lower.includes('hours') || lower.includes('college')) {
+  if (lower.includes('routine') || lower.includes('schedule') || lower.includes('plan') || lower.includes('working') || lower.includes('job') || lower.includes('time management') || lower.includes('hours') || lower.includes('college')) {
+    const isOddWeek = (activePlan?.weekNumber || 1) % 2 !== 0;
     return {
-      text: `### ⏰ Optimal Daily Study Blueprint
+      text: `### ⏰ Your Alternating CAT Study Plan
 
-Consistency beats intensity. The key is distributing preparation across manageable slots rather than marathon cramming.
+Here is your customized alternating preparation blueprint:
 
-1. **For Working Professionals (3.5 – 4 Hours/Day):**
-   - **Morning Slot (6:30 AM – 8:00 AM, 90 mins):** High-cognitive load Quant or DILR before workplace fatigue sets in.
-   - **Lunch / Commute (30 mins):** Read 1 Aeon Essay on phone + 10 vocabulary flashcards.
-   - **Evening Slot (9:00 PM – 10:30 PM, 90 mins):** 1 RC set + review Mistake Log + 15 mins daily routine log.
-   - **Weekend Sprint (Saturday & Sunday):** 6 hours each day for full mock exam and 3-hour deep diagnostic analysis.
+1. **Daily Core Habit: VARC Every Single Day**
+   - **Morning or Daily Block (35–45 mins):** 1 Long Editorial (Aeon Essay or Guardian) + 1 CAT-level RC passage with tone & argument breakdown + 5 VA questions.
 
-2. **For Full-Time Students (5 – 6 Hours/Day):**
-   - **Session 1 (Morning, 2 hrs):** Quant concept theory + 25 drill questions.
-   - **Session 2 (Afternoon, 1.5 hrs):** 2 DILR caselets + analysis.
-   - **Session 3 (Evening, 1.5 hrs):** 2 RC passages + Para Summary practice.
-   - **Session 4 (Night, 45 mins):** Re-solving questions from the Spaced Repetition Mistake Queue.
+2. **Weekday Alternating Focus (Mon–Fri):**
+   - **Current Sprint (${isOddWeek ? 'Week ' + (activePlan?.weekNumber || 1) + ' · Odd Cycle A' : 'Week ' + (activePlan?.weekNumber || 1) + ' · Even Cycle B'}):**
+     - **Monday:** ${isOddWeek ? '**VARC + DI** (Data Interpretation sets & caselets)' : '**VARC + QA** (Quant concept theory & drills)'}
+     - **Tuesday:** ${isOddWeek ? '**VARC + QA** (Quant concept theory & drills)' : '**VARC + DI** (Data Interpretation sets & caselets)'}
+     - **Wednesday:** ${isOddWeek ? '**VARC + DI** (Charts, tables & reasoning sets)' : '**VARC + QA** (Quant problem solving & formulas)'}
+     - **Thursday:** ${isOddWeek ? '**VARC + QA** (Quant problem solving & formulas)' : '**VARC + DI** (Charts, tables & reasoning sets)'}
+     - **Friday:** ${isOddWeek ? '**VARC + DI** (Advanced DI caselets & problem sets)' : '**VARC + QA** (Quant PYQs & speed drills)'}
 
-3. **The Weekly Buffer Principle:**
-   - Reserve Sunday afternoon as a **Buffer Slot** to catch up on any scheduled goals that spilled over during the week.`,
+3. **Weekend Focus: Comprehensive Weekly Revision (Sat & Sun)**
+   - **Saturday:** Consolidate and re-solve all DI, QA & VARC topics covered during this particular week.
+   - **Sunday:** Deep audit of your Mistake Log, clear overdue flagged questions, and review your formula notebook.`,
       actionProposal: {
         type: 'add_task',
-        title: 'Establish 4-Block Daily Study Routine',
-        details: 'Dedicate fixed morning Quant slot and evening review slot.'
+        title: 'Execute Alternating Study Block Today',
+        details: 'Complete daily VARC and today\'s alternating core subject.'
       }
     };
   }

@@ -106,9 +106,6 @@ export const HistoryPage: React.FC = () => {
               Daily Tracking
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Complete audit trail of what you studied and completed on every single date. Pick a day to view its detailed timeline.
-          </p>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

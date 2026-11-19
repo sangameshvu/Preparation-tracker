@@ -95,9 +95,6 @@ export const AdminPanelPage: React.FC = () => {
               Owner Mode
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Manage all 52 weekly plans, master topics, resource links, and preparation guide sections without modifying code.
-          </p>
         </div>
       </div>
 

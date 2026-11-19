@@ -70,9 +70,6 @@ export const PrepGuidePage: React.FC = () => {
               Curated Strategy
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Complete strategic blueprint, sectional targets, and daily study allocations extracted from CAT Preparation manual.
-          </p>
         </div>
         {profile.isAdmin && (
           <Badge variant="outline" className="text-xs gap-1 border-blue-500/30 text-blue-600 dark:text-blue-400">

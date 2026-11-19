@@ -64,7 +64,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenCoach })
     <>
       <nav
         aria-label="Mobile Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85 border-t border-border flex items-center justify-around px-2 pb-safe"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl border-t border-white/60 dark:border-white/10 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.03)]"
       >
         {mainTabs.map((tab) => {
           const active = isTabActive(tab.path);
@@ -109,7 +109,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenCoach })
       <DialogPrimitive.Root open={moreDrawerOpen} onOpenChange={setMoreDrawerOpen}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs" />
-          <DialogPrimitive.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl border-t border-border bg-card p-6 shadow-2xl max-h-[85vh] overflow-y-auto focus:outline-hidden">
+          <DialogPrimitive.Content className="fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-3xl border-t border-white/60 dark:border-white/10 bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto focus:outline-hidden">
             <div className="flex items-center justify-between pb-4 border-b border-border/70">
               <DialogPrimitive.Title className="text-base font-bold text-foreground">
                 More Destinations & Utilities

@@ -61,9 +61,6 @@ export const DailyRoutinesPage: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Daily Routine Architect</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          "Templates, not rules. Shift the times, keep the blocks." Structure your working professional or college student study days.
-        </p>
       </div>
 
       {/* Routine Templates Selector */}

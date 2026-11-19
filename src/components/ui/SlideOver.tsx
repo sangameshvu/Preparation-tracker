@@ -44,7 +44,7 @@ export const SlideOver: React.FC<SlideOverProps> = ({
         {/* Slide-over panel */}
         <DialogPrimitive.Content
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col bg-card border-l border-border shadow-2xl transition ease-out duration-250 sm:rounded-l-3xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
+            'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl border-l border-white/60 dark:border-white/10 shadow-2xl transition ease-out duration-250 sm:rounded-l-3xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
             sizeClasses[size],
             className
           )}

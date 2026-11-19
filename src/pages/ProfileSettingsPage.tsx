@@ -89,9 +89,6 @@ export const ProfileSettingsPage: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Settings & Preferences
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Configure your CAT 2027 milestones, study parameters, appearance theme, and data backups.
-          </p>
         </div>
 
         <div className="w-full sm:w-auto">

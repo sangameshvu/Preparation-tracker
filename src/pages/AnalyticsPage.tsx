@@ -138,9 +138,6 @@ export const AnalyticsPage: React.FC = () => {
             Real Metrics
           </Badge>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Quantitative telemetry of your CAT 2027 preparation: study volume, sectional mastery, mock score evolution, and error root-causes.
-        </p>
       </div>
 
       {/* 2. Top Metric Cards */}

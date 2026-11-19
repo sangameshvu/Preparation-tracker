@@ -236,9 +236,6 @@ export const FreeResourcesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Free Study Resources Library</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Curated preparation materials. Drag or move resources freely, inspect details, edit names or links, and mark completed items.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button

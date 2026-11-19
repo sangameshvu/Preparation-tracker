@@ -99,12 +99,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        'relative hidden md:flex flex-col border-r border-border/80 bg-sidebar transition-all duration-250 ease-out select-none z-30 shrink-0',
+        'relative hidden md:flex flex-col border-r border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl transition-all duration-250 ease-out select-none z-30 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]',
         collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-border/60">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200/50 dark:border-white/10">
         {!collapsed ? (
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs shrink-0 font-black text-sm">

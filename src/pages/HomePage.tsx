@@ -210,9 +210,6 @@ export const HomePage: React.FC = () => {
                 </span>
                 <span className="text-base sm:text-lg font-medium text-blue-100">days to CAT 2027</span>
               </div>
-              <p className="text-xs sm:text-sm text-blue-100/90 mt-1.5 max-w-md leading-relaxed">
-                Consistency is the key to 99+ percentile. Maintain deliberate practice and review your error log.
-              </p>
             </div>
           </div>
 
@@ -334,9 +331,6 @@ export const HomePage: React.FC = () => {
                   <Target className="h-4 w-4 text-blue-600" />
                   <span>Today's Focus & Goals</span>
                 </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Daily deliberate practice targets aligned with Phase {stats.currentPhase.phaseNumber}.
-                </p>
               </div>
               <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
                 {dailyGoals.filter((g) => g.completed).length} / {dailyGoals.length} Done
@@ -477,9 +471,6 @@ export const HomePage: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-blue-600" />
                   <span>This Week's Study Time</span>
                 </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Daily study hours logged (Blue line) vs daily target (Dashed Slate).
-                </p>
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1.5">
