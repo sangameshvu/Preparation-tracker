@@ -45,7 +45,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-white/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/65 px-3 sm:px-6 md:px-8 backdrop-blur-2xl transition-colors shadow-2xs">
+    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between glass-regular rounded-none border-b border-t-0 border-l-0 border-r-0 px-3 sm:px-6 md:px-8 transition-colors shadow-2xs">
       {/* Left: Dynamic Page Title */}
       <div className="flex items-center gap-2 min-w-0 shrink">
         <div className="flex flex-col min-w-0">
@@ -63,7 +63,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-full border border-slate-200/70 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 text-xs text-muted-foreground transition-all cursor-pointer shadow-2xs backdrop-blur-md"
+          className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-full glass-thin hover:opacity-90 text-xs text-muted-foreground transition-all cursor-pointer shadow-2xs"
         >
           <div className="flex items-center gap-2 truncate">
             <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

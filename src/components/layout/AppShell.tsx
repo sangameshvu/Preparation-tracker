@@ -6,6 +6,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { CommandPalette } from '../ui/CommandPalette';
 import { AICoachDrawer } from './AICoachDrawer';
 import { QuickAddModal } from './QuickAddModal';
+import { AmbientBackground } from '../common/AmbientBackground';
 import { Sparkles } from 'lucide-react';
 
 export const AppShell: React.FC = () => {
@@ -24,10 +25,8 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="flex min-h-screen text-foreground antialiased font-sans relative selection:bg-blue-500/20">
-      {/* Ambient iOS / macOS Liquid Glass Glow Orbs */}
-      <div className="fixed -top-36 -left-36 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/15 rounded-full blur-3xl pointer-events-none -z-10 transform-gpu" />
-      <div className="fixed top-1/3 -right-36 w-[28rem] h-[28rem] bg-indigo-400/15 dark:bg-purple-600/10 rounded-full blur-3xl pointer-events-none -z-10 transform-gpu" />
-      <div className="fixed -bottom-36 left-1/3 w-[32rem] h-[32rem] bg-sky-300/20 dark:bg-cyan-600/10 rounded-full blur-3xl pointer-events-none -z-10 transform-gpu" />
+      {/* ONE fixed full-viewport ambient background layer */}
+      <AmbientBackground />
 
       {/* Streamlined Desktop Sidebar */}
       <Sidebar
@@ -56,7 +55,7 @@ export const AppShell: React.FC = () => {
       <button
         type="button"
         onClick={() => setCoachOpen(true)}
-        className="hidden md:flex fixed bottom-8 right-8 z-50 items-center gap-2 px-4 py-2.5 rounded-full bg-blue-600/90 hover:bg-blue-600 text-white font-bold text-xs shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group"
+        className="hidden md:flex fixed bottom-8 right-8 z-50 items-center gap-2 px-4 py-2.5 rounded-full glass-tint font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group"
       >
         <Sparkles className="h-4 w-4 text-blue-200 group-hover:rotate-12 transition-transform" />
         <span>Ask Coach</span>

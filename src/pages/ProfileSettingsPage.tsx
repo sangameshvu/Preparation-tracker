@@ -24,10 +24,11 @@ import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '../lib/utils';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { profile, updateProfile, weeklyPlans, topics, topicProgress, mockTests, mistakes, resources, resetAllData } = useAppData();
-  const { theme, toggleTheme, setTheme } = useTheme();
+  const { theme, toggleTheme, setTheme, glassEffect, setGlassEffect } = useTheme();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'data'>('profile');
@@ -242,6 +243,39 @@ export const ProfileSettingsPage: React.FC = () => {
                   </>
                 )}
               </Button>
+            </div>
+
+            {/* Glass Effects Control */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <span className="text-xs font-semibold text-slate-900 dark:text-white block">
+                  Glass Effects
+                </span>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                  {glassEffect === 'full'
+                    ? 'Full liquid glassmorphism with 24px blur and ambient light blobs'
+                    : glassEffect === 'reduced'
+                    ? 'Reduced blur (8px), static background, and higher opacity for performance'
+                    : 'Glass disabled: Solid high-contrast surfaces without blur'}
+                </span>
+              </div>
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200/60 dark:border-slate-700">
+                {(['full', 'reduced', 'off'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setGlassEffect(mode)}
+                    className={cn(
+                      'px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-all cursor-pointer',
+                      glassEffect === mode
+                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    )}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">

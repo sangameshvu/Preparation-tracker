@@ -42,7 +42,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
     <div
       role="tablist"
       className={cn(
-        'inline-flex items-center bg-black/5 dark:bg-white/5 rounded-full border border-white/60 dark:border-white/10 p-1 select-none backdrop-blur-xl transition-all shadow-inner',
+        'inline-flex items-center glass-thin rounded-full p-1 select-none transition-all shadow-inner',
         sizeClasses[size],
         fullWidth && 'w-full flex',
         className
@@ -62,7 +62,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
               itemPadding[size],
               fullWidth && 'flex-1',
               isActive
-                ? 'bg-white/95 dark:bg-slate-800/90 text-foreground font-bold shadow-xs border border-white/80 dark:border-white/10 backdrop-blur-md'
+                ? 'bg-white dark:bg-slate-800 text-foreground font-bold shadow-xs border border-white/80 dark:border-white/10 rounded-full'
                 : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >

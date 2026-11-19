@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node test-verification.cjs",
+    "audit:glass": "node scripts/audit-glass.cjs"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.3.0",

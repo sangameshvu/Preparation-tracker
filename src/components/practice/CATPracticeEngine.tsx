@@ -728,7 +728,7 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
     return (
       <div className="space-y-4">
         {/* Top Header Bar */}
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-[#121826]/95">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl glass-thick px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <span
               className={`rounded-lg px-2.5 py-1 text-xs font-bold ${
@@ -1279,8 +1279,8 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
 
         {/* Modal: 1-Click Add Mistake */}
         {mistakeModalOpen && mistakeTargetQuestion && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
-            <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#121826]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in">
+            <div className="w-full max-w-lg rounded-3xl glass-thick p-6 shadow-2xl">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 dark:border-slate-800">
                 <h4 className="text-base font-bold text-slate-900 dark:text-white">
                   Log Mistake for Spaced Repetition

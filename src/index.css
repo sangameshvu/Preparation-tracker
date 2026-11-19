@@ -2,6 +2,7 @@
 @import '@fontsource/manrope/500.css';
 @import '@fontsource/manrope/600.css';
 @import '@fontsource/manrope/700.css';
+@import './styles/glass.css';
 
 @tailwind base;
 @tailwind components;
@@ -112,77 +113,21 @@
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #F6F8FD;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(219, 234, 254, 0.7) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(224, 231, 255, 0.6) 0px, transparent 50%),
-      radial-gradient(at 50% 50%, rgba(243, 232, 255, 0.35) 0px, transparent 60%),
-      radial-gradient(at 80% 100%, rgba(238, 242, 255, 0.6) 0px, transparent 50%);
-    background-attachment: fixed;
-    background-size: cover;
-  }
-
-  .dark body,
-  .dark {
-    background-color: #0B0F19;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.28) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(67, 56, 202, 0.22) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.5) 0px, transparent 60%),
-      radial-gradient(at 80% 80%, rgba(88, 28, 135, 0.16) 0px, transparent 50%);
-    background-attachment: fixed;
-    background-size: cover;
+    background: transparent;
   }
 }
 
-/* ========================================================================= */
-/* LIQUID GLASS THEME UTILITIES (iOS & macOS Inspired)                       */
-/* ========================================================================= */
-
+/* Backwards-compatibility aliases mapping directly to glass tiers */
 .glass-card {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 4px 24px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-}
-
-.dark .glass-card {
-  background: rgba(18, 24, 38, 0.65);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+  @apply glass-regular;
 }
 
 .glass-surface {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 10px 35px -5px rgba(15, 23, 42, 0.05), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
-}
-
-.dark .glass-surface {
-  background: rgba(14, 20, 32, 0.72);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 12px 40px -5px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  @apply glass-regular;
 }
 
 .glass-pill {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-.dark .glass-pill {
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  @apply glass-thin;
 }
 
 /* ========================================================================= */

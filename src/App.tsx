@@ -27,6 +27,7 @@ import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { AdminPanelPage } from './pages/AdminPanelPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { DevGlassPage } from './pages/DevGlassPage';
 
 export const App: React.FC = () => {
   return (
@@ -57,6 +58,7 @@ export const App: React.FC = () => {
               <Route path="coach" element={<Navigate to="/ai-coach" replace />} />
               <Route path="settings" element={<ProfileSettingsPage />} />
               <Route path="admin" element={<AdminPanelPage />} />
+              <Route path="dev/glass" element={<DevGlassPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

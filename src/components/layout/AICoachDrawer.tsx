@@ -311,7 +311,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
       </div>
 
       {/* Input Field (Footer slot) */}
-      <div className="sticky bottom-0 -mx-6 -mb-6 p-4 bg-card/95 backdrop-blur border-t border-border">
+      <div className="sticky bottom-0 -mx-6 -mb-6 p-4 glass-thick border-t border-border">
         <form
           onSubmit={(e) => {
             e.preventDefault();

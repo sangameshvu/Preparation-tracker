@@ -198,7 +198,7 @@ export const HomePage: React.FC = () => {
         {/* Left: Hero Gradient Card (60% width on desktop) */}
         <div className="lg:col-span-7 relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 p-7 md:p-8 text-white shadow-xs flex flex-col justify-between">
           <div className="space-y-4 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-xs font-semibold border border-white/20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-thin text-white text-xs font-semibold border border-white/20">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" />
               <span>Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}</span>
             </div>

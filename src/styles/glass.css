@@ -1,0 +1,447 @@
+/* ========================================================================= */
+/* CAT 2027 HQ - iOS "Liquid Glass" (Glassmorphism) Design System             */
+/* Single Source of Truth for Glass Tiers & Ambient Surfaces                 */
+/* ========================================================================= */
+
+:root {
+  /* Ambient canvas base */
+  --ambient-bg-light: #F3F5FB;
+  --ambient-bg-dark: #0B0F19;
+
+  /* Specular edges */
+  --glass-border-light: rgba(255, 255, 255, 0.65);
+  --glass-border-dark: rgba(255, 255, 255, 0.12);
+
+  --glass-specular-top-light: rgba(255, 255, 255, 0.75);
+  --glass-specular-bottom-light: rgba(255, 255, 255, 0.18);
+  --glass-shadow-light: 0 8px 32px 0 rgba(31, 38, 80, 0.08);
+
+  --glass-specular-top-dark: rgba(255, 255, 255, 0.18);
+  --glass-specular-bottom-dark: rgba(255, 255, 255, 0.04);
+  --glass-shadow-dark: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+
+  /* Tier 1: Glass Thin */
+  --glass-thin-bg-light: rgba(255, 255, 255, 0.38);
+  --glass-thin-bg-dark: rgba(24, 32, 50, 0.40);
+  --glass-thin-blur: 12px;
+  --glass-thin-saturate: 160%;
+
+  /* Tier 2: Glass Regular */
+  --glass-regular-bg-light: rgba(255, 255, 255, 0.58);
+  --glass-regular-bg-dark: rgba(18, 24, 38, 0.55);
+  --glass-regular-blur: 20px;
+  --glass-regular-saturate: 180%;
+
+  /* Tier 3: Glass Thick */
+  --glass-thick-bg-light: rgba(255, 255, 255, 0.80);
+  --glass-thick-bg-dark: rgba(14, 19, 31, 0.82);
+  --glass-thick-blur: 28px;
+  --glass-thick-saturate: 180%;
+
+  /* Tier 4: Glass Tint (Brand Blue) */
+  --glass-tint-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.78), rgba(96, 165, 250, 0.62));
+  --glass-tint-blur: 16px;
+  --glass-tint-saturate: 180%;
+}
+
+/* ========================================================================= */
+/* 1. AMBIENT BACKGROUND CANVAS & BLOBS                                      */
+/* ========================================================================= */
+
+.ambient-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: var(--ambient-bg-light);
+  transition: background-color 0.4s ease;
+}
+
+.dark .ambient-canvas {
+  background-color: var(--ambient-bg-dark);
+}
+
+/* Floating colored ambient light blobs */
+.ambient-blob-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+/* Optional 60s slow drift transform loop (only for data-glass="full" and no reduced-motion) */
+@keyframes ambientDrift {
+  0% {
+    transform: rotate(0deg) scale(1) translate(0px, 0px);
+  }
+  33% {
+    transform: rotate(4deg) scale(1.05) translate(25px, -15px);
+  }
+  66% {
+    transform: rotate(-3deg) scale(0.96) translate(-20px, 20px);
+  }
+  100% {
+    transform: rotate(0deg) scale(1) translate(0px, 0px);
+  }
+}
+
+html[data-glass="full"]:not(.reduce-motion) .ambient-blob-container {
+  animation: ambientDrift 64s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-blob-container {
+    animation: none !important;
+  }
+}
+
+html[data-glass="reduced"] .ambient-blob-container,
+html[data-glass="off"] .ambient-blob-container {
+  animation: none !important;
+}
+
+/* Light Mode Blobs: blue #93C5FD, violet #C4B5FD, teal #99F6E4, peach #FED7AA at 35-50% */
+.blob-1 {
+  position: absolute;
+  top: -8%;
+  left: -8%;
+  width: 52vw;
+  height: 52vw;
+  max-width: 650px;
+  max-height: 650px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.45) 0%, rgba(147, 197, 253, 0) 70%);
+  filter: blur(60px);
+}
+
+.blob-2 {
+  position: absolute;
+  top: 15%;
+  right: -10%;
+  width: 56vw;
+  height: 56vw;
+  max-width: 700px;
+  max-height: 700px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(196, 181, 253, 0.42) 0%, rgba(196, 181, 253, 0) 70%);
+  filter: blur(65px);
+}
+
+.blob-3 {
+  position: absolute;
+  bottom: -10%;
+  left: 20%;
+  width: 50vw;
+  height: 50vw;
+  max-width: 620px;
+  max-height: 620px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(153, 246, 228, 0.40) 0%, rgba(153, 246, 228, 0) 70%);
+  filter: blur(70px);
+}
+
+.blob-4 {
+  position: absolute;
+  bottom: 25%;
+  left: -12%;
+  width: 45vw;
+  height: 45vw;
+  max-width: 550px;
+  max-height: 550px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(254, 215, 170, 0.45) 0%, rgba(254, 215, 170, 0) 70%);
+  filter: blur(60px);
+}
+
+/* Dark Mode Luminous Blobs: blue #2563EB, violet #7C3AED, teal #0D9488 at 25-35% */
+.dark .blob-1 {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.32) 0%, rgba(37, 99, 235, 0) 70%);
+  filter: blur(75px);
+}
+
+.dark .blob-2 {
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.30) 0%, rgba(124, 58, 237, 0) 70%);
+  filter: blur(80px);
+}
+
+.dark .blob-3 {
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.28) 0%, rgba(13, 148, 136, 0) 70%);
+  filter: blur(80px);
+}
+
+.dark .blob-4 {
+  background: radial-gradient(circle, rgba(67, 56, 202, 0.25) 0%, rgba(67, 56, 202, 0) 70%);
+  filter: blur(75px);
+}
+
+/* ========================================================================= */
+/* 2. THE 4 CANONICAL GLASS TIERS                                            */
+/* ========================================================================= */
+
+/* Shared base edge treatment */
+.glass-base {
+  position: relative;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--glass-border-light);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-light),
+    inset 0 -1px 0 var(--glass-specular-bottom-light),
+    var(--glass-shadow-light);
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dark .glass-base {
+  border-color: var(--glass-border-dark);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-dark),
+    inset 0 -1px 0 var(--glass-specular-bottom-dark),
+    var(--glass-shadow-dark);
+}
+
+/* TIER 1: .glass-thin (Chips, badges, tooltips, toasts, nested inner tiles) */
+.glass-thin {
+  position: relative;
+  background-color: var(--glass-thin-bg-light);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--glass-border-light);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-light),
+    inset 0 -1px 0 var(--glass-specular-bottom-light),
+    0 4px 16px 0 rgba(31, 38, 80, 0.04);
+  backdrop-filter: blur(var(--glass-thin-blur)) saturate(var(--glass-thin-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-thin-blur)) saturate(var(--glass-thin-saturate));
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .glass-thin {
+  background-color: var(--glass-thin-bg-dark);
+  border-color: var(--glass-border-dark);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-dark),
+    inset 0 -1px 0 var(--glass-specular-bottom-dark),
+    0 4px 16px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* TIER 2: .glass-regular (Cards, sidebar, header, popovers, chart cards, stat tiles, mobile bar) */
+.glass-regular {
+  position: relative;
+  background-color: var(--glass-regular-bg-light);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--glass-border-light);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-light),
+    inset 0 -1px 0 var(--glass-specular-bottom-light),
+    var(--glass-shadow-light);
+  backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-regular-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-regular-blur)) saturate(var(--glass-regular-saturate));
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dark .glass-regular {
+  background-color: var(--glass-regular-bg-dark);
+  border-color: var(--glass-border-dark);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-dark),
+    inset 0 -1px 0 var(--glass-specular-bottom-dark),
+    var(--glass-shadow-dark);
+}
+
+/* TIER 3: .glass-thick (Drawers, modals, command palette, AI Coach, tables, forms, dense text) */
+.glass-thick {
+  position: relative;
+  background-color: var(--glass-thick-bg-light);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--glass-border-light);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-light),
+    inset 0 -1px 0 var(--glass-specular-bottom-light),
+    0 12px 40px 0 rgba(31, 38, 80, 0.12);
+  backdrop-filter: blur(var(--glass-thick-blur)) saturate(var(--glass-thick-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-thick-blur)) saturate(var(--glass-thick-saturate));
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dark .glass-thick {
+  background-color: var(--glass-thick-bg-dark);
+  border-color: var(--glass-border-dark);
+  box-shadow: 
+    inset 0 1px 0 var(--glass-specular-top-dark),
+    inset 0 -1px 0 var(--glass-specular-bottom-dark),
+    0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* TIER 4: .glass-tint (Primary actions, CTA buttons, Hero card highlight) */
+.glass-tint {
+  position: relative;
+  background: var(--glass-tint-bg);
+  color: #FFFFFF !important;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.15),
+    0 8px 24px -4px rgba(37, 99, 235, 0.35);
+  backdrop-filter: blur(var(--glass-tint-blur)) saturate(var(--glass-tint-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-tint-blur)) saturate(var(--glass-tint-saturate));
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dark .glass-tint {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.25),
+    0 8px 28px -4px rgba(37, 99, 235, 0.50);
+}
+
+/* ========================================================================= */
+/* 3. HARD RULE 1: STRICT PROHIBITION OF NESTED BLUR (PERFORMANCE & CLARITY)   */
+/* Inner tiles inside an outer glass surface DO NOT apply backdrop-filter   */
+/* ========================================================================= */
+
+.glass-regular .glass-thin,
+.glass-thick .glass-thin,
+.glass-regular .glass-subtier,
+.glass-thick .glass-subtier,
+.glass-inner-tile {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(255, 255, 255, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.50) !important;
+}
+
+.dark .glass-regular .glass-thin,
+.dark .glass-thick .glass-thin,
+.dark .glass-regular .glass-subtier,
+.dark .glass-thick .glass-subtier,
+.dark .glass-inner-tile {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ========================================================================= */
+/* 4. SETTINGS CONTROL MODES: data-glass="full" | "reduced" | "off"          */
+/* ========================================================================= */
+
+/* "reduced" mode: lower blur (8px), thicker opacities, no drift, no highlight */
+html[data-glass="reduced"] {
+  --glass-thin-blur: 4px;
+  --glass-thin-bg-light: rgba(255, 255, 255, 0.65);
+  --glass-thin-bg-dark: rgba(24, 32, 50, 0.70);
+
+  --glass-regular-blur: 8px;
+  --glass-regular-bg-light: rgba(255, 255, 255, 0.82);
+  --glass-regular-bg-dark: rgba(18, 24, 38, 0.80);
+
+  --glass-thick-blur: 8px;
+  --glass-thick-bg-light: rgba(255, 255, 255, 0.92);
+  --glass-thick-bg-dark: rgba(14, 19, 31, 0.92);
+
+  --glass-tint-blur: 6px;
+}
+
+/* "off" mode: 100% solid surfaces, no blur */
+html[data-glass="off"] .glass-thin,
+html[data-glass="off"] .glass-regular,
+html[data-glass="off"] .glass-thick,
+html[data-glass="off"] .glass-tint {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-glass="off"] {
+  --glass-thin-bg-light: #FFFFFF;
+  --glass-thin-bg-dark: #1E2738;
+
+  --glass-regular-bg-light: #FFFFFF;
+  --glass-regular-bg-dark: #121826;
+
+  --glass-thick-bg-light: #FFFFFF;
+  --glass-thick-bg-dark: #0E131F;
+
+  --glass-tint-bg: #2563EB;
+}
+
+/* ========================================================================= */
+/* 5. ACCESSIBILITY & BROWSER FALLBACKS                                     */
+/* ========================================================================= */
+
+/* Browser does not support backdrop-filter */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-thin,
+  .glass-regular,
+  .glass-thick,
+  .glass-tint {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .glass-thin {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+  }
+  .dark .glass-thin {
+    background-color: rgba(24, 32, 50, 0.94) !important;
+  }
+  .glass-regular {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+  }
+  .dark .glass-regular {
+    background-color: rgba(18, 24, 38, 0.96) !important;
+  }
+  .glass-thick {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+  }
+  .dark .glass-thick {
+    background-color: rgba(14, 19, 31, 0.98) !important;
+  }
+  .glass-tint {
+    background: #2563EB !important;
+  }
+}
+
+/* prefers-reduced-transparency & prefers-contrast: more */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-thin,
+  .glass-regular,
+  .glass-thick,
+  .glass-tint {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .glass-thin {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(0, 0, 0, 0.25) !important;
+  }
+  .dark .glass-thin {
+    background-color: rgba(24, 32, 50, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  .glass-regular {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    border-color: rgba(0, 0, 0, 0.35) !important;
+  }
+  .dark .glass-regular {
+    background-color: rgba(18, 24, 38, 0.98) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+  }
+  .glass-thick {
+    background-color: #FFFFFF !important;
+    border-color: rgba(0, 0, 0, 0.4) !important;
+  }
+  .dark .glass-thick {
+    background-color: #0E131F !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+  }
+}
