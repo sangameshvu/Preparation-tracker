@@ -20,6 +20,7 @@ import {
   Layers,
   History,
   Check,
+  Trash2,
   ExternalLink
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
@@ -37,6 +38,7 @@ import {
   CartesianGrid
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
+import { cn } from '../lib/utils';
 import {
   format,
   startOfMonth,
@@ -57,6 +59,7 @@ export const HomePage: React.FC = () => {
     dailyGoals,
     addDailyGoal,
     toggleDailyGoal,
+    deleteDailyGoal,
     activities,
     mockTests,
     mistakes,
@@ -356,31 +359,57 @@ export const HomePage: React.FC = () => {
                     return (
                       <div
                         key={goal.id}
-                        className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border transition-colors"
+                        onClick={() => toggleDailyGoal(goal.id)}
+                        className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-all cursor-pointer group select-none"
                       >
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            checked={goal.completed}
-                            onCheckedChange={() => toggleDailyGoal(goal.id)}
-                            className="h-4.5 w-4.5 rounded-md shrink-0"
-                          />
-                          <span
-                            className={`text-xs font-semibold ${
+                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                          <button
+                            type="button"
+                            role="checkbox"
+                            aria-checked={goal.completed}
+                            aria-label={goal.completed ? `Mark ${goal.title} as incomplete` : `Mark ${goal.title} as completed`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleDailyGoal(goal.id);
+                            }}
+                            className={cn(
+                              'h-5 w-5 shrink-0 rounded-md border flex items-center justify-center transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                               goal.completed
-                                ? 'line-through text-muted-foreground'
+                                ? 'glass-checkbox bg-blue-600 border-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.4)]'
+                                : 'bg-slate-100/80 border-slate-300 dark:bg-slate-800/70 dark:border-slate-600 hover:border-blue-500 hover:scale-105'
+                            )}
+                          >
+                            {goal.completed && <Check className="h-3.5 w-3.5 stroke-[3] text-white" />}
+                          </button>
+                          <span
+                            className={`text-xs font-semibold truncate transition-all ${
+                              goal.completed
+                                ? 'line-through text-muted-foreground opacity-75'
                                 : 'text-foreground'
                             }`}
                           >
                             {goal.title}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sectionChipClass}`}>
                             {goal.section}
                           </span>
                           <span className="text-[11px] text-muted-foreground font-mono">
                             {goal.targetMinutes}m
                           </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0 rounded-lg p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteDailyGoal(goal.id);
+                            }}
+                            title="Delete goal"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     );
