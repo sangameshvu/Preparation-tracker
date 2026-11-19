@@ -305,6 +305,48 @@ html[data-glass="off"] .ambient-blob-container {
     0 8px 28px -4px rgba(37, 99, 235, 0.50);
 }
 
+/* Glass Checkbox & Switch state styles */
+.glass-checkbox[data-state="checked"],
+[data-state="checked"].glass-checkbox {
+  background: var(--glass-tint-bg) !important;
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: rgba(37, 99, 235, 0.9) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+}
+
+.glass-checkbox[data-state="unchecked"],
+[data-state="unchecked"].glass-checkbox {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(148, 163, 184, 0.6) !important;
+}
+
+.dark .glass-checkbox[data-state="unchecked"],
+.dark [data-state="unchecked"].glass-checkbox {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.glass-switch[data-state="checked"],
+[data-state="checked"].glass-switch {
+  background: var(--glass-tint-bg) !important;
+  background-color: #2563EB !important;
+  border-color: rgba(37, 99, 235, 0.9) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+}
+
+.glass-switch[data-state="unchecked"],
+[data-state="unchecked"].glass-switch {
+  background-color: rgba(203, 213, 225, 0.7) !important;
+  border-color: rgba(148, 163, 184, 0.5) !important;
+}
+
+.dark .glass-switch[data-state="unchecked"],
+.dark [data-state="unchecked"].glass-switch {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
 /* ========================================================================= */
 /* 3. HARD RULE 1: STRICT PROHIBITION OF NESTED BLUR (PERFORMANCE & CLARITY)   */
 /* Inner tiles inside an outer glass surface DO NOT apply backdrop-filter   */
