@@ -111,5 +111,33 @@ Find the remainder when **3^{2026} + 5^{2027}** is divided by **17**.
 - **Admonitory / Cautionary:** Warning of grave negative consequences if current trends persist.
 
 > **Elimination Rule:** Extreme tones (*vitriolic, fanatical, ecstatic*) are rarely the correct answer in CAT RC unless the text is extraordinarily biased.`
+  },
+  {
+    id: 'note-4',
+    title: 'Comprehensive CAT Exam Strategy & 3-Round Test Attempting Protocol',
+    section: 'General',
+    noteType: 'Notes',
+    topic: 'General',
+    createdAt: '2026-11-17',
+    updatedAt: '2026-11-17',
+    images: [],
+    isPinned: true,
+    syncedWithGoogleDocs: true,
+    googleDocId: '1GeneralExamStrategy-2027-DocId',
+    googleDocsUrl: 'https://docs.google.com/document/d/1GeneralExamStrategy-2027-DocId/edit',
+    content: `### Universal 3-Round Test Strategy (Applicable to QA, DILR & VARC):
+
+#### 1. Round 1: Fast Pick & Immediate Wins (Minutes 0–18)
+- Target easy direct questions only (high accuracy, low computational load).
+- Mark solvable-but-lengthy questions with 'Review' immediately.
+- If a question takes more than 60 seconds without a clear path, skip without ego.
+
+#### 2. Round 2: Marked Review Problems (Minutes 18–34)
+- Attack the problems flagged during Round 1.
+- Focus on clean calculations, cross-checking intermediate steps to prevent arithmetic slips.
+
+#### 3. Round 3: Strategic Set Closures (Minutes 34–40)
+- Lock in final answers, verify input TITA formatting, and confirm no misread negative constraints.
+- Never guess blindly on non-TITA questions in the final 2 minutes.`
   }
 ];

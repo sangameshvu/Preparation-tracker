@@ -78,6 +78,7 @@ export const NotesPage: React.FC = () => {
 
   // Relevant syllabus topics based on selected section in form
   const relevantTopics = useMemo(() => {
+    if (section === 'General') return [];
     return topics.filter((t) => t.section === section);
   }, [topics, section]);
 
@@ -105,10 +106,11 @@ export const NotesPage: React.FC = () => {
   // Summary counts
   const counts = useMemo(() => {
     const total = studyNotes.length;
-    const qa = studyNotes.filter((n) => n.noteType === 'QA').length;
-    const concepts = studyNotes.filter((n) => n.noteType === 'Notes').length;
-    const quickRef = studyNotes.filter((n) => n.noteType === 'Quick Ref').length;
-    return { total, qa, concepts, quickRef };
+    const qa = studyNotes.filter((n) => n.noteType === 'QA' && n.section !== 'General').length;
+    const concepts = studyNotes.filter((n) => n.noteType === 'Notes' && n.section !== 'General').length;
+    const quickRef = studyNotes.filter((n) => n.noteType === 'Quick Ref' && n.section !== 'General').length;
+    const general = studyNotes.filter((n) => n.section === 'General').length;
+    return { total, qa, concepts, quickRef, general };
   }, [studyNotes]);
 
   // Open Drive folder
@@ -153,13 +155,33 @@ export const NotesPage: React.FC = () => {
     toast.info(`Opening "${note.title}" in Google Docs...`);
   };
 
+  // Handle Section Change in Create/Edit Form
+  const handleSectionChange = (newSec: SectionType) => {
+    setSection(newSec);
+    if (newSec === 'General') {
+      setSelectedTopic('General');
+      setCustomTopic('');
+      setNoteType('Notes');
+    } else {
+      const match = topics.find((t) => t.section === newSec)?.topicName || topics[0]?.topicName || 'Remainders';
+      setSelectedTopic(match);
+      setCustomTopic('');
+    }
+  };
+
   // Open Modal for New Note
   const handleOpenCreateModal = () => {
     setEditingNoteId(null);
     setTitle('');
-    setSection(sectionFilter !== 'All' ? sectionFilter : 'Quant');
+    const initialSec = sectionFilter !== 'All' ? sectionFilter : 'Quant';
+    setSection(initialSec);
     setNoteType(typeFilter !== 'All' ? typeFilter : 'Notes');
-    setSelectedTopic(topics[0]?.topicName || 'Remainders');
+    if (initialSec === 'General') {
+      setSelectedTopic('General');
+    } else {
+      const match = topics.find((t) => t.section === initialSec)?.topicName || topics[0]?.topicName || 'Remainders';
+      setSelectedTopic(match);
+    }
     setCustomTopic('');
     setCreatedDate(new Date().toISOString().split('T')[0]);
     setGoogleDocsUrl('');
@@ -174,7 +196,7 @@ export const NotesPage: React.FC = () => {
     setTitle(note.title);
     setSection(note.section);
     setNoteType(note.noteType);
-    setSelectedTopic(note.topic);
+    setSelectedTopic(note.section === 'General' ? 'General' : (note.topic || 'General'));
     setCustomTopic('');
     setCreatedDate(note.createdAt);
     setGoogleDocsUrl(note.googleDocsUrl || '');
@@ -191,15 +213,20 @@ export const NotesPage: React.FC = () => {
       return;
     }
 
-    const finalTopic = customTopic.trim() ? customTopic.trim() : (selectedTopic || 'General');
-    const matchedTopic = topics.find((t) => t.topicName.toLowerCase() === finalTopic.toLowerCase());
+    const isGeneral = section === 'General';
+    const finalTopic = isGeneral
+      ? 'General'
+      : (customTopic.trim() ? customTopic.trim() : (selectedTopic || 'General'));
+    const matchedTopic = isGeneral
+      ? undefined
+      : topics.find((t) => t.topicName.toLowerCase() === finalTopic.toLowerCase());
     const finalDocUrl = googleDocsUrl.trim() || 'https://docs.google.com/document/create';
 
     if (editingNoteId) {
       updateStudyNote(editingNoteId, {
         title: title.trim(),
         section,
-        noteType,
+        noteType: isGeneral ? 'Notes' : noteType,
         topic: finalTopic,
         topicId: matchedTopic?.id,
         createdAt: createdDate,
@@ -208,12 +235,12 @@ export const NotesPage: React.FC = () => {
         googleDocsUrl: finalDocUrl,
         syncedWithGoogleDocs: true
       });
-      toast.success('Study note metadata updated successfully');
+      toast.success(isGeneral ? 'General study note updated successfully' : 'Study note metadata updated successfully');
     } else {
       addStudyNote({
         title: title.trim(),
         section,
-        noteType,
+        noteType: isGeneral ? 'Notes' : noteType,
         topic: finalTopic,
         topicId: matchedTopic?.id,
         createdAt: createdDate,
@@ -223,7 +250,7 @@ export const NotesPage: React.FC = () => {
         googleDocsUrl: finalDocUrl,
         syncedWithGoogleDocs: true
       });
-      toast.success('New note saved to knowledge base');
+      toast.success(isGeneral ? 'New general note saved to knowledge base' : 'New note saved to knowledge base');
     }
 
     setIsFormModalOpen(false);
@@ -335,10 +362,14 @@ export const NotesPage: React.FC = () => {
       </div>
 
       {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-xs">
           <span className="text-[11px] text-muted-foreground font-medium block">All Documents</span>
           <span className="text-2xl font-bold font-mono text-foreground mt-0.5 block">{counts.total}</span>
+        </div>
+        <div className="p-3.5 rounded-xl border border-purple-200/70 dark:border-purple-900/40 bg-purple-50/40 dark:bg-purple-950/20 shadow-xs">
+          <span className="text-[11px] text-purple-700 dark:text-purple-300 font-medium block">General Notes</span>
+          <span className="text-2xl font-bold font-mono text-purple-700 dark:text-purple-300 mt-0.5 block">{counts.general}</span>
         </div>
         <div className="p-3.5 rounded-xl border border-border/70 bg-card shadow-xs">
           <span className="text-[11px] text-muted-foreground font-medium block">Solved Q&As</span>
@@ -377,13 +408,13 @@ export const NotesPage: React.FC = () => {
           </div>
 
           {/* Section Filters */}
-          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl">
-            {(['All', 'Quant', 'DILR', 'VARC'] as const).map((sec) => (
+          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl flex-wrap">
+            {(['All', 'Quant', 'DILR', 'VARC', 'General'] as const).map((sec) => (
               <button
                 key={sec}
                 onClick={() => setSectionFilter(sec)}
                 className={cn(
-                  'px-3 py-1 rounded-lg text-xs font-semibold transition-all',
+                  'px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer',
                   sectionFilter === sec
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
@@ -420,7 +451,10 @@ export const NotesPage: React.FC = () => {
               onChange={(e) => setTopicFilter(e.target.value)}
               className="h-8 text-xs rounded-lg border border-border/70 bg-background px-2.5 text-foreground max-w-[200px]"
             >
-              <option value="All">All Topics ({topics.length})</option>
+              <option value="All">All Topics ({topics.length + (counts.general > 0 ? 1 : 0)})</option>
+              {counts.general > 0 && (
+                <option value="General">General / All Sections</option>
+              )}
               {topics.map((top) => (
                 <option key={top.id} value={top.topicName}>
                   {top.section}: {top.topicName}
@@ -482,15 +516,23 @@ export const NotesPage: React.FC = () => {
                             ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300'
                             : note.section === 'DILR'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300'
-                            : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300'
+                            : note.section === 'VARC'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300'
+                            : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300'
                         )}
                       >
                         {note.section}
                       </span>
 
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {note.noteType === 'QA' ? 'Solved Q&A' : note.noteType === 'Quick Ref' ? 'Quick Ref' : 'Concept'}
-                      </span>
+                      {note.section === 'General' ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-100/70 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800/40">
+                          General Note
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          {note.noteType === 'QA' ? 'Solved Q&A' : note.noteType === 'Quick Ref' ? 'Quick Ref' : 'Concept'}
+                        </span>
+                      )}
 
                       {note.isPinned && (
                         <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-0.5">
@@ -515,7 +557,9 @@ export const NotesPage: React.FC = () => {
                   </CardTitle>
 
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="font-medium text-foreground/80 truncate max-w-[160px]">{note.topic}</span>
+                    <span className="font-medium text-foreground/80 truncate max-w-[160px]">
+                      {note.section === 'General' ? 'General Prep / Strategy' : note.topic}
+                    </span>
                     <span>•</span>
                     <span>{note.createdAt}</span>
                   </div>
@@ -614,8 +658,10 @@ export const NotesPage: React.FC = () => {
             {/* 2. Section & Document Category */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Section</label>
-                <Select value={section} onValueChange={(val: any) => setSection(val)}>
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  Section <span className="text-rose-500">*</span>
+                </label>
+                <Select value={section} onValueChange={(val: any) => handleSectionChange(val)}>
                   <SelectTrigger className="h-8 text-xs bg-background">
                     <SelectValue />
                   </SelectTrigger>
@@ -623,15 +669,28 @@ export const NotesPage: React.FC = () => {
                     <SelectItem value="Quant">Quantitative Aptitude (QA)</SelectItem>
                     <SelectItem value="DILR">Data Interpretation & LR (DILR)</SelectItem>
                     <SelectItem value="VARC">Verbal Ability & Reading (VARC)</SelectItem>
+                    <SelectItem value="General">General (General for All / Strategy)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Document Category</label>
-                <Select value={noteType} onValueChange={(val: any) => setNoteType(val)}>
-                  <SelectTrigger className="h-8 text-xs bg-background">
-                    <SelectValue />
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  Document Category {section === 'General' && <span className="text-muted-foreground/70 font-normal">(Disabled)</span>}
+                </label>
+                <Select
+                  value={section === 'General' ? 'Notes' : noteType}
+                  onValueChange={(val: any) => setNoteType(val)}
+                  disabled={section === 'General'}
+                >
+                  <SelectTrigger
+                    disabled={section === 'General'}
+                    className={cn(
+                      "h-8 text-xs bg-background",
+                      section === 'General' && "opacity-50 cursor-not-allowed bg-muted/60 text-muted-foreground"
+                    )}
+                  >
+                    <SelectValue placeholder={section === 'General' ? 'General Note' : undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Notes">Concept Notes & Theory</SelectItem>
@@ -645,19 +704,40 @@ export const NotesPage: React.FC = () => {
             {/* 3. Topic Covered & Created Date */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Topic Covered</label>
-                <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                  <SelectTrigger className="h-8 text-xs bg-background">
-                    <SelectValue />
+                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
+                  Topic Covered {section === 'General' && <span className="text-muted-foreground/70 font-normal">(Disabled)</span>}
+                </label>
+                <Select
+                  value={section === 'General' ? 'General' : selectedTopic}
+                  onValueChange={setSelectedTopic}
+                  disabled={section === 'General'}
+                >
+                  <SelectTrigger
+                    disabled={section === 'General'}
+                    className={cn(
+                      "h-8 text-xs bg-background",
+                      section === 'General' && "opacity-50 cursor-not-allowed bg-muted/60 text-muted-foreground"
+                    )}
+                  >
+                    <SelectValue placeholder={section === 'General' ? 'General (No specific topic)' : undefined} />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    {relevantTopics.map((top) => (
-                      <SelectItem key={top.id} value={top.topicName}>
-                        {top.topicName}
-                      </SelectItem>
-                    ))}
+                    {section === 'General' ? (
+                      <SelectItem value="General">General (No specific topic)</SelectItem>
+                    ) : (
+                      relevantTopics.map((top) => (
+                        <SelectItem key={top.id} value={top.topicName}>
+                          {top.topicName}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
+                {section === 'General' && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Category and topic are disabled for General notes because they apply generally to all areas.
+                  </p>
+                )}
               </div>
 
               <div>
