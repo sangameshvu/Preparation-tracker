@@ -13,6 +13,7 @@ export interface DailyScheduleFocus {
   alternatingSubject: SectionType;
   suggestedGoals: Array<{
     title: string;
+    shortTitle?: string;
     section: SectionType;
     targetMinutes: number;
   }>;
@@ -53,16 +54,19 @@ export function getDailyScheduleFocus(
       suggestedGoals: [
         {
           title: 'Weekly Consolidation: Re-solve QA & DI topic problem sets',
+          shortTitle: 'QA & DI Re-solve',
           section: 'General',
           targetMinutes: 60
         },
         {
           title: 'VARC Weekly Review: Reading notes & vocabulary log recap',
+          shortTitle: 'VARC Review',
           section: 'VARC',
           targetMinutes: 40
         },
         {
           title: 'Formula Notebook: Review and test weekly key formulas',
+          shortTitle: 'Formula Book',
           section: 'Quant',
           targetMinutes: 30
         }
@@ -85,16 +89,19 @@ export function getDailyScheduleFocus(
       suggestedGoals: [
         {
           title: 'Mock / Sectional Test: Timed drill and thorough analysis',
+          shortTitle: 'Sectional Mock',
           section: 'General',
           targetMinutes: 90
         },
         {
           title: 'Mistake Log Audit: Re-solve 3 overdue flagged questions',
+          shortTitle: 'Mistake Audit',
           section: 'General',
           targetMinutes: 45
         },
         {
           title: 'Weekly Strategy Check: Review analytics & calibrate sprint',
+          shortTitle: 'Strategy Check',
           section: 'General',
           targetMinutes: 30
         }
@@ -123,16 +130,19 @@ export function getDailyScheduleFocus(
       suggestedGoals: [
         {
           title: 'Daily VARC: Read 1 Aeon Essay & Solve 1 Full RC Set',
+          shortTitle: 'Daily VARC',
           section: 'VARC',
           targetMinutes: 45
         },
         {
           title: 'DILR Core: Solve 2 Unseen Data Interpretation Sets',
+          shortTitle: 'DILR Core',
           section: 'DILR',
           targetMinutes: 60
         },
         {
           title: 'DILR Speed Drill: Timed caselet & tabular calculations',
+          shortTitle: 'DILR Speed Drill',
           section: 'DILR',
           targetMinutes: 30
         }
@@ -154,16 +164,19 @@ export function getDailyScheduleFocus(
     suggestedGoals: [
       {
         title: 'Daily VARC: Read 1 Editorial & Practice 5 VA Questions',
+        shortTitle: 'Daily VARC',
         section: 'VARC',
         targetMinutes: 45
       },
       {
         title: 'Quant Core: Solve 20 Concept Practice Questions',
+        shortTitle: 'Quant Core',
         section: 'Quant',
         targetMinutes: 60
       },
       {
         title: 'Quant Drill: Re-solve 2 Flagged Mistake Log Problems',
+        shortTitle: 'Quant Drill',
         section: 'Quant',
         targetMinutes: 30
       }

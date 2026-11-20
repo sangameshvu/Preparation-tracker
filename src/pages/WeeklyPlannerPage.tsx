@@ -19,7 +19,8 @@ import {
   Sparkles,
   Flame,
   Check,
-  Trash2
+  Trash2,
+  Info
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
@@ -29,6 +30,7 @@ import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tooltip as RadixTooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { WeekStatus, TaskStatus, PriorityType, SectionType, StudyTask } from '../types';
 import { cn } from '../lib/utils';
 
@@ -197,9 +199,21 @@ export const WeeklyPlannerPage: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground">
                 Today's Goals
               </h3>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
-                Today: {todaySchedule.primarySubjects}
-              </span>
+              <RadixTooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 cursor-help inline-flex items-center gap-1 hover:bg-blue-200/80 transition-colors"
+                  >
+                    <span>Today: {todaySchedule.primarySubjects}</span>
+                    <Info className="h-3 w-3 opacity-60" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                  <p className="font-bold mb-0.5 text-blue-600 dark:text-blue-400">{todaySchedule.subjectTitle}</p>
+                  <p className="text-foreground/90">{todaySchedule.description}</p>
+                </TooltipContent>
+              </RadixTooltip>
               {todayGoals.length > 0 && (
                 <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                   {completedGoalsCount} of {todayGoals.length} Done ({dailyGoalsPct}%)
@@ -275,16 +289,13 @@ export const WeeklyPlannerPage: React.FC = () => {
           {todayGoals.length === 0 ? (
             <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-white/70 dark:bg-slate-900/40 p-4 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <span>What are your targets for today?</span>
-                    <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
-                      ({todaySchedule.formattedDate})
-                    </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-xs font-bold text-foreground">
+                    What are your targets for today?
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {todaySchedule.description}
-                  </p>
+                  <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
+                    ({todaySchedule.formattedDate})
+                  </span>
                 </div>
                 <Button
                   type="button"
@@ -297,32 +308,52 @@ export const WeeklyPlannerPage: React.FC = () => {
                 </Button>
               </div>
 
-              {/* 1-Click Suggestions */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                {todaySchedule.suggestedGoals.map((sg, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() =>
-                      addDailyGoal({
-                        date: todayDateStr,
-                        title: sg.title,
-                        section: sg.section,
-                        targetMinutes: sg.targetMinutes,
-                        completed: false
-                      })
-                    }
-                    className="flex flex-col justify-between p-2.5 rounded-lg border border-border/80 bg-slate-50/60 dark:bg-slate-800/40 hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 text-left transition-all cursor-pointer group"
-                  >
-                    <span className="text-xs font-medium text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
-                      + {sg.title}
-                    </span>
-                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/40 text-[10px]">
-                      <span className="font-bold text-blue-600 dark:text-blue-400">{sg.section}</span>
-                      <span className="text-muted-foreground font-mono">{sg.targetMinutes}m</span>
-                    </div>
-                  </button>
-                ))}
+              {/* 1-Click Suggestions: Clean subject pills with explanations on hover */}
+              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
+                  Quick Add:
+                </span>
+                {todaySchedule.suggestedGoals.map((sg, idx) => {
+                  const chipClass =
+                    sg.section === 'Quant'
+                      ? 'chip-quant'
+                      : sg.section === 'DILR'
+                      ? 'chip-dilr'
+                      : sg.section === 'VARC'
+                      ? 'chip-varc'
+                      : 'chip-general';
+
+                  return (
+                    <RadixTooltip key={idx}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addDailyGoal({
+                              date: todayDateStr,
+                              title: sg.title,
+                              section: sg.section,
+                              targetMinutes: sg.targetMinutes,
+                              completed: false
+                            })
+                          }
+                          className={cn(
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95',
+                            chipClass
+                          )}
+                        >
+                          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                          <span>{sg.shortTitle || sg.section}</span>
+                          <span className="opacity-70 font-mono text-[10px] font-semibold">({sg.targetMinutes}m)</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                        <p className="font-semibold text-foreground">{sg.title}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Click to add target ({sg.targetMinutes}m in {sg.section})</p>
+                      </TooltipContent>
+                    </RadixTooltip>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -493,49 +524,61 @@ export const WeeklyPlannerPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 3 Subject Targets */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="rounded-xl border border-border/80 border-t-4 border-t-blue-600 shadow-xs">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
-                  <span>Quantitative Aptitude</span>
-                  <Badge variant="quant">QA</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
-                  {selectedPlan.quantPlan}
-                </p>
-              </CardContent>
-            </Card>
+          {/* 3 Subject Targets (Clean Minimalist: explanations on hover) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            <RadixTooltip>
+              <TooltipTrigger asChild>
+                <div className="rounded-2xl border border-border/80 border-t-4 border-t-blue-600 bg-card/90 p-4 shadow-xs transition-all hover:shadow-md hover:border-blue-400 cursor-help flex items-center justify-between group">
+                  <span className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    Quantitative Aptitude
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <Badge variant="quant">QA</Badge>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-sm p-3 text-xs leading-relaxed">
+                <p className="font-bold text-blue-600 dark:text-blue-400 mb-1">QA Weekly Curriculum</p>
+                <p className="text-foreground/90">{selectedPlan.quantPlan}</p>
+              </TooltipContent>
+            </RadixTooltip>
 
-            <Card className="rounded-xl border border-border/80 border-t-4 border-t-emerald-600 shadow-xs">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
-                  <span>Data Interpretation & LR</span>
-                  <Badge variant="dilr">DILR</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
-                  {selectedPlan.dilrPlan}
-                </p>
-              </CardContent>
-            </Card>
+            <RadixTooltip>
+              <TooltipTrigger asChild>
+                <div className="rounded-2xl border border-border/80 border-t-4 border-t-emerald-600 bg-card/90 p-4 shadow-xs transition-all hover:shadow-md hover:border-emerald-400 cursor-help flex items-center justify-between group">
+                  <span className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Data Interpretation & LR
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <Badge variant="dilr">DILR</Badge>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-sm p-3 text-xs leading-relaxed">
+                <p className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">DILR Weekly Curriculum</p>
+                <p className="text-foreground/90">{selectedPlan.dilrPlan}</p>
+              </TooltipContent>
+            </RadixTooltip>
 
-            <Card className="rounded-xl border border-border/80 border-t-4 border-t-amber-600 shadow-xs">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-foreground flex items-center justify-between">
-                  <span>Verbal Ability & RC</span>
-                  <Badge variant="varc">VARC</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-xs">
-                <p className="text-muted-foreground leading-relaxed bg-slate-50 dark:bg-slate-900/30 p-3 rounded-lg border border-border/60">
-                  {selectedPlan.varcPlan}
-                </p>
-              </CardContent>
-            </Card>
+            <RadixTooltip>
+              <TooltipTrigger asChild>
+                <div className="rounded-2xl border border-border/80 border-t-4 border-t-amber-600 bg-card/90 p-4 shadow-xs transition-all hover:shadow-md hover:border-amber-400 cursor-help flex items-center justify-between group">
+                  <span className="text-sm font-bold text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Verbal Ability & RC
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <Badge variant="varc">VARC</Badge>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-sm p-3 text-xs leading-relaxed">
+                <p className="font-bold text-amber-600 dark:text-amber-400 mb-1">VARC Weekly Curriculum</p>
+                <p className="text-foreground/90">{selectedPlan.varcPlan}</p>
+              </TooltipContent>
+            </RadixTooltip>
           </div>
 
           {/* Sprint Tasks for This Week */}

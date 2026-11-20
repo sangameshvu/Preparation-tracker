@@ -18,8 +18,10 @@ import {
   Award,
   BookOpen,
   ExternalLink,
-  Flame
+  Flame,
+  Info
 } from 'lucide-react';
+import { Tooltip as RadixTooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { initialTopics } from '../../data/topics';
 import { CATQuestion, PracticeSessionRecord } from '../../data/catPyqQuestions';
 import {
@@ -585,13 +587,18 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     Daily Aeon Essay Reading Section
                   </h3>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                    CAT Reading Gold Standard
-                  </span>
+                  <RadixTooltip>
+                    <TooltipTrigger asChild>
+                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800 cursor-help inline-flex items-center gap-1 hover:bg-amber-200/80 transition-colors">
+                        <span>CAT Reading Gold Standard</span>
+                        <Info className="h-3 w-3 opacity-75" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                      Direct navigation to today's published long-form Aeon essay (2,500–4,000 words). Develops reading endurance, unfamiliar subject tolerance, and argument-tracking agility for CAT VARC.
+                    </TooltipContent>
+                  </RadixTooltip>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Direct navigation to today's published long-form Aeon essay (2,500–4,000 words). Develops reading endurance, unfamiliar subject tolerance, and argument-tracking agility for CAT VARC.
-                </p>
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AppDataProvider } from './context/AppDataContext';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
+import { TooltipProvider } from './components/ui/tooltip';
 
 // Hub Pages
 import { HomePage } from './pages/HomePage';
@@ -33,7 +34,8 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AppDataProvider>
-        <BrowserRouter>
+        <TooltipProvider delayDuration={150}>
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<AppShell />}>
               <Route index element={<HomePage />} />
@@ -64,7 +66,8 @@ export const App: React.FC = () => {
           </Routes>
           <Toaster position="top-right" richColors />
         </BrowserRouter>
-      </AppDataProvider>
+      </TooltipProvider>
+    </AppDataProvider>
     </ThemeProvider>
   );
 };

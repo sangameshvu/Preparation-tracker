@@ -21,12 +21,14 @@ import {
   History,
   Check,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  Info
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Checkbox } from '../components/ui/checkbox';
 import { Input } from '../components/ui/input';
+import { Tooltip as RadixTooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -348,9 +350,21 @@ export const HomePage: React.FC = () => {
                 </CardTitle>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
-                  Today: {todaySchedule.primarySubjects}
-                </span>
+                <RadixTooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 cursor-help inline-flex items-center gap-1 hover:bg-blue-200/80 transition-colors"
+                    >
+                      <span>Today: {todaySchedule.primarySubjects}</span>
+                      <Info className="h-3 w-3 opacity-60" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                    <p className="font-bold mb-0.5 text-blue-600 dark:text-blue-400">{todaySchedule.subjectTitle}</p>
+                    <p className="text-foreground/90">{todaySchedule.description}</p>
+                  </TooltipContent>
+                </RadixTooltip>
                 {todayGoals.length > 0 && (
                   <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
                     {todayGoals.filter((g) => g.completed).length} / {todayGoals.length} Done
@@ -362,99 +376,99 @@ export const HomePage: React.FC = () => {
             <CardContent className="pt-4 space-y-4">
               {todayGoals.length === 0 ? (
                 /* Interactive Intake Prompt when no goals set for today yet */
-                <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white dark:from-blue-950/20 dark:via-slate-900/40 dark:to-slate-900/60 p-4 sm:p-5 space-y-4">
+                <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white dark:from-blue-950/20 dark:via-slate-900/40 dark:to-slate-900/60 p-4 sm:p-5 space-y-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                          Scheduled Focus
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-600 text-white shadow-xs">
-                          {todaySchedule.primarySubjects}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <h4 className="text-sm font-bold text-foreground">
                         What are your targets for today?
                       </h4>
-                      <p className="text-xs text-muted-foreground">
-                        {todaySchedule.description}
-                      </p>
+                      <RadixTooltip>
+                        <TooltipTrigger asChild>
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-600 text-white shadow-xs cursor-help hover:bg-blue-700 transition-colors">
+                            <span>{todaySchedule.primarySubjects}</span>
+                            <Info className="h-3 w-3 opacity-80" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                          <p className="font-bold mb-0.5 text-blue-600 dark:text-blue-400">{todaySchedule.subjectTitle}</p>
+                          <p className="text-foreground/90">{todaySchedule.description}</p>
+                        </TooltipContent>
+                      </RadixTooltip>
                     </div>
 
                     <Button
                       type="button"
                       size="sm"
                       onClick={() => addMultipleDailyGoals(todaySchedule.suggestedGoals)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-9 px-3.5 shadow-xs shrink-0 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-8 px-3 shadow-xs shrink-0 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                     >
                       <Sparkles className="h-3.5 w-3.5 text-amber-300" />
                       <span>Add All 3 Targets</span>
                     </Button>
                   </div>
 
-                  {/* 1-Click Suggested Targets */}
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      1-Click Quick Add
+                  {/* 1-Click Quick Add: Clean subject pills, explanations on hover */}
+                  <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
+                      Quick Add:
                     </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {todaySchedule.suggestedGoals.map((sg, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() =>
-                            addDailyGoal({
-                              title: sg.title,
-                              section: sg.section,
-                              targetMinutes: sg.targetMinutes,
-                              completed: false,
-                              date: todayDateStr
-                            })
-                          }
-                          className="flex flex-col justify-between p-3 rounded-xl border border-border/80 bg-white/80 dark:bg-slate-800/60 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition-all text-left cursor-pointer group shadow-xs"
-                        >
-                          <span className="text-xs font-medium text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
-                            + {sg.title}
-                          </span>
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40 text-[10px]">
-                            <span
+                    {todaySchedule.suggestedGoals.map((sg, idx) => {
+                      const chipClass =
+                        sg.section === 'Quant'
+                          ? 'chip-quant'
+                          : sg.section === 'DILR'
+                          ? 'chip-dilr'
+                          : sg.section === 'VARC'
+                          ? 'chip-varc'
+                          : 'chip-general';
+
+                      return (
+                        <RadixTooltip key={idx}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addDailyGoal({
+                                  title: sg.title,
+                                  section: sg.section,
+                                  targetMinutes: sg.targetMinutes,
+                                  completed: false,
+                                  date: todayDateStr
+                                })
+                              }
                               className={cn(
-                                sg.section === 'Quant'
-                                  ? 'chip-quant'
-                                  : sg.section === 'DILR'
-                                  ? 'chip-dilr'
-                                  : sg.section === 'VARC'
-                                  ? 'chip-varc'
-                                  : 'chip-general',
-                                'px-1.5 py-0.5 rounded-full font-bold'
+                                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95',
+                                chipClass
                               )}
                             >
-                              {sg.section}
-                            </span>
-                            <span className="text-muted-foreground font-mono">{sg.targetMinutes}m</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                              <span>{sg.shortTitle || sg.section}</span>
+                              <span className="opacity-70 font-mono text-[10px] font-semibold">({sg.targetMinutes}m)</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                            <p className="font-semibold text-foreground">{sg.title}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">Click to add target ({sg.targetMinutes}m in {sg.section})</p>
+                          </TooltipContent>
+                        </RadixTooltip>
+                      );
+                    })}
                   </div>
 
                   {/* Custom Goal Form within Intake */}
                   <div className="pt-2 border-t border-border/50">
-                    <span className="text-[11px] font-semibold text-muted-foreground">
-                      Or add your own custom target:
-                    </span>
-                    <form onSubmit={handleAddGoal} className="mt-1.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <form onSubmit={handleAddGoal} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                       <Input
                         value={newGoalTitle}
                         onChange={(e) => setNewGoalTitle(e.target.value)}
-                        placeholder={`e.g., 20 ${todaySchedule.alternatingSubject} Practice Questions or RC Set...`}
-                        className="text-xs h-9 rounded-xl bg-white dark:bg-slate-800/80 border-border flex-1"
+                        placeholder={`Custom target in ${todaySchedule.alternatingSubject}...`}
+                        className="text-xs h-8 rounded-xl bg-white dark:bg-slate-800/80 border-border flex-1"
                       />
                       <div className="flex items-center gap-2 shrink-0">
                         <select
                           value={newGoalSection}
                           onChange={(e) => setNewGoalSection(e.target.value as any)}
-                          className="h-9 px-3 text-xs rounded-xl border border-border bg-white dark:bg-slate-800/80 font-semibold flex-1 sm:flex-none"
+                          className="h-8 px-2.5 text-xs rounded-xl border border-border bg-white dark:bg-slate-800/80 font-semibold flex-1 sm:flex-none"
                         >
                           <option value="Quant">Quant</option>
                           <option value="DILR">DILR</option>
@@ -464,7 +478,7 @@ export const HomePage: React.FC = () => {
                         <Button
                           type="submit"
                           size="sm"
-                          className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
+                          className="h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
                         >
                           <Plus className="h-3.5 w-3.5 mr-1" />
                           <span>Add</span>
