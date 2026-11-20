@@ -172,12 +172,8 @@ export const AICoachPage: React.FC = () => {
 
   const GEMINI_CANDIDATES = [
     { ver: 'v1beta', model: 'gemini-3.1-flash-lite' },
-    { ver: 'v1beta', model: 'gemini-3.8-flash' },
-    { ver: 'v1beta', model: 'gemini-3.5-flash-lite' },
-    { ver: 'v1beta', model: 'gemini-flash-latest' },
-    { ver: 'v1beta', model: 'gemini-2.0-flash' },
-    { ver: 'v1beta', model: 'gemini-1.5-flash' },
-    { ver: 'v1beta', model: 'gemini-pro' }
+    { ver: 'v1beta', model: 'gemini-2.5-flash' },
+    { ver: 'v1beta', model: 'gemini-flash-latest' }
   ];
 
   const testAndSaveApiKey = async (keyToSave: string, forceSave = false) => {
@@ -207,6 +203,8 @@ export const AICoachPage: React.FC = () => {
 
     for (const item of GEMINI_CANDIDATES) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
         const res = await fetch(
           `https://generativelanguage.googleapis.com/${item.ver}/models/${item.model}:generateContent?key=${encodeURIComponent(cleanKey)}`,
           {
@@ -214,9 +212,11 @@ export const AICoachPage: React.FC = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ role: 'user', parts: [{ text: 'Hello' }] }]
-            })
+            }),
+            signal: controller.signal
           }
         );
+        clearTimeout(timeoutId);
 
         if (res.ok) {
           verifiedModel = item.model;
@@ -229,7 +229,7 @@ export const AICoachPage: React.FC = () => {
           }
         }
       } catch (e: any) {
-        lastError = e?.message || 'Network error.';
+        lastError = e?.name === 'AbortError' ? 'Connection timed out' : (e?.message || 'Network error.');
       }
     }
 
@@ -252,6 +252,7 @@ export const AICoachPage: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const streamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopStreamingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const activeStreamDataRef = useRef<{
     fullText: string;
     actionProposal?: ChatMessage['actionProposal'];
@@ -280,12 +281,21 @@ export const AICoachPage: React.FC = () => {
       if (streamIntervalRef.current) {
         clearInterval(streamIntervalRef.current);
       }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, []);
 
   // Stop Generating
   const handleStopStreaming = () => {
     stopStreamingRef.current = true;
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort();
+      } catch {}
+      abortControllerRef.current = null;
+    }
     if (streamIntervalRef.current) {
       clearInterval(streamIntervalRef.current);
       streamIntervalRef.current = null;
@@ -293,8 +303,8 @@ export const AICoachPage: React.FC = () => {
     setIsThinking(false);
 
     if (isStreaming && activeStreamDataRef.current) {
-      const { messageId, sessionId } = activeStreamDataRef.current;
-      const currentPartial = streamingText;
+      const { messageId, sessionId, fullText } = activeStreamDataRef.current;
+      const currentPartial = streamingText || fullText;
       setSessions((prev) =>
         prev.map((s) => {
           if (s.id === sessionId) {
@@ -318,7 +328,208 @@ export const AICoachPage: React.FC = () => {
     activeStreamDataRef.current = null;
   };
 
-  // Start smooth typing animation loop
+  // High-performance real-time Server-Sent Events (SSE) streaming directly from Google Gemini
+  const streamGeminiSSE = async (
+    modelVer: string,
+    modelName: string,
+    key: string,
+    payload: any,
+    aiMsgId: string,
+    targetSessionId: string,
+    responseCatTuned?: boolean
+  ): Promise<boolean> => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    stopStreamingRef.current = false;
+
+    // Immediately create placeholder message in session so user sees streaming bubble with 0 delay
+    const placeholderAiMsg: ChatMessage = {
+      id: aiMsgId,
+      sender: 'ai',
+      mode: activeMode,
+      catTuned: activeMode === 'assistant' ? (responseCatTuned ?? isCatTuned) : undefined,
+      text: '',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setSessions((prev) =>
+      prev.map((s) => (s.id === targetSessionId ? { ...s, messages: [...s.messages, placeholderAiMsg] } : s))
+    );
+
+    setIsThinking(false);
+    setIsStreaming(true);
+    setStreamingMessageId(aiMsgId);
+    setStreamingText('');
+    activeStreamDataRef.current = {
+      fullText: '',
+      messageId: aiMsgId,
+      sessionId: targetSessionId
+    };
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        }
+      );
+
+      if (!res.ok || !res.body) {
+        console.warn(`Gemini stream returned HTTP ${res.status}`);
+        // Remove empty placeholder message
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === targetSessionId
+              ? { ...s, messages: s.messages.filter((m) => m.id !== aiMsgId) }
+              : s
+          )
+        );
+        setIsStreaming(false);
+        setStreamingMessageId(null);
+        setStreamingText('');
+        activeStreamDataRef.current = null;
+        abortControllerRef.current = null;
+        return false;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let accumulatedText = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (stopStreamingRef.current) {
+          reader.cancel();
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const jsonStr = trimmed.replace(/^data:\s*/, '');
+          if (!jsonStr || jsonStr === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (piece) {
+              accumulatedText += piece;
+              setStreamingText(accumulatedText);
+              if (activeStreamDataRef.current) {
+                activeStreamDataRef.current.fullText = accumulatedText;
+              }
+            }
+          } catch {
+            // Buffer split or heartbeat
+          }
+        }
+      }
+
+      // Process residual line
+      if (buffer.trim().startsWith('data:')) {
+        try {
+          const jsonStr = buffer.trim().replace(/^data:\s*/, '');
+          const parsed = JSON.parse(jsonStr);
+          const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (piece) {
+            accumulatedText += piece;
+            setStreamingText(accumulatedText);
+          }
+        } catch {}
+      }
+
+      if (!accumulatedText.trim()) {
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === targetSessionId
+              ? { ...s, messages: s.messages.filter((m) => m.id !== aiMsgId) }
+              : s
+          )
+        );
+        setIsStreaming(false);
+        setStreamingMessageId(null);
+        setStreamingText('');
+        activeStreamDataRef.current = null;
+        abortControllerRef.current = null;
+        return false;
+      }
+
+      // Successfully streamed full response: commit to session
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id === targetSessionId) {
+            return {
+              ...s,
+              messages: s.messages.map((m) =>
+                m.id === aiMsgId ? { ...m, text: accumulatedText } : m
+              )
+            };
+          }
+          return s;
+        })
+      );
+
+      setIsStreaming(false);
+      setStreamingMessageId(null);
+      setStreamingText('');
+      activeStreamDataRef.current = null;
+      abortControllerRef.current = null;
+      return true;
+    } catch (err: any) {
+      if (err?.name === 'AbortError' || stopStreamingRef.current) {
+        console.log('Gemini generation stopped by user.');
+        return true;
+      }
+      console.warn('Gemini SSE streaming error:', err);
+
+      if (activeStreamDataRef.current && activeStreamDataRef.current.fullText) {
+        const savedText = activeStreamDataRef.current.fullText;
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === targetSessionId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === aiMsgId ? { ...m, text: savedText } : m
+                  )
+                }
+              : s
+          )
+        );
+        setIsStreaming(false);
+        setStreamingMessageId(null);
+        setStreamingText('');
+        activeStreamDataRef.current = null;
+        abortControllerRef.current = null;
+        return true;
+      }
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === targetSessionId
+            ? { ...s, messages: s.messages.filter((m) => m.id !== aiMsgId) }
+            : s
+        )
+      );
+      setIsStreaming(false);
+      setStreamingMessageId(null);
+      setStreamingText('');
+      activeStreamDataRef.current = null;
+      abortControllerRef.current = null;
+      return false;
+    }
+  };
+
+  // Start smooth typing animation loop (for instant in-browser pedagogical fallback engine)
   const startStreamingResponse = (
     fullText: string,
     actionProposal: ChatMessage['actionProposal'] | undefined,
@@ -353,9 +564,9 @@ export const AICoachPage: React.FC = () => {
     );
 
     let currentIndex = 0;
-    // Dynamic typing chunk size: scales smoothly with content length (e.g. ~3 to 14 chars per 18ms)
-    const chunkSize = Math.max(3, Math.ceil(fullText.length / 85));
-    const tickMs = 18;
+    // High-performance smooth typing animation: finishes quickly within 300-450ms
+    const chunkSize = Math.max(6, Math.ceil(fullText.length / 40));
+    const tickMs = 12;
 
     streamIntervalRef.current = setInterval(() => {
       if (stopStreamingRef.current) {
@@ -629,60 +840,43 @@ export const AICoachPage: React.FC = () => {
             };
           }
 
-          // Try candidate models in order: prioritized by working model if previously detected
-          const savedWorkingModel = localStorage.getItem('catcrack_gemini_working_model');
-          const candidateList = savedWorkingModel
-            ? [
-                { ver: 'v1beta', model: savedWorkingModel },
-                ...GEMINI_CANDIDATES.filter((c) => c.model !== savedWorkingModel)
-              ]
-            : GEMINI_CANDIDATES;
-
-          let rawGeminiText = '';
+          // Fast prioritized SSE streaming: prioritize saved working model, default to gemini-3.1-flash-lite
+          const savedWorkingModel = localStorage.getItem('catcrack_gemini_working_model') || 'gemini-3.1-flash-lite';
+          const candidateList = [
+            { ver: 'v1beta', model: savedWorkingModel },
+            ...GEMINI_CANDIDATES.filter((c) => c.model !== savedWorkingModel)
+          ];
 
           for (const cand of candidateList) {
-            try {
-              const geminiRes = await fetch(
-                `https://generativelanguage.googleapis.com/${cand.ver}/models/${cand.model}:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(requestPayload)
-                }
-              );
+            const success = await streamGeminiSSE(
+              cand.ver,
+              cand.model,
+              activeGeminiKey,
+              requestPayload,
+              `ai-${Date.now()}`,
+              activeSessionId,
+              isCatTuned
+            );
 
-              if (geminiRes.ok) {
-                const geminiData = await geminiRes.json();
-                const textOutput = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (textOutput && textOutput.trim()) {
-                  rawGeminiText = textOutput;
-                  localStorage.setItem('catcrack_gemini_working_model', cand.model);
-                  break;
-                }
-              }
-            } catch (err) {
-              console.warn(`Attempt with ${cand.model} failed, trying next:`, err);
+            if (success) {
+              localStorage.setItem('catcrack_gemini_working_model', cand.model);
+              return;
             }
           }
-
-          if (rawGeminiText) {
-            startStreamingResponse(rawGeminiText, undefined, `ai-${Date.now()}`, activeSessionId, isCatTuned);
-            return;
-          }
         } catch (geminiCallErr) {
-          console.warn('Direct Gemini API request encountered error, falling back:', geminiCallErr);
+          console.warn('Direct Gemini API stream encountered error, falling back:', geminiCallErr);
         }
       }
 
-      // 1. If Supabase is configured and connected, attempt live edge function
-      if (isSupabaseConfigured && supabase) {
+      // 1. If no client Gemini key is present, and Supabase is configured, attempt live edge function with fast timeout
+      if (!activeGeminiKey && isSupabaseConfigured && supabase) {
         try {
           const historyPayload = activeSession.messages.slice(-6).map((m) => ({
             role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
             content: m.text
           }));
 
-          const { data, error } = await supabase.functions.invoke('chat-study-coach', {
+          const edgePromise = supabase.functions.invoke('chat-study-coach', {
             body: {
               message: text.trim(),
               history: historyPayload,
@@ -695,6 +889,12 @@ export const AICoachPage: React.FC = () => {
               } : {}
             }
           });
+
+          const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
+            setTimeout(() => reject(new Error('Edge function timeout')), 3500)
+          );
+
+          const { data, error } = (await Promise.race([edgePromise, timeoutPromise])) as any;
 
           const isCanned = !data?.reply ||
             Boolean(data?.isFallback) ||
@@ -710,7 +910,7 @@ export const AICoachPage: React.FC = () => {
         }
       }
 
-      // 2. High-performance In-Browser Pedagogical & Language Engine
+      // 2. High-performance Instant In-Browser Pedagogical & Language Engine (0ms latency)
       let responseResult;
       if (activeMode === 'assistant') {
         responseResult = generateAssistantResponse(text, {
@@ -728,9 +928,6 @@ export const AICoachPage: React.FC = () => {
           mode: 'coach'
         });
       }
-
-      // Brief natural thinking pause for conversational realism
-      await new Promise((resolve) => setTimeout(resolve, 250));
 
       startStreamingResponse(
         responseResult.text,

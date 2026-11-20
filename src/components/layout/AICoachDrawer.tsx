@@ -104,7 +104,7 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
             content: m.text
           }));
 
-          const { data, error } = await supabase.functions.invoke('chat-study-coach', {
+          const edgePromise = supabase.functions.invoke('chat-study-coach', {
             body: {
               message: text.trim(),
               history: historyPayload,
@@ -115,6 +115,12 @@ export const AICoachDrawer: React.FC<AICoachDrawerProps> = ({ open, onOpenChange
               }
             }
           });
+
+          const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
+            setTimeout(() => reject(new Error('Edge function timeout')), 3000)
+          );
+
+          const { data, error } = (await Promise.race([edgePromise, timeoutPromise])) as any;
 
           // Verify if response is genuine LLM output vs unconfigured canned fallback
           const isCannedFallback = !data?.reply ||
