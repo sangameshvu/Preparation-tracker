@@ -125,6 +125,27 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenCoach })
             </div>
 
             <div className="py-4 space-y-4">
+              {/* AI Study Coach & Assistant */}
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                  AI Intelligence
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoreDrawerOpen(false);
+                    navigate('/ai-coach');
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl glass-tint text-white shadow-md text-left cursor-pointer"
+                >
+                  <Bot className="h-5 w-5 shrink-0" />
+                  <div>
+                    <span className="text-sm font-bold block">AI Study Coach & Assistant</span>
+                    <span className="text-xs text-white/80">Coach Mode & General Assistant Mode</span>
+                  </div>
+                </button>
+              </div>
+
               {/* Insights */}
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">
