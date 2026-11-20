@@ -170,12 +170,30 @@ export const AICoachPage: React.FC = () => {
   const [keyTestStatus, setKeyTestStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
   const [keyTestError, setKeyTestError] = useState<string>('');
 
-  const testAndSaveApiKey = async (keyToSave: string) => {
+  const GEMINI_CANDIDATES = [
+    { ver: 'v1beta', model: 'gemini-2.0-flash' },
+    { ver: 'v1beta', model: 'gemini-1.5-flash' },
+    { ver: 'v1beta', model: 'gemini-1.5-flash-latest' },
+    { ver: 'v1', model: 'gemini-1.5-flash' },
+    { ver: 'v1beta', model: 'gemini-1.5-pro' },
+    { ver: 'v1beta', model: 'gemini-pro' }
+  ];
+
+  const testAndSaveApiKey = async (keyToSave: string, forceSave = false) => {
     const cleanKey = keyToSave.trim();
     if (!cleanKey) {
       setGeminiApiKey('');
       localStorage.removeItem('catcrack_gemini_api_key');
+      localStorage.removeItem('catcrack_gemini_working_model');
       setKeyTestStatus('idle');
+      setIsKeyModalOpen(false);
+      return;
+    }
+
+    if (forceSave) {
+      setGeminiApiKey(cleanKey);
+      localStorage.setItem('catcrack_gemini_api_key', cleanKey);
+      setKeyTestStatus('valid');
       setIsKeyModalOpen(false);
       return;
     }
@@ -183,35 +201,49 @@ export const AICoachPage: React.FC = () => {
     setKeyTestStatus('testing');
     setKeyTestError('');
 
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(cleanKey)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: 'Hello' }] }]
-          })
-        }
-      );
+    let verifiedModel = '';
+    let lastError = '';
 
-      if (res.ok) {
-        setGeminiApiKey(cleanKey);
-        localStorage.setItem('catcrack_gemini_api_key', cleanKey);
-        setKeyTestStatus('valid');
-        setTimeout(() => {
-          setIsKeyModalOpen(false);
-          setKeyTestStatus('idle');
-        }, 800);
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        const errMsg = errData.error?.message || `HTTP ${res.status}: Verification failed`;
-        setKeyTestStatus('invalid');
-        setKeyTestError(errMsg);
+    for (const item of GEMINI_CANDIDATES) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/${item.ver}/models/${item.model}:generateContent?key=${encodeURIComponent(cleanKey)}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: 'Hello' }] }]
+            })
+          }
+        );
+
+        if (res.ok) {
+          verifiedModel = item.model;
+          break;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          lastError = errData.error?.message || `HTTP ${res.status} on ${item.model}`;
+          if (lastError.includes('API_KEY_INVALID') || lastError.includes('API key not valid')) {
+            break;
+          }
+        }
+      } catch (e: any) {
+        lastError = e?.message || 'Network error.';
       }
-    } catch (e: any) {
+    }
+
+    if (verifiedModel) {
+      setGeminiApiKey(cleanKey);
+      localStorage.setItem('catcrack_gemini_api_key', cleanKey);
+      localStorage.setItem('catcrack_gemini_working_model', verifiedModel);
+      setKeyTestStatus('valid');
+      setTimeout(() => {
+        setIsKeyModalOpen(false);
+        setKeyTestStatus('idle');
+      }, 700);
+    } else {
       setKeyTestStatus('invalid');
-      setKeyTestError(e?.message || 'Network error verifying key.');
+      setKeyTestError(lastError || 'Could not reach Gemini models. You can still save the key.');
     }
   };
 
@@ -596,34 +628,45 @@ export const AICoachPage: React.FC = () => {
             };
           }
 
-          // Try Gemini 2.5 Flash, fallback to Gemini 1.5 Flash
-          let geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(requestPayload)
-            }
-          );
+          // Try candidate models in order: prioritized by working model if previously detected
+          const savedWorkingModel = localStorage.getItem('catcrack_gemini_working_model');
+          const candidateList = savedWorkingModel
+            ? [
+                { ver: 'v1beta', model: savedWorkingModel },
+                ...GEMINI_CANDIDATES.filter((c) => c.model !== savedWorkingModel)
+              ]
+            : GEMINI_CANDIDATES;
 
-          if (!geminiRes.ok) {
-            geminiRes = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestPayload)
+          let rawGeminiText = '';
+
+          for (const cand of candidateList) {
+            try {
+              const geminiRes = await fetch(
+                `https://generativelanguage.googleapis.com/${cand.ver}/models/${cand.model}:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(requestPayload)
+                }
+              );
+
+              if (geminiRes.ok) {
+                const geminiData = await geminiRes.json();
+                const textOutput = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textOutput && textOutput.trim()) {
+                  rawGeminiText = textOutput;
+                  localStorage.setItem('catcrack_gemini_working_model', cand.model);
+                  break;
+                }
               }
-            );
+            } catch (err) {
+              console.warn(`Attempt with ${cand.model} failed, trying next:`, err);
+            }
           }
 
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const rawGeminiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (rawGeminiText && rawGeminiText.trim()) {
-              startStreamingResponse(rawGeminiText, undefined, `ai-${Date.now()}`, activeSessionId, isCatTuned);
-              return;
-            }
+          if (rawGeminiText) {
+            startStreamingResponse(rawGeminiText, undefined, `ai-${Date.now()}`, activeSessionId, isCatTuned);
+            return;
           }
         } catch (geminiCallErr) {
           console.warn('Direct Gemini API request encountered error, falling back:', geminiCallErr);
@@ -1434,92 +1477,103 @@ export const AICoachPage: React.FC = () => {
 
       {/* Gemini API Key Management Modal */}
       {isKeyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in duration-150">
-          <div className="glass-panel w-full max-w-md p-6 rounded-2xl border border-border/80 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-150">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-slate-900 text-slate-100 border border-slate-700 shadow-2xl relative">
             <button
               type="button"
               onClick={() => setIsKeyModalOpen(false)}
-              className="absolute top-4 right-4 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-400">
+              <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
                 <Key className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-foreground">Google Gemini API Key</h3>
-                <p className="text-xs text-muted-foreground">Get 100% raw responses directly from official Gemini models</p>
+                <h3 className="font-bold text-base text-white">Google Gemini API Key</h3>
+                <p className="text-xs text-slate-400">Connect your free API key for 100% raw, direct Gemini responses</p>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="p-3 rounded-xl bg-secondary/50 border border-border/60 space-y-2">
-                <p className="font-medium text-foreground">How to get your free Gemini API key (no credit card):</p>
-                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+              <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 space-y-2">
+                <p className="font-semibold text-slate-200">How to get your free Gemini API key (no credit card):</p>
+                <ol className="list-decimal list-inside space-y-1 text-slate-300">
                   <li>
                     Visit{' '}
                     <a
                       href="https://aistudio.google.com/app/apikey"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary-600 dark:text-primary-400 font-semibold underline inline-flex items-center gap-0.5"
+                      className="text-blue-400 hover:text-blue-300 font-semibold underline inline-flex items-center gap-0.5"
                     >
                       Google AI Studio <ExternalLink className="w-3 h-3 inline" />
                     </a>
                   </li>
                   <li>Sign in with your Google account and click <strong>"Create API Key"</strong></li>
-                  <li>Paste the key below and click <strong>"Save & Connect"</strong></li>
+                  <li>Copy and paste your key below, then click <strong>"Save & Connect"</strong></li>
                 </ol>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-foreground">Your Gemini API Key</label>
+                <label className="text-[11px] font-semibold text-slate-200">Your Gemini API Key</label>
                 <div className="relative">
                   <input
                     type={showApiKeyText ? 'text' : 'password'}
                     value={tempKeyInput}
                     onChange={(e) => setTempKeyInput(e.target.value)}
                     placeholder="AIzaSy..."
-                    className="w-full px-3 py-2 pr-10 rounded-xl bg-background/80 border border-border/80 text-foreground font-mono text-xs focus:outline-hidden focus:ring-2 focus:ring-primary-500/30"
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowApiKeyText(!showApiKeyText)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 cursor-pointer"
                   >
                     {showApiKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Your key is stored securely in your browser's local storage and used only to communicate directly with Google's API.</p>
+                <p className="text-[10px] text-slate-400">Your key is stored securely in your browser's localStorage and communicates directly with Google's API.</p>
               </div>
 
               {keyTestStatus === 'testing' && (
-                <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5 animate-pulse font-medium">
-                  <Clock className="w-3.5 h-3.5" /> Validating key with Google Gemini API...
+                <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-300 flex items-center gap-2 animate-pulse font-medium text-xs">
+                  <Clock className="w-4 h-4 shrink-0" /> Testing connection with Google Gemini models (2.0 Flash / 1.5 Flash)...
                 </div>
               )}
 
               {keyTestStatus === 'valid' && (
-                <div className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-semibold">
-                  <Check className="w-3.5 h-3.5" /> Key verified successfully! Connecting...
+                <div className="p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center gap-2 font-semibold text-xs">
+                  <Check className="w-4 h-4 shrink-0" /> Verified successfully! Connecting to Gemini...
                 </div>
               )}
 
               {keyTestStatus === 'invalid' && (
-                <div className="text-xs text-red-500 flex items-start gap-1.5 font-medium">
-                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                  <span>{keyTestError || 'Invalid API key or network error. Please verify the key.'}</span>
+                <div className="p-2.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 space-y-2 text-xs">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
+                    <span className="leading-relaxed">{keyTestError || 'Could not verify model on this key.'}</span>
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => testAndSaveApiKey(tempKeyInput, true)}
+                      className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-semibold text-[11px] transition-colors cursor-pointer"
+                    >
+                      Save Key Anyway
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-800">
                 {geminiApiKey ? (
                   <button
                     type="button"
                     onClick={() => testAndSaveApiKey('')}
-                    className="text-xs text-red-500 hover:text-red-600 font-semibold px-2 py-1 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                    className="text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                   >
                     Disconnect Key
                   </button>
@@ -1533,17 +1587,18 @@ export const AICoachPage: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsKeyModalOpen(false)}
+                    className="border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="button"
                     size="sm"
-                    disabled={keyTestStatus === 'testing'}
+                    disabled={keyTestStatus === 'testing' || !tempKeyInput.trim()}
                     onClick={() => testAndSaveApiKey(tempKeyInput)}
-                    className="bg-primary-600 hover:bg-primary-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-semibold"
                   >
-                    {keyTestStatus === 'testing' ? 'Verifying...' : 'Save & Connect'}
+                    {keyTestStatus === 'testing' ? 'Testing...' : 'Save & Connect'}
                   </Button>
                 </div>
               </div>
