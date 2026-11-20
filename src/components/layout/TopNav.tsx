@@ -31,7 +31,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   // Dynamic Page Title
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path === '/') return 'Today';
+    if (path === '/') return 'Dashboard';
     if (path.startsWith('/plan') || path === '/planner' || path === '/topics') return 'Plan';
     if (path.startsWith('/practice') || path === '/mocks' || path === '/mistakes') return 'Practice';
     if (path.startsWith('/insights') || path === '/analytics' || path === '/history') return 'Insights';

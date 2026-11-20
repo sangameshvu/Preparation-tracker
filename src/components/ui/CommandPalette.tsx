@@ -129,7 +129,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   className="relative flex cursor-pointer select-none items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground outline-hidden data-[selected=true]:bg-slate-100 dark:data-[selected=true]:bg-slate-800 transition-colors"
                 >
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Today (Dashboard)</span>
+                  <span>Dashboard</span>
                 </Command.Item>
 
                 <Command.Item

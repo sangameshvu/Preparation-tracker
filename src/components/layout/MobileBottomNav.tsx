@@ -35,7 +35,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenCoach })
   const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
 
   const mainTabs = [
-    { name: 'Today', path: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Plan', path: '/plan', icon: Layers },
     {
       name: 'Practice',

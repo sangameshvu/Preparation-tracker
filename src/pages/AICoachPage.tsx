@@ -24,7 +24,8 @@ import {
   Zap,
   HelpCircle,
   Clock,
-  RotateCcw
+  RotateCcw,
+  Square
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -133,11 +134,22 @@ export const AICoachPage: React.FC = () => {
   // Input & UI States
   const [inputMessage, setInputMessage] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [streamingText, setStreamingText] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const streamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopStreamingRef = useRef(false);
+  const activeStreamDataRef = useRef<{
+    fullText: string;
+    actionProposal?: ChatMessage['actionProposal'];
+    messageId: string;
+    sessionId: string;
+  } | null>(null);
 
   // Save sessions to localStorage
   useEffect(() => {
@@ -149,10 +161,133 @@ export const AICoachPage: React.FC = () => {
     }
   }, [sessions, activeSessionId]);
 
-  // Auto-scroll on new messages
+  // Auto-scroll on new messages & streaming chunks
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeSession?.messages, isThinking]);
+  }, [activeSession?.messages, isThinking, streamingText]);
+
+  // Cleanup stream interval on unmount
+  useEffect(() => {
+    return () => {
+      if (streamIntervalRef.current) {
+        clearInterval(streamIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Stop Generating
+  const handleStopStreaming = () => {
+    stopStreamingRef.current = true;
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
+    setIsThinking(false);
+
+    if (isStreaming && activeStreamDataRef.current) {
+      const { messageId, sessionId } = activeStreamDataRef.current;
+      const currentPartial = streamingText;
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id === sessionId) {
+            return {
+              ...s,
+              messages: s.messages.map((m) =>
+                m.id === messageId
+                  ? { ...m, text: currentPartial.trim() || 'Response stopped.' }
+                  : m
+              )
+            };
+          }
+          return s;
+        })
+      );
+    }
+
+    setIsStreaming(false);
+    setStreamingMessageId(null);
+    setStreamingText('');
+    activeStreamDataRef.current = null;
+  };
+
+  // Start smooth typing animation loop
+  const startStreamingResponse = (
+    fullText: string,
+    actionProposal: ChatMessage['actionProposal'] | undefined,
+    aiMsgId: string,
+    targetSessionId: string
+  ) => {
+    setIsThinking(false);
+    setIsStreaming(true);
+    setStreamingMessageId(aiMsgId);
+    setStreamingText('');
+    stopStreamingRef.current = false;
+    activeStreamDataRef.current = {
+      fullText,
+      actionProposal,
+      messageId: aiMsgId,
+      sessionId: targetSessionId
+    };
+
+    // Add placeholder message to sessions
+    const placeholderAiMsg: ChatMessage = {
+      id: aiMsgId,
+      sender: 'ai',
+      mode: activeMode,
+      text: '',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setSessions((prev) =>
+      prev.map((s) => (s.id === targetSessionId ? { ...s, messages: [...s.messages, placeholderAiMsg] } : s))
+    );
+
+    let currentIndex = 0;
+    // Dynamic typing chunk size: scales smoothly with content length (e.g. ~3 to 14 chars per 18ms)
+    const chunkSize = Math.max(3, Math.ceil(fullText.length / 85));
+    const tickMs = 18;
+
+    streamIntervalRef.current = setInterval(() => {
+      if (stopStreamingRef.current) {
+        if (streamIntervalRef.current) {
+          clearInterval(streamIntervalRef.current);
+          streamIntervalRef.current = null;
+        }
+        return;
+      }
+
+      currentIndex += chunkSize;
+
+      if (currentIndex >= fullText.length) {
+        if (streamIntervalRef.current) {
+          clearInterval(streamIntervalRef.current);
+          streamIntervalRef.current = null;
+        }
+
+        setSessions((prev) =>
+          prev.map((s) => {
+            if (s.id === targetSessionId) {
+              return {
+                ...s,
+                messages: s.messages.map((m) =>
+                  m.id === aiMsgId ? { ...m, text: fullText, actionProposal } : m
+                )
+              };
+            }
+            return s;
+          })
+        );
+
+        setIsStreaming(false);
+        setStreamingMessageId(null);
+        setStreamingText('');
+        activeStreamDataRef.current = null;
+      } else {
+        const partial = fullText.slice(0, currentIndex);
+        setStreamingText(partial);
+      }
+    }, tickMs);
+  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -165,6 +300,7 @@ export const AICoachPage: React.FC = () => {
   // Switch Mode for Current Session
   const handleSwitchMode = (newMode: AIMode) => {
     if (newMode === activeMode) return;
+    if (isStreaming) handleStopStreaming();
     setSessions((prev) =>
       prev.map((s) => {
         if (s.id === activeSessionId) {
@@ -187,6 +323,7 @@ export const AICoachPage: React.FC = () => {
 
   // Create New Chat
   const handleCreateNewChat = (mode: AIMode = activeMode) => {
+    if (isStreaming) handleStopStreaming();
     const newSession: ChatSession = {
       id: `session-${Date.now()}`,
       title: mode === 'coach' ? 'New CAT Study Chat' : 'New Q&A Chat',
@@ -206,6 +343,7 @@ export const AICoachPage: React.FC = () => {
   // Delete Chat Session
   const handleDeleteSession = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isStreaming) handleStopStreaming();
     if (sessions.length <= 1) {
       // Reset the single session instead of deleting
       const resetSession: ChatSession = {
@@ -230,6 +368,7 @@ export const AICoachPage: React.FC = () => {
 
   // Clear Messages in current session
   const handleClearCurrentSession = () => {
+    if (isStreaming) handleStopStreaming();
     setSessions((prev) =>
       prev.map((s) => {
         if (s.id === activeSessionId) {
@@ -254,7 +393,7 @@ export const AICoachPage: React.FC = () => {
   // Send Message
   const handleSendMessage = async (overrideText?: string) => {
     const text = overrideText || inputMessage;
-    if (!text.trim() || isThinking) return;
+    if (!text.trim() || isThinking || isStreaming) return;
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -314,17 +453,7 @@ export const AICoachPage: React.FC = () => {
             data.reply.includes('Recommended Daily Blueprint for Week');
 
           if (!error && data && data.reply && !isCanned) {
-            const aiMsg: ChatMessage = {
-              id: `ai-${Date.now()}`,
-              sender: 'ai',
-              mode: activeMode,
-              text: data.reply,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setSessions((prev) =>
-              prev.map((s) => (s.id === activeSessionId ? { ...s, messages: [...s.messages, aiMsg] } : s))
-            );
-            setIsThinking(false);
+            startStreamingResponse(data.reply, undefined, `ai-${Date.now()}`, activeSessionId);
             return;
           }
         } catch (edgeErr) {
@@ -350,22 +479,19 @@ export const AICoachPage: React.FC = () => {
         });
       }
 
-      const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        mode: activeMode,
-        text: responseResult.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        actionProposal: responseResult.actionProposal
-      };
+      // Brief natural thinking pause for conversational realism
+      await new Promise((resolve) => setTimeout(resolve, 250));
 
-      setSessions((prev) =>
-        prev.map((s) => (s.id === activeSessionId ? { ...s, messages: [...s.messages, aiMsg] } : s))
+      startStreamingResponse(
+        responseResult.text,
+        responseResult.actionProposal,
+        `ai-${Date.now()}`,
+        activeSessionId
       );
-      setIsThinking(false);
     } catch (e) {
       console.error('Error generating AI response:', e);
       setIsThinking(false);
+      setIsStreaming(false);
     }
   };
 
@@ -488,6 +614,7 @@ export const AICoachPage: React.FC = () => {
               <div
                 key={s.id}
                 onClick={() => {
+                  if (isStreaming) handleStopStreaming();
                   setActiveSessionId(s.id);
                   if (window.innerWidth < 1024) setSidebarOpen(false);
                 }}
@@ -682,6 +809,9 @@ export const AICoachPage: React.FC = () => {
             {/* Conversation Messages */}
             {activeSession.messages.map((m) => {
               const isAi = m.sender === 'ai';
+              const isThisStreaming = isStreaming && m.id === streamingMessageId;
+              const displayText = isThisStreaming ? streamingText : m.text;
+
               return (
                 <div
                   key={m.id}
@@ -717,9 +847,10 @@ export const AICoachPage: React.FC = () => {
                           </span>
                           <button
                             type="button"
-                            onClick={() => handleCopy(m.text, m.id)}
+                            onClick={() => handleCopy(displayText, m.id)}
+                            disabled={isThisStreaming}
                             title="Copy response"
-                            className="flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground cursor-pointer"
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-40"
                           >
                             {copiedId === m.id ? (
                               <>
@@ -737,14 +868,22 @@ export const AICoachPage: React.FC = () => {
                       )}
 
                       {isAi ? (
-                        <MarkdownRenderer content={m.text} />
+                        <div className="relative">
+                          <MarkdownRenderer content={displayText} />
+                          {isThisStreaming && (
+                            <span
+                              aria-hidden="true"
+                              className="inline-block w-2 h-4 ml-1 bg-blue-600 dark:bg-blue-400 rounded-xs animate-pulse align-middle"
+                            />
+                          )}
+                        </div>
                       ) : (
                         <div className="whitespace-pre-line text-xs font-sans">{m.text}</div>
                       )}
                     </div>
 
                     {/* Action proposal card (Coach mode only) */}
-                    {m.actionProposal && (
+                    {m.actionProposal && !isThisStreaming && (
                       <div className="p-3.5 rounded-2xl border border-blue-400/40 glass-thin text-xs space-y-2 shadow-xs">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-blue-700 dark:text-blue-300 text-xs flex items-center gap-1.5">
@@ -806,6 +945,20 @@ export const AICoachPage: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div className="p-4 border-t border-border/40 glass-thick shrink-0">
           <div className="max-w-3xl mx-auto space-y-2">
+            {/* Floating Stop Generating Button */}
+            {(isThinking || isStreaming) && (
+              <div className="flex justify-center -mt-1 mb-2">
+                <button
+                  type="button"
+                  onClick={handleStopStreaming}
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold glass-thick border border-border/80 shadow-md hover:bg-red-500/10 hover:border-red-500/40 text-foreground transition-all cursor-pointer animate-in fade-in"
+                >
+                  <Square className="h-3 w-3 fill-red-500 text-red-500" />
+                  <span>Stop generating</span>
+                </button>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -847,7 +1000,9 @@ export const AICoachPage: React.FC = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage();
+                      if (!isThinking && !isStreaming) {
+                        handleSendMessage();
+                      }
                     }
                   }}
                   placeholder={
@@ -861,7 +1016,7 @@ export const AICoachPage: React.FC = () => {
 
               <Button
                 type="submit"
-                disabled={!inputMessage.trim() || isThinking}
+                disabled={!inputMessage.trim() || isThinking || isStreaming}
                 size="sm"
                 className="h-9 px-3.5 rounded-xl font-semibold glass-tint text-white shrink-0 cursor-pointer shadow-xs disabled:opacity-40"
               >

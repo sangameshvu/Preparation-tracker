@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // 5 Canonical Primary Destinations
   const primaryNav = [
     {
-      name: 'Today',
+      name: 'Dashboard',
       path: '/',
       icon: LayoutDashboard,
       badge: undefined
