@@ -397,57 +397,98 @@ export const AICoachPage: React.FC = () => {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder('utf-8');
-      let accumulatedText = '';
+      let targetText = '';
+      let displayedChars = 0;
+      let networkFinished = false;
       let buffer = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (stopStreamingRef.current) {
-          reader.cancel();
-          break;
-        }
+      // Smooth, natural typewriter animation loop (comfortable speed, reduced from instant dumps)
+      const tickMs = 20;
+      await new Promise<void>((resolve) => {
+        streamIntervalRef.current = setInterval(() => {
+          if (stopStreamingRef.current) {
+            if (streamIntervalRef.current) {
+              clearInterval(streamIntervalRef.current);
+              streamIntervalRef.current = null;
+            }
+            resolve();
+            return;
+          }
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+          if (displayedChars < targetText.length) {
+            // Adaptive, smooth typewriter step:
+            // Naturally types 1 to 4 characters per tick (approx 50-150 chars/sec)
+            const distance = targetText.length - displayedChars;
+            const step = Math.max(1, Math.min(4, Math.ceil(distance / 25)));
+            displayedChars = Math.min(targetText.length, displayedChars + step);
+            const partial = targetText.slice(0, displayedChars);
+            setStreamingText(partial);
+            if (activeStreamDataRef.current) {
+              activeStreamDataRef.current.fullText = partial;
+            }
+          } else if (networkFinished) {
+            if (streamIntervalRef.current) {
+              clearInterval(streamIntervalRef.current);
+              streamIntervalRef.current = null;
+            }
+            resolve();
+          }
+        }, tickMs);
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith('data:')) continue;
-          const jsonStr = trimmed.replace(/^data:\s*/, '');
-          if (!jsonStr || jsonStr === '[DONE]') continue;
-
+        // Concurrently read the SSE stream in background and append to targetText
+        (async () => {
           try {
-            const parsed = JSON.parse(jsonStr);
-            const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (piece) {
-              accumulatedText += piece;
-              setStreamingText(accumulatedText);
-              if (activeStreamDataRef.current) {
-                activeStreamDataRef.current.fullText = accumulatedText;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              if (stopStreamingRef.current) {
+                reader.cancel();
+                break;
+              }
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith('data:')) continue;
+                const jsonStr = trimmed.replace(/^data:\s*/, '');
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (piece) {
+                    targetText += piece;
+                  }
+                } catch {
+                  // Buffer split or heartbeat
+                }
               }
             }
-          } catch {
-            // Buffer split or heartbeat
-          }
-        }
-      }
 
-      // Process residual line
-      if (buffer.trim().startsWith('data:')) {
-        try {
-          const jsonStr = buffer.trim().replace(/^data:\s*/, '');
-          const parsed = JSON.parse(jsonStr);
-          const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (piece) {
-            accumulatedText += piece;
-            setStreamingText(accumulatedText);
+            // Flush remaining buffer
+            if (buffer.trim().startsWith('data:')) {
+              try {
+                const jsonStr = buffer.trim().replace(/^data:\s*/, '');
+                const parsed = JSON.parse(jsonStr);
+                const piece = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (piece) {
+                  targetText += piece;
+                }
+              } catch {}
+            }
+          } catch (readErr) {
+            console.warn('Error reading SSE reader:', readErr);
+          } finally {
+            networkFinished = true;
           }
-        } catch {}
-      }
+        })();
+      });
 
-      if (!accumulatedText.trim()) {
+      const finalText = targetText.trim();
+      if (!finalText) {
         setSessions((prev) =>
           prev.map((s) =>
             s.id === targetSessionId
@@ -470,7 +511,7 @@ export const AICoachPage: React.FC = () => {
             return {
               ...s,
               messages: s.messages.map((m) =>
-                m.id === aiMsgId ? { ...m, text: accumulatedText } : m
+                m.id === aiMsgId ? { ...m, text: finalText } : m
               )
             };
           }
@@ -564,9 +605,10 @@ export const AICoachPage: React.FC = () => {
     );
 
     let currentIndex = 0;
-    // High-performance smooth typing animation: finishes quickly within 300-450ms
-    const chunkSize = Math.max(6, Math.ceil(fullText.length / 40));
-    const tickMs = 12;
+    // Comfortable, natural typing cadence:
+    // Slightly reduced speed so user can comfortably read along (~50-120 chars/sec)
+    const tickMs = 20;
+    const chunkSize = Math.max(2, Math.min(5, Math.ceil(fullText.length / 130)));
 
     streamIntervalRef.current = setInterval(() => {
       if (stopStreamingRef.current) {
