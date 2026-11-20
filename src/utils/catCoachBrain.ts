@@ -903,11 +903,11 @@ Here is your customized alternating preparation blueprint:
 
 2. **Weekday Alternating Focus (Mon–Fri):**
    - **Current Sprint (${isOddWeek ? 'Week ' + (activePlan?.weekNumber || 1) + ' · Odd Cycle A' : 'Week ' + (activePlan?.weekNumber || 1) + ' · Even Cycle B'}):**
-     - **Monday:** ${isOddWeek ? '**VARC + DI** (Data Interpretation sets & caselets)' : '**VARC + QA** (Quant concept theory & drills)'}
-     - **Tuesday:** ${isOddWeek ? '**VARC + QA** (Quant concept theory & drills)' : '**VARC + DI** (Data Interpretation sets & caselets)'}
-     - **Wednesday:** ${isOddWeek ? '**VARC + DI** (Charts, tables & reasoning sets)' : '**VARC + QA** (Quant problem solving & formulas)'}
-     - **Thursday:** ${isOddWeek ? '**VARC + QA** (Quant problem solving & formulas)' : '**VARC + DI** (Charts, tables & reasoning sets)'}
-     - **Friday:** ${isOddWeek ? '**VARC + DI** (Advanced DI caselets & problem sets)' : '**VARC + QA** (Quant PYQs & speed drills)'}
+     - **Monday:** ${isOddWeek ? '**VARC + QA** (Quant concept theory & drills)' : '**VARC + DI** (Data Interpretation sets & caselets)'}
+     - **Tuesday:** ${isOddWeek ? '**VARC + DI** (Data Interpretation sets & caselets)' : '**VARC + QA** (Quant concept theory & drills)'}
+     - **Wednesday:** ${isOddWeek ? '**VARC + QA** (Quant problem solving & formulas)' : '**VARC + DI** (Charts, tables & reasoning sets)'}
+     - **Thursday:** ${isOddWeek ? '**VARC + DI** (Charts, tables & reasoning sets)' : '**VARC + QA** (Quant problem solving & formulas)'}
+     - **Friday:** ${isOddWeek ? '**VARC + QA** (Quant PYQs & speed drills)' : '**VARC + DI** (Advanced DI caselets & problem sets)'}
 
 3. **Weekend Focus: Comprehensive Weekly Revision (Sat & Sun)**
    - **Saturday:** Consolidate and re-solve all DI, QA & VARC topics covered during this particular week.

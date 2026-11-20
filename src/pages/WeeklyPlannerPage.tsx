@@ -132,7 +132,7 @@ export const WeeklyPlannerPage: React.FC = () => {
         description: 'Audit Mistake Log, clear errors & weekly recap.'
       };
     }
-    const isDiDay = isOddWeek ? idx % 2 === 0 : idx % 2 !== 0;
+    const isDiDay = isOddWeek ? idx % 2 !== 0 : idx % 2 === 0;
     if (isDiDay) {
       return {
         badgeLabel: 'DI Sets',
@@ -509,8 +509,8 @@ export const WeeklyPlannerPage: React.FC = () => {
               <div>
                 <p className="text-xs font-bold text-foreground">
                   {isOddWeek
-                    ? 'Mon / Wed / Fri: DI Sets • Tue / Thu: Quantitative Aptitude'
-                    : 'Mon / Wed / Fri: Quantitative Aptitude • Tue / Thu: DI Sets'}
+                    ? 'Mon / Wed / Fri: Quantitative Aptitude • Tue / Thu: DI Sets'
+                    : 'Mon / Wed / Fri: DI Sets • Tue / Thu: Quantitative Aptitude'}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   Daily VARC every day • Saturday & Sunday: Comprehensive Weekly Revision
@@ -697,8 +697,8 @@ export const WeeklyPlannerPage: React.FC = () => {
               </span>
               <span className="text-muted-foreground">
                 {isOddWeek
-                  ? 'Cycle A (Mon/Wed/Fri DI • Tue/Thu QA)'
-                  : 'Cycle B (Mon/Wed/Fri QA • Tue/Thu DI)'}
+                  ? 'Cycle A (Mon/Wed/Fri QA • Tue/Thu DI)'
+                  : 'Cycle B (Mon/Wed/Fri DI • Tue/Thu QA)'}
               </span>
             </div>
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">

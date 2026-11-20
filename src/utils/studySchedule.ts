@@ -22,11 +22,11 @@ export interface DailyScheduleFocus {
 /**
  * Computes today's alternating study focus according to the rule:
  * - Daily Core: VARC every single day (Editorial / Aeon essay + RC)
- * - Weekdays (Mon-Fri): Alternating between DI (DILR) and Quant (QA)
- *   Odd Weeks: Mon (DI), Tue (QA), Wed (DI), Thu (QA), Fri (DI)
- *   Even Weeks: Mon (QA), Tue (DI), Wed (QA), Thu (DI), Fri (QA)
+ * - Weekdays (Mon-Fri): Alternating between Quant (QA) and DI (DILR)
+ *   Odd Weeks: Mon (QA), Tue (DI), Wed (QA), Thu (DI), Fri (QA)
+ *   Even Weeks: Mon (DI), Tue (QA), Wed (DI), Thu (QA), Fri (DI)
  * - Weekends (Sat-Sun): Dedicated to comprehensive revision
- *   Sat: Weekly Revision (Consolidate DI, QA, VARC)
+ *   Sat: Weekly Revision (Consolidate QA, DI, VARC)
  *   Sun: Weekly Revision & Mock Review (Mistake log audit + test recap)
  */
 export function getDailyScheduleFocus(
@@ -110,11 +110,11 @@ export function getDailyScheduleFocus(
   }
 
   // Weekdays (Mon-Fri)
-  // Odd Week Cycle A: Mon (DI), Tue (QA), Wed (DI), Thu (QA), Fri (DI)
-  // Even Week Cycle B: Mon (QA), Tue (DI), Wed (QA), Thu (DI), Fri (QA)
+  // Odd Week Cycle A: Mon (QA), Tue (DI), Wed (QA), Thu (DI), Fri (QA)
+  // Even Week Cycle B: Mon (DI), Tue (QA), Wed (DI), Thu (QA), Fri (DI)
   const isDI = isOddWeek
-    ? dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5
-    : dayOfWeek === 2 || dayOfWeek === 4;
+    ? dayOfWeek === 2 || dayOfWeek === 4
+    : dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5;
 
   if (isDI) {
     return {
