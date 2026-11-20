@@ -57,30 +57,4 @@ export const initialActivities: StudyActivityItem[] = [
   }
 ];
 
-export const initialDailyGoals: DailyGoalItem[] = [
-  {
-    id: 'goal-1',
-    date: today,
-    title: 'Daily VARC: Read 1 Editorial / Aeon Essay & Solve 1 Full RC',
-    section: 'VARC',
-    targetMinutes: 40,
-    completed: true,
-    completedAt: new Date().toISOString()
-  },
-  {
-    id: 'goal-2',
-    date: today,
-    title: 'Alternating Focus: Solve 20 Quant Concept Practice Questions',
-    section: 'Quant',
-    targetMinutes: 50,
-    completed: false
-  },
-  {
-    id: 'goal-3',
-    date: today,
-    title: 'Weekly Progress Review: Revisit 1 Mistake Log Problem',
-    section: 'General',
-    targetMinutes: 30,
-    completed: false
-  }
-];
+export const initialDailyGoals: DailyGoalItem[] = [];

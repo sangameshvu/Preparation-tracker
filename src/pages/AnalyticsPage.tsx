@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppData } from '../context/AppDataContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   TrendingUp,
   Clock,
@@ -34,6 +35,8 @@ import { useNavigate } from 'react-router-dom';
 
 export const AnalyticsPage: React.FC = () => {
   const { stats, weeklyPlans, topics, topicProgress, mockTests, mistakes } = useAppData();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const navigate = useNavigate();
 
   // Quant, DILR, VARC statistics
@@ -187,12 +190,12 @@ export const AnalyticsPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="h-64 w-full">
+            <div className="h-64 w-full p-2.5 rounded-2xl bg-slate-100/70 dark:bg-slate-900/40 border border-border/40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={subjectProgressData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" opacity={isDark ? 0.15 : 0.4} stroke={isDark ? '#334155' : '#CBD5E1'} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94A3B8' : '#334155', fontWeight: 600 }} />
+                  <YAxis tick={{ fontSize: 11, fill: isDark ? '#94A3B8' : '#334155' }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#1E293B',
@@ -202,9 +205,16 @@ export const AnalyticsPage: React.FC = () => {
                       color: '#FFF'
                     }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                  <Bar dataKey="Completed" stackId="a" fill="#2563EB" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="Remaining" stackId="a" fill="#E2E8F0" radius={[4, 4, 0, 0]} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px', fontWeight: 600 }} />
+                  <Bar dataKey="Completed" stackId="a" fill="#2563EB" stroke="#1D4ED8" radius={[0, 0, 0, 0]} />
+                  <Bar
+                    dataKey="Remaining"
+                    stackId="a"
+                    fill={isDark ? '#334155' : '#94A3B8'}
+                    stroke={isDark ? '#475569' : '#64748B'}
+                    strokeWidth={1.5}
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>

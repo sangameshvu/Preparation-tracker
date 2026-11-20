@@ -90,7 +90,11 @@ interface AppDataContextType {
   addActivity: (act: Omit<StudyActivityItem, 'id' | 'timestamp'> & { timestamp?: string }) => void;
   deleteActivity: (id: string) => void;
   dailyGoals: DailyGoalItem[];
+  todayGoals: DailyGoalItem[];
   addDailyGoal: (goal: Omit<DailyGoalItem, 'id'>) => void;
+  addMultipleDailyGoals: (
+    goals: Array<Omit<DailyGoalItem, 'id' | 'date' | 'completed'> & { date?: string; completed?: boolean }>
+  ) => void;
   toggleDailyGoal: (id: string) => void;
   deleteDailyGoal: (id: string) => void;
   stats: DashboardStats;
@@ -235,6 +239,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     getInitialState('dailyGoals', initialDailyGoals)
   );
 
+  const todayDateStr = format(new Date(), 'yyyy-MM-dd');
+  const todayGoals = useMemo(() => {
+    return dailyGoals.filter((g) => g.date === todayDateStr);
+  }, [dailyGoals, todayDateStr]);
+
   // Sync to local storage on change
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'profile', JSON.stringify(profile));
@@ -324,17 +333,41 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const addDailyGoal = (goal: Omit<DailyGoalItem, 'id'>) => {
+    const goalDate = goal.date || format(new Date(), 'yyyy-MM-dd');
     const newGoal: DailyGoalItem = {
       ...goal,
-      id: `goal-${Date.now()}`
+      date: goalDate,
+      id: `goal-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`
     };
     setDailyGoals((prev) => [newGoal, ...prev]);
     addActivity({
-      date: goal.date,
+      date: goalDate,
       category: 'goal',
       title: `Set Goal: ${goal.title}`,
       details: `Target: ${goal.targetMinutes}m in ${goal.section}`,
       section: goal.section
+    });
+  };
+
+  const addMultipleDailyGoals = (
+    goals: Array<Omit<DailyGoalItem, 'id' | 'date' | 'completed'> & { date?: string; completed?: boolean }>
+  ) => {
+    const todayDate = format(new Date(), 'yyyy-MM-dd');
+    const newItems: DailyGoalItem[] = goals.map((g, idx) => ({
+      ...g,
+      completed: g.completed ?? false,
+      date: g.date || todayDate,
+      id: `goal-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`
+    }));
+    setDailyGoals((prev) => [...newItems, ...prev]);
+    newItems.forEach((item) => {
+      addActivity({
+        date: item.date,
+        category: 'goal',
+        title: `Set Goal: ${item.title}`,
+        details: `Target: ${item.targetMinutes}m in ${item.section}`,
+        section: item.section
+      });
     });
   };
 
@@ -818,7 +851,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         addActivity,
         deleteActivity,
         dailyGoals,
+        todayGoals,
         addDailyGoal,
+        addMultipleDailyGoals,
         toggleDailyGoal,
         deleteDailyGoal,
         stats,

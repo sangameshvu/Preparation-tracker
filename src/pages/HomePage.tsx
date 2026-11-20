@@ -39,6 +39,7 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { getDailyScheduleFocus } from '../utils/studySchedule';
 import {
   format,
   startOfMonth,
@@ -57,7 +58,9 @@ export const HomePage: React.FC = () => {
     stats,
     weeklyPlans,
     dailyGoals,
+    todayGoals,
     addDailyGoal,
+    addMultipleDailyGoals,
     toggleDailyGoal,
     deleteDailyGoal,
     activities,
@@ -69,9 +72,18 @@ export const HomePage: React.FC = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
+  // Current alternating study schedule focus (e.g. VARC + DILR, VARC + QA, Revision)
+  const todaySchedule = useMemo(() => {
+    return getDailyScheduleFocus(new Date(), stats.currentWeek);
+  }, [stats.currentWeek]);
+
+  const todayDateStr = format(new Date(), 'yyyy-MM-dd');
+
   // State
   const [newGoalTitle, setNewGoalTitle] = useState('');
-  const [newGoalSection, setNewGoalSection] = useState<'Quant' | 'DILR' | 'VARC'>('Quant');
+  const [newGoalSection, setNewGoalSection] = useState<'Quant' | 'DILR' | 'VARC' | 'General'>(
+    todaySchedule.alternatingSubject
+  );
   const [newGoalMinutes, setNewGoalMinutes] = useState(45);
   const [recentActivityExpanded, setRecentActivityExpanded] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
@@ -335,116 +347,237 @@ export const HomePage: React.FC = () => {
                   <span>Today's Focus & Goals</span>
                 </CardTitle>
               </div>
-              <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
-                {dailyGoals.filter((g) => g.completed).length} / {dailyGoals.length} Done
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                  Today: {todaySchedule.primarySubjects}
+                </span>
+                {todayGoals.length > 0 && (
+                  <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+                    {todayGoals.filter((g) => g.completed).length} / {todayGoals.length} Done
+                  </span>
+                )}
+              </div>
             </CardHeader>
 
             <CardContent className="pt-4 space-y-4">
-              {/* Daily Goals List */}
-              <div className="space-y-2">
-                {dailyGoals.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-4 italic">
-                    No goals added for today. Add a goal below to start your sprint!
-                  </p>
-                ) : (
-                  dailyGoals.map((goal) => {
-                    const sectionChipClass =
-                      goal.section === 'Quant'
-                        ? 'chip-quant'
-                        : goal.section === 'DILR'
-                        ? 'chip-dilr'
-                        : 'chip-varc';
-
-                    return (
-                      <div
-                        key={goal.id}
-                        onClick={() => toggleDailyGoal(goal.id)}
-                        className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-all cursor-pointer group select-none"
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
-                          <button
-                            type="button"
-                            role="checkbox"
-                            aria-checked={goal.completed}
-                            aria-label={goal.completed ? `Mark ${goal.title} as incomplete` : `Mark ${goal.title} as completed`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleDailyGoal(goal.id);
-                            }}
-                            className={cn(
-                              'h-5 w-5 shrink-0 rounded-md border flex items-center justify-center transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
-                              goal.completed
-                                ? 'glass-checkbox bg-blue-600 border-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.4)]'
-                                : 'bg-slate-100/80 border-slate-300 dark:bg-slate-800/70 dark:border-slate-600 hover:border-blue-500 hover:scale-105'
-                            )}
-                          >
-                            {goal.completed && <Check className="h-3.5 w-3.5 stroke-[3] text-white" />}
-                          </button>
-                          <span
-                            className={`text-xs font-semibold truncate transition-all ${
-                              goal.completed
-                                ? 'line-through text-muted-foreground opacity-75'
-                                : 'text-foreground'
-                            }`}
-                          >
-                            {goal.title}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sectionChipClass}`}>
-                            {goal.section}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground font-mono">
-                            {goal.targetMinutes}m
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0 rounded-lg p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteDailyGoal(goal.id);
-                            }}
-                            title="Delete goal"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+              {todayGoals.length === 0 ? (
+                /* Interactive Intake Prompt when no goals set for today yet */
+                <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white dark:from-blue-950/20 dark:via-slate-900/40 dark:to-slate-900/60 p-4 sm:p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                          Scheduled Focus
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-600 text-white shadow-xs">
+                          {todaySchedule.primarySubjects}
+                        </span>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                      <h4 className="text-sm font-bold text-foreground">
+                        What are your targets for today?
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {todaySchedule.description}
+                      </p>
+                    </div>
 
-              {/* Inline Add Goal Form (Responsive on Mobile) */}
-              <form onSubmit={handleAddGoal} className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Input
-                  value={newGoalTitle}
-                  onChange={(e) => setNewGoalTitle(e.target.value)}
-                  placeholder="Add target (e.g. 15 Algebra PYQs, 2 Matrix Sets)..."
-                  className="text-xs h-9 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border-border flex-1"
-                />
-                <div className="flex items-center gap-2 shrink-0">
-                  <select
-                    value={newGoalSection}
-                    onChange={(e) => setNewGoalSection(e.target.value as any)}
-                    className="h-9 px-3 text-xs rounded-xl border border-border bg-slate-100/70 dark:bg-slate-800/60 font-semibold flex-1 sm:flex-none"
-                  >
-                    <option value="Quant">Quant</option>
-                    <option value="DILR">DILR</option>
-                    <option value="VARC">VARC</option>
-                  </select>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" />
-                    <span>Add</span>
-                  </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => addMultipleDailyGoals(todaySchedule.suggestedGoals)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl h-9 px-3.5 shadow-xs shrink-0 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                      <span>Add All 3 Targets</span>
+                    </Button>
+                  </div>
+
+                  {/* 1-Click Suggested Targets */}
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      1-Click Quick Add
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {todaySchedule.suggestedGoals.map((sg, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() =>
+                            addDailyGoal({
+                              title: sg.title,
+                              section: sg.section,
+                              targetMinutes: sg.targetMinutes,
+                              completed: false,
+                              date: todayDateStr
+                            })
+                          }
+                          className="flex flex-col justify-between p-3 rounded-xl border border-border/80 bg-white/80 dark:bg-slate-800/60 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition-all text-left cursor-pointer group shadow-xs"
+                        >
+                          <span className="text-xs font-medium text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
+                            + {sg.title}
+                          </span>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40 text-[10px]">
+                            <span
+                              className={cn(
+                                sg.section === 'Quant'
+                                  ? 'chip-quant'
+                                  : sg.section === 'DILR'
+                                  ? 'chip-dilr'
+                                  : sg.section === 'VARC'
+                                  ? 'chip-varc'
+                                  : 'chip-general',
+                                'px-1.5 py-0.5 rounded-full font-bold'
+                              )}
+                            >
+                              {sg.section}
+                            </span>
+                            <span className="text-muted-foreground font-mono">{sg.targetMinutes}m</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Goal Form within Intake */}
+                  <div className="pt-2 border-t border-border/50">
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      Or add your own custom target:
+                    </span>
+                    <form onSubmit={handleAddGoal} className="mt-1.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <Input
+                        value={newGoalTitle}
+                        onChange={(e) => setNewGoalTitle(e.target.value)}
+                        placeholder={`e.g., 20 ${todaySchedule.alternatingSubject} Practice Questions or RC Set...`}
+                        className="text-xs h-9 rounded-xl bg-white dark:bg-slate-800/80 border-border flex-1"
+                      />
+                      <div className="flex items-center gap-2 shrink-0">
+                        <select
+                          value={newGoalSection}
+                          onChange={(e) => setNewGoalSection(e.target.value as any)}
+                          className="h-9 px-3 text-xs rounded-xl border border-border bg-white dark:bg-slate-800/80 font-semibold flex-1 sm:flex-none"
+                        >
+                          <option value="Quant">Quant</option>
+                          <option value="DILR">DILR</option>
+                          <option value="VARC">VARC</option>
+                          <option value="General">General</option>
+                        </select>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-1" />
+                          <span>Add</span>
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-              </form>
+              ) : (
+                <>
+                  {/* Daily Goals List */}
+                  <div className="space-y-2">
+                    {todayGoals.map((goal) => {
+                      const sectionChipClass =
+                        goal.section === 'Quant'
+                          ? 'chip-quant'
+                          : goal.section === 'DILR'
+                          ? 'chip-dilr'
+                          : goal.section === 'VARC'
+                          ? 'chip-varc'
+                          : 'chip-general';
+
+                      return (
+                        <div
+                          key={goal.id}
+                          onClick={() => toggleDailyGoal(goal.id)}
+                          className="flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/30 hover:border-border hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-all cursor-pointer group select-none"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                            <button
+                              type="button"
+                              role="checkbox"
+                              aria-checked={goal.completed}
+                              aria-label={goal.completed ? `Mark ${goal.title} as incomplete` : `Mark ${goal.title} as completed`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleDailyGoal(goal.id);
+                              }}
+                              className={cn(
+                                'h-5 w-5 shrink-0 rounded-md border flex items-center justify-center transition-all duration-150 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                                goal.completed
+                                  ? 'glass-checkbox bg-blue-600 border-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.4)]'
+                                  : 'bg-slate-100/80 border-slate-300 dark:bg-slate-800/70 dark:border-slate-600 hover:border-blue-500 hover:scale-105'
+                              )}
+                            >
+                              {goal.completed && <Check className="h-3.5 w-3.5 stroke-[3] text-white" />}
+                            </button>
+                            <span
+                              className={`text-xs font-semibold truncate transition-all ${
+                                goal.completed
+                                  ? 'line-through text-muted-foreground opacity-75'
+                                  : 'text-foreground'
+                              }`}
+                            >
+                              {goal.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sectionChipClass}`}>
+                              {goal.section}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground font-mono">
+                              {goal.targetMinutes}m
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-muted-foreground opacity-60 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0 rounded-lg p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteDailyGoal(goal.id);
+                              }}
+                              title="Delete goal"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Inline Add Goal Form (Responsive on Mobile) */}
+                  <form onSubmit={handleAddGoal} className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <Input
+                      value={newGoalTitle}
+                      onChange={(e) => setNewGoalTitle(e.target.value)}
+                      placeholder="Add target (e.g. 15 Algebra PYQs, 2 Matrix Sets)..."
+                      className="text-xs h-9 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border-border flex-1"
+                    />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <select
+                        value={newGoalSection}
+                        onChange={(e) => setNewGoalSection(e.target.value as any)}
+                        className="h-9 px-3 text-xs rounded-xl border border-border bg-slate-100/70 dark:bg-slate-800/60 font-semibold flex-1 sm:flex-none"
+                      >
+                        <option value="Quant">Quant</option>
+                        <option value="DILR">DILR</option>
+                        <option value="VARC">VARC</option>
+                        <option value="General">General</option>
+                      </select>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold px-3 shrink-0"
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        <span>Add</span>
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
 
               {/* Collapsible Recent Activity Accordion */}
               <div className="pt-2 border-t border-border/60">
