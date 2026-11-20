@@ -17,7 +17,8 @@ import {
   Info,
   Edit3,
   Check,
-  Globe
+  Globe,
+  Pencil
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -39,7 +40,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '../components/ui/dialog';
-import { ResourceItem } from '../types';
+import { ResourceItem, ResourceCategoryType } from '../types';
 import { cn } from '../lib/utils';
 
 export const FreeResourcesPage: React.FC = () => {
@@ -54,6 +55,7 @@ export const FreeResourcesPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [completedOnly, setCompletedOnly] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -66,6 +68,7 @@ export const FreeResourcesPage: React.FC = () => {
   const [detailsResource, setDetailsResource] = useState<ResourceItem | null>(null);
   const [editName, setEditName] = useState('');
   const [editSection, setEditSection] = useState('Quant');
+  const [editCategory, setEditCategory] = useState<string>('Concepts');
   const [editUsage, setEditUsage] = useState('');
   const [editUrl, setEditUrl] = useState('');
   const [editNotes, setEditNotes] = useState('');
@@ -79,10 +82,12 @@ export const FreeResourcesPage: React.FC = () => {
   // Form State for Adding New Resource
   const [newName, setNewName] = useState('');
   const [newSection, setNewSection] = useState('Quant');
+  const [newCategory, setNewCategory] = useState<string>('Concepts');
   const [newUsage, setNewUsage] = useState('');
   const [newUrl, setNewUrl] = useState('');
 
   const sections = ['All', 'Quant', 'DILR', 'VARC', 'Reading', 'PYQs', 'Mocks', 'Community'];
+  const innerCategories: ResourceCategoryType[] = ['Concepts', 'Practice', "PYQ's", 'Mocks'];
 
   const completedCount = useMemo(() => {
     return resources.filter((r) => r.isCompleted).length;
@@ -90,7 +95,28 @@ export const FreeResourcesPage: React.FC = () => {
 
   const filteredResources = useMemo(() => {
     return resources.filter((r) => {
-      if (activeSection !== 'All' && r.section !== activeSection) return false;
+      if (activeSection !== 'All') {
+        if (activeSection === 'PYQs') {
+          // Outer section PYQs: include resources whose section is PYQs OR category is PYQ's / PYQs
+          const isPyq = r.section === 'PYQs' || r.category === "PYQ's" || r.category === 'PYQs';
+          if (!isPyq) return false;
+        } else if (activeSection === 'Mocks') {
+          // Outer section Mocks: include resources whose section is Mocks OR category is Mocks
+          const isMock = r.section === 'Mocks' || r.category === 'Mocks';
+          if (!isMock) return false;
+        } else if (['Quant', 'DILR', 'VARC'].includes(activeSection)) {
+          // Outer section is Quant, DILR, or VARC
+          if (r.section !== activeSection) return false;
+          // Filter by inner category if selected
+          if (activeCategory !== 'All') {
+            if (r.category !== activeCategory) return false;
+          }
+        } else {
+          // Outer section is Reading, Community, etc.
+          if (r.section !== activeSection) return false;
+        }
+      }
+
       if (favoritesOnly && !r.isFavorited) return false;
       if (completedOnly && !r.isCompleted) return false;
       if (searchQuery.trim()) {
@@ -98,18 +124,22 @@ export const FreeResourcesPage: React.FC = () => {
         return (
           r.resourceName.toLowerCase().includes(q) ||
           r.intendedUsage.toLowerCase().includes(q) ||
-          r.section.toLowerCase().includes(q)
+          r.section.toLowerCase().includes(q) ||
+          (r.category && r.category.toLowerCase().includes(q))
         );
       }
       return true;
     });
-  }, [resources, activeSection, favoritesOnly, completedOnly, searchQuery]);
+  }, [resources, activeSection, activeCategory, favoritesOnly, completedOnly, searchQuery]);
 
   // Open Details Modal and populate fields
   const handleOpenDetails = (res: ResourceItem) => {
     setDetailsResource(res);
     setEditName(res.resourceName);
     setEditSection(res.section);
+    setEditCategory(
+      res.category || (['Quant', 'DILR', 'VARC'].includes(res.section) ? 'Concepts' : res.section === 'PYQs' ? "PYQ's" : res.section === 'Mocks' ? 'Mocks' : 'Concepts')
+    );
     setEditUsage(res.intendedUsage);
     setEditUrl(res.url);
     setEditNotes(res.personalNotes || '');
@@ -122,9 +152,14 @@ export const FreeResourcesPage: React.FC = () => {
     e.preventDefault();
     if (!detailsResource || !editName.trim() || !editUrl.trim()) return;
 
+    const assignedCategory = ['Quant', 'DILR', 'VARC'].includes(editSection)
+      ? (editCategory || 'Concepts')
+      : (editSection === 'PYQs' ? "PYQ's" : editSection === 'Mocks' ? 'Mocks' : editCategory || undefined);
+
     updateResource(detailsResource.id, {
       resourceName: editName.trim(),
       section: editSection,
+      category: assignedCategory,
       intendedUsage: editUsage.trim() || 'General preparation material',
       url: editUrl.trim(),
       personalNotes: editNotes.trim(),
@@ -209,9 +244,15 @@ export const FreeResourcesPage: React.FC = () => {
   const handleAddResource = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newUrl.trim()) return;
+
+    const assignedCategory = ['Quant', 'DILR', 'VARC'].includes(newSection)
+      ? (newCategory || 'Concepts')
+      : (newSection === 'PYQs' ? "PYQ's" : newSection === 'Mocks' ? 'Mocks' : undefined);
+
     addResource({
       resourceName: newName.trim(),
       section: newSection,
+      category: assignedCategory,
       intendedUsage: newUsage.trim() || 'General preparation material',
       url: newUrl.trim(),
       isFavorited: false,
@@ -220,6 +261,7 @@ export const FreeResourcesPage: React.FC = () => {
     setNewName('');
     setNewUsage('');
     setNewUrl('');
+    setNewCategory('Concepts');
     setModalOpen(false);
   };
 
@@ -300,7 +342,10 @@ export const FreeResourcesPage: React.FC = () => {
                 size="sm"
                 variant={activeSection === sec ? 'purple' : 'ghost'}
                 className="h-8 text-xs font-semibold cursor-pointer"
-                onClick={() => setActiveSection(sec)}
+                onClick={() => {
+                  setActiveSection(sec);
+                  setActiveCategory('All');
+                }}
               >
                 {sec}
               </Button>
@@ -339,6 +384,50 @@ export const FreeResourcesPage: React.FC = () => {
             />
           </div>
         </div>
+
+        {/* Inner Categories Bar for Quant, DILR, VARC */}
+        {['Quant', 'DILR', 'VARC'].includes(activeSection) && (
+          <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl border border-blue-500/25 bg-blue-50/20 dark:bg-blue-950/20">
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mr-1.5 flex items-center gap-1">
+              <span>{activeSection} Categories:</span>
+            </span>
+            {(['All', ...innerCategories] as const).map((cat) => {
+              const count =
+                cat === 'All'
+                  ? resources.filter((r) => r.section === activeSection).length
+                  : resources.filter(
+                      (r) =>
+                        r.section === activeSection &&
+                        (r.category === cat || (cat === "PYQ's" && r.category === 'PYQs'))
+                    ).length;
+              const isSelected = activeCategory === cat;
+              return (
+                <Button
+                  key={cat}
+                  size="sm"
+                  variant={isSelected ? 'default' : 'outline'}
+                  className={cn(
+                    'h-7 text-xs px-2.5 rounded-lg cursor-pointer transition-all',
+                    isSelected
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground border-border/70 bg-card/60 hover:bg-card'
+                  )}
+                  onClick={() => setActiveCategory(cat)}
+                >
+                  <span>{cat}</span>
+                  <span
+                    className={cn(
+                      'text-[10px] ml-1.5 px-1 py-0.2 rounded-full font-mono',
+                      isSelected ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    {count}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Helpful Info Bar */}
         <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/40 border border-border/60 text-xs text-muted-foreground">
@@ -424,6 +513,14 @@ export const FreeResourcesPage: React.FC = () => {
                       >
                         {res.section}
                       </Badge>
+                      {res.category && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-medium border-border/80 bg-muted/40 text-muted-foreground"
+                        >
+                          {res.category}
+                        </Badge>
+                      )}
                       {res.isCompleted && (
                         <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-[9px] gap-1 font-semibold px-1.5 py-0">
                           <CheckCircle2 className="h-2.5 w-2.5 fill-emerald-600 text-white dark:text-slate-900" />
@@ -440,10 +537,10 @@ export const FreeResourcesPage: React.FC = () => {
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer rounded-lg transition-colors"
                         onClick={() => handleOpenDetails(res)}
-                        title="View Details & Edit Resource"
-                        aria-label="View Details & Edit Resource"
+                        title="Edit Resource Section & Category"
+                        aria-label="Edit Resource"
                       >
-                        <Info className="h-4 w-4" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </Button>
 
                       {/* Move Up */}
@@ -594,7 +691,15 @@ export const FreeResourcesPage: React.FC = () => {
                 <label className="text-xs font-semibold text-foreground block mb-1">
                   Section <span className="text-red-500">*</span>
                 </label>
-                <Select value={editSection} onValueChange={setEditSection}>
+                <Select
+                  value={editSection}
+                  onValueChange={(val) => {
+                    setEditSection(val);
+                    if (['Quant', 'DILR', 'VARC'].includes(val) && !editCategory) {
+                      setEditCategory('Concepts');
+                    }
+                  }}
+                >
                   <SelectTrigger className="text-xs">
                     <SelectValue />
                   </SelectTrigger>
@@ -610,6 +715,61 @@ export const FreeResourcesPage: React.FC = () => {
                 </Select>
               </div>
 
+              {['Quant', 'DILR', 'VARC'].includes(editSection) ? (
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">
+                    Category (in {editSection}) <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={editCategory} onValueChange={setEditCategory}>
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Concepts">Concepts</SelectItem>
+                      <SelectItem value="Practice">Practice</SelectItem>
+                      <SelectItem value="PYQ's">PYQ's</SelectItem>
+                      <SelectItem value="Mocks">Mocks</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">
+                    Status Flags
+                  </label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditCompleted(!editCompleted)}
+                      className={cn(
+                        'text-xs px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5 cursor-pointer font-medium',
+                        editCompleted
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800'
+                          : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
+                      )}
+                    >
+                      <CheckCircle2 className={cn('h-3.5 w-3.5', editCompleted ? 'fill-emerald-600 text-white' : '')} />
+                      <span>Done</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditFavorited(!editFavorited)}
+                      className={cn(
+                        'text-xs px-2.5 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5 cursor-pointer font-medium',
+                        editFavorited
+                          ? 'bg-red-50 text-red-600 border-red-300 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800'
+                          : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted'
+                      )}
+                    >
+                      <Heart className={cn('h-3.5 w-3.5', editFavorited ? 'fill-red-500 text-red-500' : '')} />
+                      <span>Favorite</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {['Quant', 'DILR', 'VARC'].includes(editSection) && (
               <div>
                 <label className="text-xs font-semibold text-foreground block mb-1">
                   Status Flags
@@ -643,7 +803,7 @@ export const FreeResourcesPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            )}
 
             <div>
               <label className="text-xs font-semibold text-foreground block mb-1">
@@ -831,8 +991,16 @@ export const FreeResourcesPage: React.FC = () => {
 
             <div>
               <label className="text-xs font-medium text-muted-foreground block mb-1">Section</label>
-              <Select value={newSection} onValueChange={setNewSection}>
-                <SelectTrigger>
+              <Select
+                value={newSection}
+                onValueChange={(val) => {
+                  setNewSection(val);
+                  if (['Quant', 'DILR', 'VARC'].includes(val) && !newCategory) {
+                    setNewCategory('Concepts');
+                  }
+                }}
+              >
+                <SelectTrigger className="text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -846,6 +1014,25 @@ export const FreeResourcesPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {['Quant', 'DILR', 'VARC'].includes(newSection) && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Category (in {newSection}) <span className="text-red-500">*</span>
+                </label>
+                <Select value={newCategory} onValueChange={setNewCategory}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Concepts">Concepts</SelectItem>
+                    <SelectItem value="Practice">Practice</SelectItem>
+                    <SelectItem value="PYQ's">PYQ's</SelectItem>
+                    <SelectItem value="Mocks">Mocks</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <label className="text-xs font-medium text-muted-foreground block mb-1">Intended Usage / Phase</label>

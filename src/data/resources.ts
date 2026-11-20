@@ -13,6 +13,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-2",
     "section": "Quant",
+    "category": "Concepts",
     "resourceName": "iQuanta: Arithmetic playlist",
     "intendedUsage": "Phases 1–2, learning concepts (weeks 1–31)",
     "url": "https://www.youtube.com/watch?v=lqWYzkJxjB8&amp;list=PL4YW4OWyzRDRk4VPQoeh8T8D3KJ93oUVG&amp;index=1",
@@ -22,6 +23,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-3",
     "section": "Quant",
+    "category": "Concepts",
     "resourceName": "Rodha: Quant playlist",
     "intendedUsage": "Phases 1–2, learning concepts",
     "url": "https://www.youtube.com/watch?v=5O6ZnVoqwl4&amp;list=PLG4bwc5fquzgfMh4YFDnv7fttM0RIKiUQ",
@@ -31,6 +33,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-4",
     "section": "Quant",
+    "category": "Practice",
     "resourceName": "MBA Pathshala: Arithmetic",
     "intendedUsage": "Phases 1–2, learning concepts",
     "url": "https://www.youtube.com/playlist?list=PLLtQdEJkug7sF3btK_VQMe_WziFb78rj_",
@@ -40,6 +43,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-5",
     "section": "Quant",
+    "category": "Concepts",
     "resourceName": "MBA Wallah: Quant playlist",
     "intendedUsage": "Phases 1–2, learning concepts",
     "url": "https://www.youtube.com/playlist?list=PLlxE9WKuvDj9avhKLnCZaARljwTXywAkV",
@@ -47,8 +51,29 @@ export const initialResources: ResourceItem[] = [
     "isCompleted": false
   },
   {
+    "id": "res-q-pyq",
+    "section": "Quant",
+    "category": "PYQ's",
+    "resourceName": "2IIM: Quant Topic-Wise CAT PYQs (2017–2024)",
+    "intendedUsage": "Solve real CAT questions after completing each Quant topic",
+    "url": "https://online.2iim.com/CAT-question-paper/",
+    "isFavorited": true,
+    "isCompleted": false
+  },
+  {
+    "id": "res-q-mock",
+    "section": "Quant",
+    "category": "Mocks",
+    "resourceName": "Cracku: Free Quant Sectional Speed Mocks",
+    "intendedUsage": "40-min timed Quant section practice with percentiles",
+    "url": "https://cracku.in/cat-mock-test",
+    "isFavorited": false,
+    "isCompleted": false
+  },
+  {
     "id": "res-6",
     "section": "DILR",
+    "category": "Practice",
     "resourceName": "Elites Grid: LRDI playlist",
     "intendedUsage": "Phases 1–2, one set type per week",
     "url": "https://www.youtube.com/playlist?list=PL66qMJTd-VecPbShYM1eJ4uvf_rVaAdG7",
@@ -58,6 +83,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-7",
     "section": "DILR",
+    "category": "Concepts",
     "resourceName": "iQuanta: Master LRDI playlist",
     "intendedUsage": "Phases 1–2, one set type per week",
     "url": "https://www.youtube.com/watch?v=tu-7QCBvr1A&amp;list=PL4YW4OWyzRDSKP7fL8Bo2c1PV5-Ew0c3N",
@@ -67,6 +93,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-8",
     "section": "DILR",
+    "category": "Practice",
     "resourceName": "Rodha: LRDI playlist",
     "intendedUsage": "Phases 1–2, one set type per week",
     "url": "https://www.youtube.com/playlist?list=PLG4bwc5fquzhDp8eqRym2Ma1ut10YF0Ea",
@@ -76,6 +103,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-9",
     "section": "DILR",
+    "category": "Practice",
     "resourceName": "Aptitude Jab: LRDI playlist",
     "intendedUsage": "Phases 1–2, one set type per week",
     "url": "https://www.youtube.com/watch?v=j6YrA1sV6oE&amp;list=PLxht4dVcisIIGMmxx0bTZv9F68dtuD9hY",
@@ -83,8 +111,29 @@ export const initialResources: ResourceItem[] = [
     "isCompleted": false
   },
   {
+    "id": "res-d-pyq",
+    "section": "DILR",
+    "category": "PYQ's",
+    "resourceName": "Bodhee Prep: DILR Previous Year Slot Sets",
+    "intendedUsage": "Full past CAT LRDI sets with detailed matrix walkthroughs",
+    "url": "https://bodheeprep.com/cat-question-paper-previous-years-pdf",
+    "isFavorited": true,
+    "isCompleted": false
+  },
+  {
+    "id": "res-d-mock",
+    "section": "DILR",
+    "category": "Mocks",
+    "resourceName": "iQuanta: Free DILR Sectional Mock Drills",
+    "intendedUsage": "Timed 4-set and 5-set test simulator for speed and set selection",
+    "url": "https://www.iquanta.in/cat-mock-test",
+    "isFavorited": false,
+    "isCompleted": false
+  },
+  {
     "id": "res-10",
     "section": "VARC",
+    "category": "Concepts",
     "resourceName": "iQuanta: VARC playlist",
     "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
     "url": "https://www.youtube.com/playlist?list=PL4YW4OWyzRDSyTSuLOVaJzqCDYVuNF-Pi",
@@ -94,6 +143,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-11",
     "section": "VARC",
+    "category": "Practice",
     "resourceName": "Cracku: VARC playlist",
     "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
     "url": "https://www.youtube.com/playlist?list=PLSjkMEhzZ_icihE5IwlFH_ETUuzoLs1lh",
@@ -103,6 +153,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-12",
     "section": "VARC",
+    "category": "Concepts",
     "resourceName": "Gejo Sir: VARC playlist",
     "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
     "url": "https://www.youtube.com/watch?v=id6Ag4sqT8o&amp;list=PLYlgAFSHVfLEru3vzdGAQDIBNm1MQqH45",
@@ -112,9 +163,30 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-13",
     "section": "VARC",
+    "category": "Practice",
     "resourceName": "MBA Pathshala: VARC",
     "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
     "url": "https://www.youtube.com/playlist?list=PLLtQdEJkug7tFpnRZyWC9n-dXYTZOPnfI",
+    "isFavorited": false,
+    "isCompleted": false
+  },
+  {
+    "id": "res-v-pyq",
+    "section": "VARC",
+    "category": "PYQ's",
+    "resourceName": "iQuanta: CAT VARC Official PYQs & RC Passages",
+    "intendedUsage": "Real past CAT RC passages and verbal ability question sets",
+    "url": "https://www.iquanta.in/cat-question-papers",
+    "isFavorited": true,
+    "isCompleted": false
+  },
+  {
+    "id": "res-v-mock",
+    "section": "VARC",
+    "category": "Mocks",
+    "resourceName": "Rodha: Free VARC Sectional Timed Mocks",
+    "intendedUsage": "40-min authentic CAT VARC sectional with detailed solution keys",
+    "url": "https://mocks.rodha.co.in/",
     "isFavorited": false,
     "isCompleted": false
   },
@@ -157,6 +229,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-18",
     "section": "PYQs",
+    "category": "PYQ's",
     "resourceName": "iQuanta: CAT question papers",
     "intendedUsage": "Same week you finish each topic + week 1 diagnostic",
     "url": "https://www.iquanta.in/cat-question-papers",
@@ -166,6 +239,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-19",
     "section": "PYQs",
+    "category": "PYQ's",
     "resourceName": "2IIM: CAT PYQ page",
     "intendedUsage": "Same week you finish each topic",
     "url": "https://online.2iim.com/CAT-question-paper/",
@@ -175,6 +249,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-20",
     "section": "PYQs",
+    "category": "PYQ's",
     "resourceName": "Bodhee Prep: PYQ PDFs",
     "intendedUsage": "DILR PYQ weeks (21–30) + revision",
     "url": "https://bodheeprep.com/cat-question-paper-previous-years-pdf",
@@ -184,6 +259,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-21",
     "section": "PYQs",
+    "category": "PYQ's",
     "resourceName": "Preparoo: PYQs",
     "intendedUsage": "Topic-wise PYQ practice",
     "url": "https://mba.preparoo.app/pyqs",
@@ -193,6 +269,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-22",
     "section": "Mocks",
+    "category": "Mocks",
     "resourceName": "iQuanta free mocks",
     "intendedUsage": "Mock 0 (week 31), then Phases 3–4",
     "url": "https://www.iquanta.in/cat-mock-test",
@@ -202,6 +279,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-23",
     "section": "Mocks",
+    "category": "Mocks",
     "resourceName": "Rodha free mocks",
     "intendedUsage": "Phases 3–4",
     "url": "https://mocks.rodha.co.in/",
@@ -211,6 +289,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-24",
     "section": "Mocks",
+    "category": "Mocks",
     "resourceName": "Cracku free mocks",
     "intendedUsage": "Phases 3–4",
     "url": "https://cracku.in/cat-mock-test",
@@ -220,6 +299,7 @@ export const initialResources: ResourceItem[] = [
   {
     "id": "res-25",
     "section": "Mocks",
+    "category": "Mocks",
     "resourceName": "InsideIIM free daily mocks",
     "intendedUsage": "Short daily practice, any phase",
     "url": "https://insideiim.com/free-daily-mba-mock-tests-cat-xat-other-mba-exams",

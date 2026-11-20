@@ -147,9 +147,12 @@ export interface MistakeItem {
   isSample: boolean;
 }
 
+export type ResourceCategoryType = "PYQ's" | 'Mocks' | 'Concepts' | 'Practice';
+
 export interface ResourceItem {
   id: string;
   section: string; // 'Quant' | 'DILR' | 'VARC' | 'Reading' | 'PYQs' | 'Mocks' | 'Community' | 'Intro'
+  category?: ResourceCategoryType | string;
   resourceName: string;
   intendedUsage: string;
   url: string;
