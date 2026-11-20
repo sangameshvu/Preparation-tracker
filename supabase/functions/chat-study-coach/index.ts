@@ -14,6 +14,8 @@ const corsHeaders = {
 interface ChatRequestBody {
   message: string;
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+  mode?: 'coach' | 'assistant';
+  catTuned?: boolean;
   context?: {
     stats?: {
       overallCompletionPct?: number;
@@ -46,7 +48,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, history = [], context = {} }: ChatRequestBody = await req.json();
+    const { message, history = [], context = {}, mode = 'coach', catTuned = false }: ChatRequestBody = await req.json();
 
     if (!message || message.trim() === '') {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -61,8 +63,13 @@ serve(async (req) => {
     let reply = '';
     let actionProposals: Array<{ type: string; title: string; payload: any }> = [];
 
-    // System prompt synthesizing context and pedagogical strategy
-    const systemPrompt = `You are the dedicated CAT 2027 AI Preparation Coach & Strategy Mentor for a serious CAT 2027 aspirant.
+    // Determine prompt wrapping behavior:
+    // If Assistant mode and catTuned is OFF (default) -> Send RAW prompt without any custom wrapper!
+    const isRawAssistant = mode === 'assistant' && !catTuned;
+
+    let systemPrompt = '';
+    if (mode === 'coach') {
+      systemPrompt = `You are the dedicated CAT 2027 AI Preparation Coach & Strategy Mentor for a serious CAT 2027 aspirant.
 Your job is to provide sharp, empathetic, data-backed guidance, rigorous syllabus tracking, and strategic problem-solving advice.
 
 Aspirant's Current Preparation Status:
@@ -82,19 +89,32 @@ Pedagogical Core Principles:
    - Weekly distribution: Mon Arithmetic+DILR+RC, Tue Algebra+DILR+VA, Wed Arithmetic+DILR+RC, Thu Geometry+DILR+VA, Fri Number Systems+DILR+RC, Sat Mixed+Sectionals, Sun Mock+Analysis.
 2. Emphasize active recall, error logging (7 mistake categories), and set selection over blind question volume.
 3. Be direct, motivating, structured with markdown bullet points, and actionable.`;
+    } else if (mode === 'assistant' && catTuned) {
+      systemPrompt = `You are an AI Study Assistant customized specifically for CAT preparation.
+Provide clear explanations, definitions, and problem-solving steps, while emphasizing CAT Reading Comprehension nuances, root words, tone analysis, and exam relevance.`;
+    }
 
     // 1. Try Gemini API if key is present
     if (geminiApiKey) {
       try {
-        const contents = [
-          { role: 'user', parts: [{ text: systemPrompt }] },
-          { role: 'model', parts: [{ text: "Understood. I am loaded with the aspirant's complete preparation metrics, syllabus roadmap, and CAT 2027 blueprint. Ready to mentor." }] },
-          ...history.map((h) => ({
-            role: h.role === 'user' ? 'user' : 'model',
-            parts: [{ text: h.content }],
-          })),
-          { role: 'user', parts: [{ text: message }] },
-        ];
+        const contents = isRawAssistant
+          ? [
+              // RAW AI CHATBOT MODE: Zero custom wrapper prompt around the user's prompt!
+              ...history.map((h) => ({
+                role: h.role === 'user' ? 'user' : 'model',
+                parts: [{ text: h.content }],
+              })),
+              { role: 'user', parts: [{ text: message }] },
+            ]
+          : [
+              { role: 'user', parts: [{ text: systemPrompt }] },
+              { role: 'model', parts: [{ text: "Understood. Ready to assist." }] },
+              ...history.map((h) => ({
+                role: h.role === 'user' ? 'user' : 'model',
+                parts: [{ text: h.content }],
+              })),
+              { role: 'user', parts: [{ text: message }] },
+            ];
 
         const geminiRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
@@ -123,11 +143,17 @@ Pedagogical Core Principles:
     // 2. Try OpenAI API if reply still empty and key is present
     if (!reply && openAiApiKey) {
       try {
-        const messages = [
-          { role: 'system', content: systemPrompt },
-          ...history.map((h) => ({ role: h.role, content: h.content })),
-          { role: 'user', content: message },
-        ];
+        const messages = isRawAssistant
+          ? [
+              // RAW AI CHATBOT MODE: Zero custom wrapper around user prompt!
+              ...history.map((h) => ({ role: h.role, content: h.content })),
+              { role: 'user', content: message },
+            ]
+          : [
+              { role: 'system', content: systemPrompt },
+              ...history.map((h) => ({ role: h.role, content: h.content })),
+              { role: 'user', content: message },
+            ];
 
         const openAiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -158,12 +184,25 @@ Pedagogical Core Principles:
     if (!reply) {
       isFallback = true;
       const lower = message.toLowerCase();
-      const currentWeek = context.stats?.currentWeek || 1;
-      const overdueMistakes = context.stats?.overdueMistakesCount || 0;
-      const weakCount = context.stats?.weakTopicsCount || 0;
 
-      if (lower.includes('schedule') || lower.includes('routine') || lower.includes('time')) {
-        reply = `### Recommended Daily Blueprint for Week ${currentWeek}
+      if (isRawAssistant) {
+        // Raw AI Chatbot fallback: Direct answer without CAT wrappers
+        reply = `### Direct Answer regarding "${message.length > 50 ? message.slice(0, 50) + '...' : message}"
+
+Here is a direct, clear response to your question:
+
+1. **Core Concept:** When addressing **${message}**, the primary focus is understanding the foundational definitions, direct causes, and standard principles involved.
+2. **Key Nuance:** In general analysis, breaking down the core premise into smaller verifiable components helps ensure clarity and accuracy.
+3. **Application:** Practical applications depend on the verified context and specific requirements of your problem.
+
+*Feel free to ask for additional details, step-by-step calculations, or alternative explanations!*`;
+      } else {
+        const currentWeek = context.stats?.currentWeek || 1;
+        const overdueMistakes = context.stats?.overdueMistakesCount || 0;
+        const weakCount = context.stats?.weakTopicsCount || 0;
+
+        if (lower.includes('schedule') || lower.includes('routine') || lower.includes('time')) {
+          reply = `### Recommended Daily Blueprint for Week ${currentWeek}
 
 Based on the official CAT blueprint and your current phase (**Phase ${context.currentPhase?.phaseNumber || 1}**):
 
@@ -177,8 +216,8 @@ Based on the official CAT blueprint and your current phase (**Phase ${context.cu
    - Review pending cards in your Mistake Log (${overdueMistakes} items currently due for spaced repetition).
 
 *Tip:* Consistency beats marathon weekend sprints every single time.`;
-      } else if (lower.includes('mock') || lower.includes('test') || lower.includes('percentile') || lower.includes('score')) {
-        reply = `### Strategic Mock Philosophy for CAT 2027
+        } else if (lower.includes('mock') || lower.includes('test') || lower.includes('percentile') || lower.includes('score')) {
+          reply = `### Strategic Mock Philosophy for CAT 2027
 
 Here is how you should calibrate your mock strategy:
 
@@ -188,8 +227,8 @@ Here is how you should calibrate your mock strategy:
   - **QA:** 5+ net correct questions (Net Score: 18-24)
 - **The Golden Rule:** Spend at least **2x the test duration** analyzing each mock.
 - **Immediate Action:** Categorize every missed question into one of the 7 workbook mistake types in your Mistake Log.`;
-      } else if (lower.includes('weak') || lower.includes('struggl') || lower.includes('stuck')) {
-        reply = `### Overcoming Weak Areas (Diagnostic Framework)
+        } else if (lower.includes('weak') || lower.includes('struggl') || lower.includes('stuck')) {
+          reply = `### Overcoming Weak Areas (Diagnostic Framework)
 
 You currently have **${weakCount} topic(s)** marked at confidence level 1 or 2.
 
@@ -197,8 +236,8 @@ You currently have **${weakCount} topic(s)** marked at confidence level 1 or 2.
 1. **Deconstruct the Gap:** Is it a *Concept gap* (unfamiliar with formulas/properties) or a *Set selection* error?
 2. **Untimed PYQ Practice:** Solve 15 past CAT questions without a timer to build mental representations.
 3. **Spaced Re-solve:** Revisit logged mistakes 7 days after the first attempt.`;
-      } else {
-        reply = `### Strategy Check-in: Week ${currentWeek} / 52
+        } else {
+          reply = `### Strategy Check-in: Week ${currentWeek} / 52
 
 Here is your current status overview:
 - **Overall Syllabus Progress:** ${context.stats?.overallCompletionPct || 0}%
@@ -207,20 +246,21 @@ Here is your current status overview:
 
 **Recommended Next Step:**
 Focus on executing this week's plan cleanly. Keep your accuracy above 80% before speeding up, and log every non-trivial mistake into the Mistake Log.`;
-      }
+        }
 
-      actionProposals = [
-        {
-          type: 'NAVIGATE',
-          title: 'Review Overdue Mistakes',
-          payload: { path: '/mistakes' },
-        },
-        {
-          type: 'NAVIGATE',
-          title: 'Check Weekly Targets',
-          payload: { path: '/planner' },
-        },
-      ];
+        actionProposals = [
+          {
+            type: 'NAVIGATE',
+            title: 'Review Overdue Mistakes',
+            payload: { path: '/mistakes' },
+          },
+          {
+            type: 'NAVIGATE',
+            title: 'Check Weekly Targets',
+            payload: { path: '/planner' },
+          },
+        ];
+      }
     }
 
     return new Response(

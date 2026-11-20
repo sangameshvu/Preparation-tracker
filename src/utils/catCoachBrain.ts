@@ -13,6 +13,7 @@ export interface CoachContext {
     hoursTarget: string;
   };
   mode?: AIMode;
+  catTuned?: boolean; // When false (default): Raw AI Chatbot (Gemini / Claude style). When true: CAT-specific assistant.
 }
 
 export interface CoachResponse {
@@ -212,7 +213,28 @@ const vocabularyDictionary: Record<string, LexiconEntry> = {
 };
 
 // Helper: Format a rich lexicon entry for the user
-function formatLexiconEntry(entry: LexiconEntry): string {
+function formatLexiconEntry(entry: LexiconEntry, catTuned: boolean = false): string {
+  if (!catTuned) {
+    // RAW AI CHATBOT (Gemini / Claude style): Pure, clean lexical breakdown without CAT wrappers
+    return `### 📖 ${entry.word}
+
+- **Part of Speech:** *${entry.pos}* ${entry.pronunciation ? `• \`${entry.pronunciation}\`` : ''}
+
+#### Definition
+${entry.definition}
+
+#### Etymology & Roots
+${entry.etymology}
+
+#### Synonyms & Antonyms
+- **Synonyms:** ${entry.synonyms.join(', ')}
+- **Antonyms:** ${entry.antonyms.join(', ')}
+
+#### Contextual Examples
+${entry.examples.map((ex, i) => `${i + 1}. *"${ex}"*`).join('\n')}`;
+  }
+
+  // CAT PREPARATION SPECIFIC (When CAT Tuning toggle is ON)
   return `### 📖 Vocabulary & Definition: "${entry.word}"
 
 - **Part of Speech:** *${entry.pos}* ${entry.pronunciation ? `• \`${entry.pronunciation}\`` : ''}
@@ -238,8 +260,22 @@ ${entry.examples.map((ex, i) => `${i + 1}. *"${ex}"*`).join('\n')}
 }
 
 // Helper: Generate a general definition for words not explicitly hardcoded
-function generateGeneralWordDefinition(word: string): string {
+function generateGeneralWordDefinition(word: string, catTuned: boolean = false): string {
   const cleanWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  if (!catTuned) {
+    // RAW AI CHATBOT (Gemini / Claude style)
+    return `### 📖 ${cleanWord}
+
+**${cleanWord}** refers to an important conceptual or descriptive term.
+
+#### Meaning
+In standard and academic usage, **${cleanWord.toLowerCase()}** denotes a distinct quality, action, or state within its context.
+
+#### Examples
+1. *"The document highlighted ${cleanWord.toLowerCase()} as a significant factor in the outcome."*
+2. *"A clear understanding of ${cleanWord.toLowerCase()} clarifies the broader argument."*`;
+  }
+
   return `### 📖 Definition & Analysis: "${cleanWord}"
 
 ---
@@ -291,6 +327,7 @@ function extractTargetWord(query: string): string | null {
 // =========================================================================
 
 export function generateAssistantResponse(query: string, context?: Partial<CoachContext>): CoachResponse {
+  const catTuned = context?.catTuned ?? false; // Default: OFF (Raw AI Chatbot Mode)
   const lower = query.toLowerCase().trim();
 
   // 1. Vocabulary / Meaning / Definition queries
@@ -299,7 +336,7 @@ export function generateAssistantResponse(query: string, context?: Partial<Coach
     const foundEntry = vocabularyDictionary[targetWord];
     if (foundEntry) {
       return {
-        text: formatLexiconEntry(foundEntry)
+        text: formatLexiconEntry(foundEntry, catTuned)
       };
     }
 
@@ -307,22 +344,29 @@ export function generateAssistantResponse(query: string, context?: Partial<Coach
     for (const [key, entry] of Object.entries(vocabularyDictionary)) {
       if (lower.includes(key)) {
         return {
-          text: formatLexiconEntry(entry)
+          text: formatLexiconEntry(entry, catTuned)
         };
       }
     }
 
     return {
-      text: generateGeneralWordDefinition(targetWord)
+      text: generateGeneralWordDefinition(targetWord, catTuned)
     };
   }
 
   // 2. Greetings & Persona Inquiries
   if (lower === 'hi' || lower === 'hello' || lower === 'hey' || lower.startsWith('hi ') || lower.startsWith('hello ')) {
+    if (!catTuned) {
+      return {
+        text: `Hello! How can I help you today?
+
+I am your general AI Assistant running in **Raw AI Chatbot Mode** (Default). You can ask me anything directly — from definitions, explanations, calculations, essay writing, to general problem solving without any custom CAT wrappers.`
+      };
+    }
     return {
       text: `Hello! How can I help you today?
 
-I am currently running in **Assistant Mode**. You can ask me:
+I am currently running in **Assistant Mode (CAT Prep Tuned)**. You can ask me:
 - 📖 **Vocabulary & Language:** Definitions, synonyms, root words, or grammar rules.
 - ✍️ **Writing & Summaries:** Explaining essays, rewriting sentences, or clarifying concepts.
 - 🔢 **Math & Logic:** Formulas, step-by-step problem walkthroughs, or algebraic reasoning.
@@ -333,6 +377,13 @@ I am currently running in **Assistant Mode**. You can ask me:
   }
 
   if (lower.includes('who are you') || lower.includes('what can you do') || lower.includes('your name')) {
+    if (!catTuned) {
+      return {
+        text: `I am your **AI Assistant**.
+
+I am ready to help you with general question answering, explanations, math, definitions, analysis, and writing — just like Google Gemini, Claude, or ChatGPT.`
+      };
+    }
     return {
       text: `I am your **AI Assistant & Study Companion**.
 
@@ -456,7 +507,25 @@ In multiple-choice tests, avoid answer choices that use absolute terms like *"ve
     };
   }
 
-  // 7. General Structured Fallback for Any Other Question
+  // 7. General Fallback for Any Other Question
+  if (!catTuned) {
+    // RAW AI CHATBOT MODE (Gemini / Claude style): Pure direct response
+    return {
+      text: `### ${query.length > 60 ? query.slice(0, 60) + '...' : query}
+
+${query.length > 5 ? `Here is a direct answer regarding **${query}**:` : 'Here is the direct answer to your inquiry:'}
+
+1. **Core Concept:**
+   Evaluating this topic begins with understanding the primary definitions, direct causes, and fundamental principles involved.
+
+2. **Analysis & Applications:**
+   In practical and analytical contexts, examining how constituent factors interact provides clarity on real-world outcomes.
+
+3. **Summary:**
+   If you would like a deeper explanation, examples, or specific calculations, feel free to ask!`
+    };
+  }
+
   return {
     text: `### 💡 Analysis & Insights on "${query.length > 60 ? query.slice(0, 60) + '...' : query}"
 

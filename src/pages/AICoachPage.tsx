@@ -40,6 +40,7 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   mode?: AIMode;
+  catTuned?: boolean;
   actionProposal?: {
     type: 'add_task' | 'revisit_mistake';
     title: string;
@@ -51,6 +52,7 @@ export interface ChatSession {
   id: string;
   title: string;
   mode: AIMode;
+  catTuned?: boolean;
   createdAt: string;
   updatedAt: string;
   messages: ChatMessage[];
@@ -75,7 +77,7 @@ export const AICoachPage: React.FC = () => {
   }, [weeklyPlans, stats.currentWeek]);
 
   // Default initial message
-  const createInitialMessage = (mode: AIMode): ChatMessage => {
+  const createInitialMessage = (mode: AIMode, catTuned: boolean = false): ChatMessage => {
     if (mode === 'coach') {
       return {
         id: 'init-coach',
@@ -85,11 +87,22 @@ export const AICoachPage: React.FC = () => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
     } else {
+      if (catTuned) {
+        return {
+          id: 'init-assistant',
+          sender: 'ai',
+          mode: 'assistant',
+          catTuned: true,
+          text: `Hello! I am your **AI Assistant (CAT Prep Tuned)**.\n\nI am ready to help you with vocabulary definitions (including RC nuances), conceptual explanations, and problem-solving specific to CAT preparation.\n\nAsk me anything! For example:\n• *"Meaning of benevolent"*\n• *"How to identify author's tone in reading comprehension"*\n• *"Difference between Permutation and Combination"*\n• *"Tips to improve reading speed with retention"*`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+      }
       return {
         id: 'init-assistant',
         sender: 'ai',
         mode: 'assistant',
-        text: `Hello! I am your **AI Assistant**.\n\nI am ready to help you with general question answering, vocabulary definitions, concept explanations, writing, and calculations — just like ChatGPT or Claude.\n\nAsk me anything! For example:\n• *"Meaning of benevolent"*\n• *"Difference between Permutation and Combination"*\n• *"How to identify author's tone in reading comprehension"*\n• *"Tips to improve reading speed with retention"*`,
+        catTuned: false,
+        text: `Hello! I am your **AI Assistant**.\n\nI am running in **Raw AI Chatbot Mode** (Default). Your prompts are sent directly without any custom CAT wrappers — just like Google Gemini or Claude.\n\nAsk me anything! For example:\n• *"Meaning of benevolent"*\n• *"Difference between Permutation and Combination"*\n• *"Write a short summary of quantum computing"*\n• *"Explain the concept of opportunity cost"*`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
     }
@@ -110,6 +123,7 @@ export const AICoachPage: React.FC = () => {
       id: `session-${Date.now()}`,
       title: 'CAT 2027 Planning & Strategy',
       mode: 'coach',
+      catTuned: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       messages: [createInitialMessage('coach')]
@@ -130,6 +144,7 @@ export const AICoachPage: React.FC = () => {
   }, [sessions, activeSessionId]);
 
   const activeMode: AIMode = activeSession?.mode || 'coach';
+  const isCatTuned: boolean = activeSession?.catTuned ?? false; // Default: OFF (Raw AI Chatbot)
 
   // Input & UI States
   const [inputMessage, setInputMessage] = useState('');
@@ -215,7 +230,8 @@ export const AICoachPage: React.FC = () => {
     fullText: string,
     actionProposal: ChatMessage['actionProposal'] | undefined,
     aiMsgId: string,
-    targetSessionId: string
+    targetSessionId: string,
+    responseCatTuned?: boolean
   ) => {
     setIsThinking(false);
     setIsStreaming(true);
@@ -234,6 +250,7 @@ export const AICoachPage: React.FC = () => {
       id: aiMsgId,
       sender: 'ai',
       mode: activeMode,
+      catTuned: activeMode === 'assistant' ? (responseCatTuned ?? isCatTuned) : undefined,
       text: '',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
@@ -289,6 +306,28 @@ export const AICoachPage: React.FC = () => {
     }, tickMs);
   };
 
+  // Toggle CAT-specific tuning in Assistant mode (Default is OFF)
+  const handleToggleCatTuned = (enabled: boolean) => {
+    if (isStreaming) handleStopStreaming();
+    setSessions((prev) =>
+      prev.map((s) => {
+        if (s.id === activeSessionId) {
+          const isInitialOnly = s.messages.length <= 1;
+          const updatedMessages = isInitialOnly
+            ? [createInitialMessage(s.mode, enabled)]
+            : s.messages;
+          return {
+            ...s,
+            catTuned: enabled,
+            updatedAt: new Date().toISOString(),
+            messages: updatedMessages
+          };
+        }
+        return s;
+      })
+    );
+  };
+
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -307,7 +346,7 @@ export const AICoachPage: React.FC = () => {
           // If session has only the default initial message, swap it
           const isInitialOnly = s.messages.length <= 1;
           const updatedMessages = isInitialOnly
-            ? [createInitialMessage(newMode)]
+            ? [createInitialMessage(newMode, s.catTuned ?? false)]
             : s.messages;
           return {
             ...s,
@@ -326,11 +365,12 @@ export const AICoachPage: React.FC = () => {
     if (isStreaming) handleStopStreaming();
     const newSession: ChatSession = {
       id: `session-${Date.now()}`,
-      title: mode === 'coach' ? 'New CAT Study Chat' : 'New Q&A Chat',
+      title: mode === 'coach' ? 'New CAT Study Chat' : (isCatTuned ? 'New CAT Q&A Chat' : 'New Raw AI Chat'),
       mode,
+      catTuned: mode === 'assistant' ? isCatTuned : false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      messages: [createInitialMessage(mode)]
+      messages: [createInitialMessage(mode, mode === 'assistant' ? isCatTuned : false)]
     };
     setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
@@ -439,11 +479,12 @@ export const AICoachPage: React.FC = () => {
               message: text.trim(),
               history: historyPayload,
               mode: activeMode,
-              context: {
+              catTuned: isCatTuned,
+              context: activeMode === 'coach' || isCatTuned ? {
                 stats,
                 currentPhase: stats.currentPhase,
                 weakestTopics: weakTopics.slice(0, 5)
-              }
+              } : {}
             }
           });
 
@@ -453,7 +494,7 @@ export const AICoachPage: React.FC = () => {
             data.reply.includes('Recommended Daily Blueprint for Week');
 
           if (!error && data && data.reply && !isCanned) {
-            startStreamingResponse(data.reply, undefined, `ai-${Date.now()}`, activeSessionId);
+            startStreamingResponse(data.reply, undefined, `ai-${Date.now()}`, activeSessionId, isCatTuned);
             return;
           }
         } catch (edgeErr) {
@@ -468,7 +509,8 @@ export const AICoachPage: React.FC = () => {
           stats,
           weakTopics,
           activePlan,
-          mode: 'assistant'
+          mode: 'assistant',
+          catTuned: isCatTuned
         });
       } else {
         responseResult = generateCoachResponse(text, {
@@ -486,7 +528,8 @@ export const AICoachPage: React.FC = () => {
         responseResult.text,
         responseResult.actionProposal,
         `ai-${Date.now()}`,
-        activeSessionId
+        activeSessionId,
+        isCatTuned
       );
     } catch (e) {
       console.error('Error generating AI response:', e);
@@ -517,14 +560,26 @@ export const AICoachPage: React.FC = () => {
     { title: 'Euler\'s Totient & Remainders', desc: 'Derivation, formulas, and shortcut applications', query: 'Explain Euler\'s Totient theorem and remainders for CAT Quant' }
   ];
 
-  const assistantSuggestions = [
-    { title: 'Meaning of "Benevolent"', desc: 'Definition, root words, synonyms, antonyms & RC nuance', query: 'Meaning of benevolent' },
-    { title: 'Author\'s Tone in RC', desc: 'How to detect cynical, skeptical, or pragmatic tone', query: 'How to identify author\'s tone and eliminate extreme options in RC' },
-    { title: 'Permutation vs Combination', desc: 'Intuitive differences, formulas, and real examples', query: 'Difference between permutation and combination with intuitive examples' },
-    { title: 'Read Faster with Retention', desc: 'Eliminate subvocalization and trace topic sentences', query: 'Give me 4 techniques to read faster with high retention' }
+  const assistantRawSuggestions = [
+    { title: 'Meaning of "Benevolent"', desc: 'Definition, etymology, synonyms, antonyms & usage examples', query: 'Meaning of benevolent' },
+    { title: 'Permutation vs Combination', desc: 'Core difference, mathematical formulas, and intuitive example', query: 'Difference between permutation and combination with intuitive examples' },
+    { title: 'Author\'s Tone & Central Idea', desc: 'How to find the thesis and identify tone categories', query: 'How to identify author\'s tone and central idea in reading comprehension' },
+    { title: 'Techniques to Read Faster', desc: 'Eliminate subvocalization and stop regressions', query: 'Give me 4 techniques to read faster with high retention' }
   ];
 
-  const activeSuggestions = activeMode === 'coach' ? coachSuggestions : assistantSuggestions;
+  const assistantCatSuggestions = [
+    { title: 'Meaning of "Benevolent" (RC Nuance)', desc: 'Definition, root words, synonyms, antonyms & CAT RC nuance', query: 'Meaning of benevolent' },
+    { title: 'Author\'s Tone in CAT RC', desc: 'How to detect cynical, skeptical, or pragmatic tone & avoid extreme traps', query: 'How to identify author\'s tone and eliminate extreme options in RC' },
+    { title: 'CAT Permutation vs Combination', desc: 'Formulas, test-taking shortcuts, and question selection rules', query: 'Difference between permutation and combination with intuitive examples' },
+    { title: 'CAT Reading Speed & Retention', desc: '1-sentence paragraph summary and active comprehension anchor', query: 'Give me 4 techniques to read faster with high retention' }
+  ];
+
+  const activeSuggestions =
+    activeMode === 'coach'
+      ? coachSuggestions
+      : isCatTuned
+      ? assistantCatSuggestions
+      : assistantRawSuggestions;
 
   return (
     <div className="flex h-[calc(100vh-6.5rem)] rounded-3xl glass-regular border border-border/80 overflow-hidden shadow-2xl relative select-none">
@@ -599,6 +654,41 @@ export const AICoachPage: React.FC = () => {
               <span className="text-[9px] font-normal opacity-80 mt-0.5">General Q&A</span>
             </button>
           </div>
+
+          {/* If Assistant Mode: CAT Specific Tuning Toggle */}
+          {activeMode === 'assistant' && (
+            <div className="p-2.5 rounded-xl glass-thin border border-border/60 mt-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <Target className="h-3 w-3 text-emerald-600" /> CAT Tuning
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isCatTuned}
+                  onClick={() => handleToggleCatTuned(!isCatTuned)}
+                  className={cn(
+                    'relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden',
+                    isCatTuned ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
+                  )}
+                  title={isCatTuned ? 'Turn OFF for raw AI chatbot' : 'Turn ON for CAT-specific preparation mode'}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out',
+                      isCatTuned ? 'translate-x-3.5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                {isCatTuned
+                  ? 'CAT Mode ON: Includes RC nuances & exam strategies.'
+                  : 'CAT Mode OFF (Default): Raw AI chatbot without custom prompt wrappers.'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Saved Conversations List */}
@@ -630,7 +720,7 @@ export const AICoachPage: React.FC = () => {
                   <div className="truncate flex-1">
                     <span className="truncate block">{s.title}</span>
                     <span className="text-[10px] font-mono opacity-70 block">
-                      {s.mode === 'coach' ? '🎓 Coach' : '⚡ Assistant'} • {s.messages.length} msgs
+                      {s.mode === 'coach' ? '🎓 Coach' : (s.catTuned ? '⚡ Assistant (CAT)' : '⚡ Assistant (Raw)')} • {s.messages.length} msgs
                     </span>
                   </div>
                 </div>
@@ -704,62 +794,132 @@ export const AICoachPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Mode Switcher Segmented Pills */}
-          <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-200/60 dark:bg-slate-900/60 border border-border/60">
-            <button
-              type="button"
-              onClick={() => handleSwitchMode('coach')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer',
-                activeMode === 'coach'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-              title="Switch to Coach Mode (CAT 2027 Planning, Syllabus Pacing & Strategy)"
-            >
-              <Target className="h-3.5 w-3.5" />
-              <span>Coach Mode</span>
-            </button>
+          {/* Mode Switcher Segmented Pills & Assistant Tuning Toggle */}
+          <div className="flex items-center gap-2">
+            {activeMode === 'assistant' && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full glass-thin border border-border/70 text-xs shadow-2xs">
+                <span className="text-[11px] font-semibold text-foreground hidden sm:inline">
+                  CAT Specific:
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isCatTuned}
+                  onClick={() => handleToggleCatTuned(!isCatTuned)}
+                  className={cn(
+                    'relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden',
+                    isCatTuned ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
+                  )}
+                  title={isCatTuned ? 'CAT-Specific Assistant is ON. Click to turn OFF for raw Gemini response.' : 'Raw AI Chatbot is ON (Default). Click to turn ON for CAT-specific tuning.'}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out',
+                      isCatTuned ? 'translate-x-3.5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+                <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md tabular-nums', isCatTuned ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-800 text-muted-foreground')}>
+                  {isCatTuned ? 'ON' : 'OFF'}
+                </span>
+              </div>
+            )}
 
-            <button
-              type="button"
-              onClick={() => handleSwitchMode('assistant')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer',
-                activeMode === 'assistant'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-              title="Switch to Assistant Mode (General Q&A, Definitions, Chatbot & Reasoning)"
-            >
-              <Zap className="h-3.5 w-3.5" />
-              <span>Assistant Mode</span>
-            </button>
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-200/60 dark:bg-slate-900/60 border border-border/60">
+              <button
+                type="button"
+                onClick={() => handleSwitchMode('coach')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer',
+                  activeMode === 'coach'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Switch to Coach Mode (CAT 2027 Planning, Syllabus Pacing & Strategy)"
+              >
+                <Target className="h-3.5 w-3.5" />
+                <span>Coach Mode</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSwitchMode('assistant')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer',
+                  activeMode === 'assistant'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Switch to Assistant Mode (General Q&A, Definitions, Chatbot & Reasoning)"
+              >
+                <Zap className="h-3.5 w-3.5" />
+                <span>Assistant Mode</span>
+              </button>
+            </div>
           </div>
         </header>
 
         {/* Mode Information Banner */}
-        <div className="px-4 py-1.5 border-b border-border/30 bg-card/40 text-[11px] text-muted-foreground flex items-center justify-between">
-          <span className="flex items-center gap-1.5 truncate">
-            {activeMode === 'coach' ? (
-              <>
+        <div className="px-4 py-2 border-b border-border/30 bg-card/40 text-[11px] text-muted-foreground flex flex-wrap items-center justify-between gap-2">
+          {activeMode === 'coach' ? (
+            <>
+              <span className="flex items-center gap-1.5 truncate">
                 <Target className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                 <span className="truncate">
                   <strong>Coach Mode:</strong> Tailored to CAT 2027 planning, 53 syllabus topics, weekly targets, weak areas, and mock strategy.
                 </span>
-              </>
-            ) : (
-              <>
+              </span>
+              <span className="text-[10px] font-mono shrink-0 pl-2">
+                Week {stats.currentWeek} • {stats.daysRemaining}d to CAT
+              </span>
+            </>
+          ) : (
+            <div className="flex items-center justify-between w-full gap-2">
+              <div className="flex items-center gap-2 truncate flex-1 min-w-0">
                 <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                 <span className="truncate">
-                  <strong>Assistant Mode:</strong> General AI chatbot for questions, word meanings (e.g. <em>Meaning of benevolent</em>), grammar, math, and writing.
+                  {isCatTuned ? (
+                    <>
+                      <strong>Assistant Mode (CAT Prep Specific):</strong> Activated with Reading Comprehension nuances, root words, and CAT exam guidance.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Assistant Mode (Raw Gemini Chatbot • Default):</strong> Raw prompt sent directly without custom wrappers, exactly like Google Gemini.
+                    </>
+                  )}
                 </span>
-              </>
-            )}
-          </span>
-          <span className="text-[10px] font-mono shrink-0 pl-2">
-            Week {stats.currentWeek} • {stats.daysRemaining}d to CAT
-          </span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 pl-2">
+                <span className="text-[10px] font-medium text-muted-foreground hidden sm:inline">
+                  CAT Prep Tuning:
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isCatTuned}
+                  onClick={() => handleToggleCatTuned(!isCatTuned)}
+                  className={cn(
+                    'relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden',
+                    isCatTuned ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
+                  )}
+                  title={isCatTuned ? 'Turn OFF for raw AI chatbot' : 'Turn ON for CAT-specific preparation mode'}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out',
+                      isCatTuned ? 'translate-x-3.5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+                <span className={cn('text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded', isCatTuned ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-800 text-muted-foreground')}>
+                  {isCatTuned ? 'CAT ON' : 'RAW OFF'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Messages Stream Container */}
@@ -773,12 +933,18 @@ export const AICoachPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-foreground">
-                    {activeMode === 'coach' ? 'How can I guide your CAT preparation today?' : 'How can I assist you today?'}
+                    {activeMode === 'coach'
+                      ? 'How can I guide your CAT preparation today?'
+                      : isCatTuned
+                      ? 'How can I assist your CAT preparation today?'
+                      : 'How can I assist you today? (Raw AI Chatbot)'}
                   </h2>
                   <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
                     {activeMode === 'coach'
                       ? 'Ask about weekly pacing, formulas, weak topics, or mock test post-mortem analysis.'
-                      : 'Ask any question, vocabulary definitions, conceptual proofs, essay writing, or general problem solving.'}
+                      : isCatTuned
+                      ? 'Running in CAT-specific mode. Ask about vocabulary with RC nuances, author\'s tone, or concept explanations.'
+                      : 'Running in Raw AI Chatbot Mode (Default). Prompts are sent directly without custom wrappers — just like Google Gemini or Claude.'}
                   </p>
                 </div>
 
@@ -840,9 +1006,15 @@ export const AICoachPage: React.FC = () => {
                         <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/40 text-[10px] text-muted-foreground">
                           <span className="font-semibold text-foreground/80 flex items-center gap-1">
                             {m.mode === 'assistant' ? (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">⚡ AI Assistant</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                <Zap className="h-3 w-3" />
+                                {m.catTuned ? 'AI Assistant (CAT Specific)' : 'AI Assistant (Raw Gemini Mode)'}
+                              </span>
                             ) : (
-                              <span className="text-blue-600 dark:text-blue-400 font-bold">🎓 AI Study Coach</span>
+                              <span className="text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
+                                <Target className="h-3 w-3" />
+                                AI Study Coach
+                              </span>
                             )}
                           </span>
                           <button
@@ -974,7 +1146,9 @@ export const AICoachPage: React.FC = () => {
                   'h-8 px-2.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-colors',
                   activeMode === 'coach'
                     ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300'
-                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                    : isCatTuned
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                    : 'bg-emerald-100/70 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
                 )}
                 title="Click to toggle between Coach Mode and Assistant Mode"
               >
@@ -986,7 +1160,7 @@ export const AICoachPage: React.FC = () => {
                 ) : (
                   <>
                     <Zap className="h-3 w-3" />
-                    <span>Assistant</span>
+                    <span>{isCatTuned ? 'Assistant (CAT)' : 'Assistant (Raw)'}</span>
                   </>
                 )}
               </button>
@@ -1008,7 +1182,9 @@ export const AICoachPage: React.FC = () => {
                   placeholder={
                     activeMode === 'coach'
                       ? 'Ask about CAT strategy, study pacing, formulas, weak areas, mock analysis...'
-                      : 'Ask anything... definitions (e.g. "Meaning of benevolent"), explanations, calculations, Q&A...'
+                      : isCatTuned
+                      ? 'Ask anything with CAT preparation tuning (e.g. "Meaning of benevolent with RC nuance")...'
+                      : 'Ask anything raw... send direct prompt without custom wrappers (e.g. "Meaning of benevolent")...'
                   }
                   className="w-full text-xs min-h-[38px] max-h-[160px] py-2 px-2 bg-transparent text-foreground placeholder:text-muted-foreground outline-none resize-none leading-relaxed transition-[height]"
                 />
