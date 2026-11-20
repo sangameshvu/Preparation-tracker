@@ -186,16 +186,26 @@ Provide clear explanations, definitions, and problem-solving steps, while emphas
       const lower = message.toLowerCase();
 
       if (isRawAssistant) {
-        // Raw AI Chatbot fallback: Direct answer without CAT wrappers
-        reply = `### Direct Answer regarding "${message.length > 50 ? message.slice(0, 50) + '...' : message}"
+        // Raw AI Chatbot: Direct conversational responses without robotic templates
+        if (
+          lower.includes('what are you') ||
+          lower.includes('who are you') ||
+          lower.includes('what can you do') ||
+          lower.includes('your name') ||
+          lower.includes('who created you')
+        ) {
+          reply = `I am **Gemini**, a large language model trained by Google.
 
-Here is a direct, clear response to your question:
+I can help answer questions, brainstorm ideas, write content, solve math problems, explain concepts, and assist with your studies.
 
-1. **Core Concept:** When addressing **${message}**, the primary focus is understanding the foundational definitions, direct causes, and standard principles involved.
-2. **Key Nuance:** In general analysis, breaking down the core premise into smaller verifiable components helps ensure clarity and accuracy.
-3. **Application:** Practical applications depend on the verified context and specific requirements of your problem.
+How can I help you today?`;
+        } else {
+          reply = `I understand your question regarding "${message.trim()}".
 
-*Feel free to ask for additional details, step-by-step calculations, or alternative explanations!*`;
+To get live real-time generative responses directly from Google Gemini, connect your free Gemini API key using the **Connect Gemini API Key** button in the top navigation bar.
+
+In offline mode, feel free to ask about math formulas (permutations, probability, algebra), reading comprehension tone analysis, vocabulary definitions, or critical reasoning!`;
+        }
       } else {
         const currentWeek = context.stats?.currentWeek || 1;
         const overdueMistakes = context.stats?.overdueMistakesCount || 0;

@@ -376,12 +376,22 @@ I am currently running in **Assistant Mode (CAT Prep Tuned)**. You can ask me:
     };
   }
 
-  if (lower.includes('who are you') || lower.includes('what can you do') || lower.includes('your name')) {
+  if (
+    lower.includes('who are you') ||
+    lower.includes('what are you') ||
+    lower.includes('what can you do') ||
+    lower.includes('your name') ||
+    lower.includes('who created you') ||
+    lower.includes('who made you') ||
+    lower.includes('what model')
+  ) {
     if (!catTuned) {
       return {
-        text: `I am your **AI Assistant**.
+        text: `I am **Gemini**, a large language model trained by Google.
 
-I am ready to help you with general question answering, explanations, math, definitions, analysis, and writing — just like Google Gemini, Claude, or ChatGPT.`
+I can help you answer questions, brainstorm ideas, write and edit text, explain complex concepts, solve math and logic problems, and assist with your studies.
+
+How can I help you today?`
       };
     }
     return {
@@ -511,39 +521,32 @@ In multiple-choice tests, avoid answer choices that use absolute terms like *"ve
   if (!catTuned) {
     // RAW AI CHATBOT MODE (Gemini / Claude style): Pure direct response
     return {
-      text: `### ${query.length > 60 ? query.slice(0, 60) + '...' : query}
+      text: `Regarding **${query.trim()}**:
 
-${query.length > 5 ? `Here is a direct answer regarding **${query}**:` : 'Here is the direct answer to your inquiry:'}
+To get live, open-ended real-time generative responses directly from Google Gemini for any question, connect your free Gemini API key using the **🔑 Connect Gemini API Key** button in the top navigation bar.
 
-1. **Core Concept:**
-   Evaluating this topic begins with understanding the primary definitions, direct causes, and fundamental principles involved.
+In offline mode, I can provide instant breakdowns for:
+- **Math & Quantitative Aptitude:** Permutations vs Combinations, Probability, Percentages, Ratios, Speed & Work formulas.
+- **Reading Comprehension & Verbal Ability:** Author's tone identification, locating the central idea, reading speed drills.
+- **Critical Reasoning:** Inductive vs Deductive logic, identifying underlying assumptions.
+- **Vocabulary:** Comprehensive definitions, roots, synonyms, and examples for high-frequency CAT words (e.g., *benevolent*, *ephemeral*, *pragmatic*, *ubiquitous*, *tenacious*).
 
-2. **Analysis & Applications:**
-   In practical and analytical contexts, examining how constituent factors interact provides clarity on real-world outcomes.
-
-3. **Summary:**
-   If you would like a deeper explanation, examples, or specific calculations, feel free to ask!`
+Try asking about any of these topics, or connect your key above for full unrestricted Gemini chatting!`
     };
   }
 
   return {
-    text: `### 💡 Analysis & Insights on "${query.length > 60 ? query.slice(0, 60) + '...' : query}"
+    text: `### 🎯 CAT Preparation Note on "${query.length > 60 ? query.slice(0, 60) + '...' : query}"
 
-Here is a direct, structured response to your question:
+In the CAT exam context, questions related to this subject typically test analytical precision and conceptual clarity.
 
-#### Key Takeaway
-${query.length > 5 ? `Addressing the core inquiry regarding **${query}** involves evaluating the primary principles, underlying context, and practical applications.` : 'Here is the conceptual breakdown of your inquiry:'}
+To unlock full live generative AI responses directly from Google Gemini for any open-ended question, connect your free Gemini API key using the **🔑 Connect Gemini API Key** button in the top navigation bar.
 
-1. **Foundational Concept:**
-   - In any critical analysis, clearly identify the assumptions and definitions involved before drawing inferences.
-   - Breaking the problem into smaller constituent parts helps eliminate cognitive bias and structural confusion.
+**Available Offline Core Modules:**
+1. **VARC:** High-frequency vocabulary definitions, Reading Comprehension tone detection, Root-word etymology.
+2. **QA & DILR:** Combinatorics, Ratios, Speed Math, and Deductive Logic principles.
 
-2. **Practical Application:**
-   - When approaching this scenario, look for tangible examples or counterexamples to test the validity of the premise.
-   - Ensure conclusions follow directly from verified evidence rather than unstated assumptions.
-
-3. **Follow-Up Ideas:**
-   - Would you like a deeper breakdown of a specific sub-topic, related examples, or a practical problem set? Feel free to ask!`
+What specific area would you like to explore?`
   };
 }
 

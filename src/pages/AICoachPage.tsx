@@ -25,7 +25,12 @@ import {
   HelpCircle,
   Clock,
   RotateCcw,
-  Square
+  Square,
+  Key,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  X
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -154,6 +159,61 @@ export const AICoachPage: React.FC = () => {
   const [streamingText, setStreamingText] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Gemini Direct API Key Integration
+  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
+    return localStorage.getItem('catcrack_gemini_api_key') || (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
+  });
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [tempKeyInput, setTempKeyInput] = useState('');
+  const [showApiKeyText, setShowApiKeyText] = useState(false);
+  const [keyTestStatus, setKeyTestStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
+  const [keyTestError, setKeyTestError] = useState<string>('');
+
+  const testAndSaveApiKey = async (keyToSave: string) => {
+    const cleanKey = keyToSave.trim();
+    if (!cleanKey) {
+      setGeminiApiKey('');
+      localStorage.removeItem('catcrack_gemini_api_key');
+      setKeyTestStatus('idle');
+      setIsKeyModalOpen(false);
+      return;
+    }
+
+    setKeyTestStatus('testing');
+    setKeyTestError('');
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(cleanKey)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Hello' }] }]
+          })
+        }
+      );
+
+      if (res.ok) {
+        setGeminiApiKey(cleanKey);
+        localStorage.setItem('catcrack_gemini_api_key', cleanKey);
+        setKeyTestStatus('valid');
+        setTimeout(() => {
+          setIsKeyModalOpen(false);
+          setKeyTestStatus('idle');
+        }, 800);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData.error?.message || `HTTP ${res.status}: Verification failed`;
+        setKeyTestStatus('invalid');
+        setKeyTestError(errMsg);
+      }
+    } catch (e: any) {
+      setKeyTestStatus('invalid');
+      setKeyTestError(e?.message || 'Network error verifying key.');
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -466,6 +526,96 @@ export const AICoachPage: React.FC = () => {
     setIsThinking(true);
 
     try {
+      // 0. Direct Google Gemini Live API (Browser REST with CORS support)
+      const activeGeminiKey = geminiApiKey.trim();
+      if (activeGeminiKey) {
+        try {
+          const historyPayload = activeSession.messages.slice(-8).map((m) => ({
+            role: m.sender === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+          }));
+
+          const isRawAssistant = activeMode === 'assistant' && !isCatTuned;
+          let requestPayload: any;
+
+          if (isRawAssistant) {
+            // RAW GEMINI MODE: Send exact user prompt with ZERO custom wrapper or system prompt!
+            requestPayload = {
+              contents: [
+                ...historyPayload,
+                { role: 'user', parts: [{ text: text.trim() }] }
+              ],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2048
+              }
+            };
+          } else if (activeMode === 'assistant' && isCatTuned) {
+            // CAT-Tuned Assistant Mode: Emphasize RC nuance, vocabulary roots, and CAT relevance
+            requestPayload = {
+              systemInstruction: {
+                parts: [{ text: 'You are an AI Study Assistant customized specifically for CAT preparation. Provide clear explanations, definitions, and problem-solving steps, while emphasizing CAT Reading Comprehension nuances, root words, tone analysis, and exam relevance.' }]
+              },
+              contents: [
+                ...historyPayload,
+                { role: 'user', parts: [{ text: text.trim() }] }
+              ],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2048
+              }
+            };
+          } else {
+            // Coach Mode: CAT 2027 Strategic Mentor
+            requestPayload = {
+              systemInstruction: {
+                parts: [{ text: `You are the dedicated CAT 2027 AI Preparation Coach & Strategy Mentor for a serious CAT 2027 aspirant. Ground advice strictly in the CAT 2027 blueprint. Focus on syllabus pacing, weak areas, mocks, and active recall.` }]
+              },
+              contents: [
+                ...historyPayload,
+                { role: 'user', parts: [{ text: text.trim() }] }
+              ],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2048
+              }
+            };
+          }
+
+          // Try Gemini 2.5 Flash, fallback to Gemini 1.5 Flash
+          let geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestPayload)
+            }
+          );
+
+          if (!geminiRes.ok) {
+            geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestPayload)
+              }
+            );
+          }
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const rawGeminiText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawGeminiText && rawGeminiText.trim()) {
+              startStreamingResponse(rawGeminiText, undefined, `ai-${Date.now()}`, activeSessionId, isCatTuned);
+              return;
+            }
+          }
+        } catch (geminiCallErr) {
+          console.warn('Direct Gemini API request encountered error, falling back:', geminiCallErr);
+        }
+      }
+
       // 1. If Supabase is configured and connected, attempt live edge function
       if (isSupabaseConfigured && supabase) {
         try {
@@ -857,8 +1007,56 @@ export const AICoachPage: React.FC = () => {
                 <span>Assistant Mode</span>
               </button>
             </div>
+
+            {/* Gemini Live API Key Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setTempKeyInput(geminiApiKey);
+                setKeyTestStatus('idle');
+                setKeyTestError('');
+                setIsKeyModalOpen(true);
+              }}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer',
+                geminiApiKey
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/25'
+                  : 'bg-primary-500/15 text-primary-600 dark:text-primary-400 border-primary-500/40 hover:bg-primary-500/25 animate-pulse'
+              )}
+              title={geminiApiKey ? 'Google Gemini API Connected (Click to manage)' : 'Connect your free Google Gemini API Key for live raw responses'}
+            >
+              <Key className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {geminiApiKey ? 'Gemini Live' : 'Connect Gemini API'}
+              </span>
+              <span className={cn('h-1.5 w-1.5 rounded-full', geminiApiKey ? 'bg-emerald-500' : 'bg-primary-500 animate-ping')} />
+            </button>
           </div>
         </header>
+
+        {/* Gemini API Key Banner if not connected */}
+        {!geminiApiKey && (
+          <div className="mx-4 mt-2 px-3 py-2 rounded-xl bg-primary-500/10 border border-primary-500/25 flex items-center justify-between text-xs text-foreground shadow-2xs">
+            <div className="flex items-center gap-2 truncate">
+              <Sparkles className="w-4 h-4 text-primary-500 shrink-0" />
+              <span className="truncate">
+                Want 100% raw, live AI responses straight from Google Gemini? Connect your free API key in 10 seconds.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setTempKeyInput('');
+                setKeyTestStatus('idle');
+                setKeyTestError('');
+                setIsKeyModalOpen(true);
+              }}
+              className="px-2.5 py-1 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-[11px] shrink-0 ml-2 transition-colors cursor-pointer"
+            >
+              Connect Key (Free)
+            </button>
+          </div>
+        )}
 
         {/* Mode Information Banner */}
         <div className="px-4 py-2 border-b border-border/30 bg-card/40 text-[11px] text-muted-foreground flex flex-wrap items-center justify-between gap-2">
@@ -1202,14 +1400,143 @@ export const AICoachPage: React.FC = () => {
 
             <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1">
               <span className="flex items-center gap-1 font-medium">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                <span>Client-side diagnostic & language engine (100% private)</span>
+                {geminiApiKey ? (
+                  <>
+                    <Zap className="h-3 w-3 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Live Google Gemini 2.5 Flash Connected</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-3 w-3 text-blue-600" />
+                    <span>Client-side pedagogical & language engine (100% private)</span>
+                  </>
+                )}
               </span>
               <span>Enter to send • Shift+Enter for newline</span>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Gemini API Key Management Modal */}
+      {isKeyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in duration-150">
+          <div className="glass-panel w-full max-w-md p-6 rounded-2xl border border-border/80 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setIsKeyModalOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-400">
+                <Key className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-foreground">Google Gemini API Key</h3>
+                <p className="text-xs text-muted-foreground">Get 100% raw responses directly from official Gemini models</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div className="p-3 rounded-xl bg-secondary/50 border border-border/60 space-y-2">
+                <p className="font-medium text-foreground">How to get your free Gemini API key (no credit card):</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>
+                    Visit{' '}
+                    <a
+                      href="https://aistudio.google.com/app/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 dark:text-primary-400 font-semibold underline inline-flex items-center gap-0.5"
+                    >
+                      Google AI Studio <ExternalLink className="w-3 h-3 inline" />
+                    </a>
+                  </li>
+                  <li>Sign in with your Google account and click <strong>"Create API Key"</strong></li>
+                  <li>Paste the key below and click <strong>"Save & Connect"</strong></li>
+                </ol>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-foreground">Your Gemini API Key</label>
+                <div className="relative">
+                  <input
+                    type={showApiKeyText ? 'text' : 'password'}
+                    value={tempKeyInput}
+                    onChange={(e) => setTempKeyInput(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full px-3 py-2 pr-10 rounded-xl bg-background/80 border border-border/80 text-foreground font-mono text-xs focus:outline-hidden focus:ring-2 focus:ring-primary-500/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKeyText(!showApiKeyText)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                  >
+                    {showApiKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Your key is stored securely in your browser's local storage and used only to communicate directly with Google's API.</p>
+              </div>
+
+              {keyTestStatus === 'testing' && (
+                <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1.5 animate-pulse font-medium">
+                  <Clock className="w-3.5 h-3.5" /> Validating key with Google Gemini API...
+                </div>
+              )}
+
+              {keyTestStatus === 'valid' && (
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-semibold">
+                  <Check className="w-3.5 h-3.5" /> Key verified successfully! Connecting...
+                </div>
+              )}
+
+              {keyTestStatus === 'invalid' && (
+                <div className="text-xs text-red-500 flex items-start gap-1.5 font-medium">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{keyTestError || 'Invalid API key or network error. Please verify the key.'}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2">
+                {geminiApiKey ? (
+                  <button
+                    type="button"
+                    onClick={() => testAndSaveApiKey('')}
+                    className="text-xs text-red-500 hover:text-red-600 font-semibold px-2 py-1 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Disconnect Key
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsKeyModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={keyTestStatus === 'testing'}
+                    onClick={() => testAndSaveApiKey(tempKeyInput)}
+                    className="bg-primary-600 hover:bg-primary-700 text-white"
+                  >
+                    {keyTestStatus === 'testing' ? 'Verifying...' : 'Save & Connect'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
