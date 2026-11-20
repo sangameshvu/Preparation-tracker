@@ -187,7 +187,15 @@ Provide clear explanations, definitions, and problem-solving steps, while emphas
 
       if (isRawAssistant) {
         // Raw AI Chatbot: Direct conversational responses without robotic templates
-        if (
+        const greetingWords = ['hi', 'hello', 'hey', 'hii', 'hiii', 'heyy', 'hola', 'sup', 'yo', 'greetings'];
+        const isGreeting = greetingWords.includes(lower) || greetingWords.some(g => lower.startsWith(g + ' ') || lower.startsWith(g + '!'));
+        if (isGreeting) {
+          reply = `Hi! How are you? I am Gemini, your AI assistant. How can I help you today?`;
+        } else if (lower.includes('how are you') || lower.includes("how's it going")) {
+          reply = `I'm doing great, thank you for asking! How are you doing today? How can I help you?`;
+        } else if (lower.includes('thanks') || lower.includes('thank you')) {
+          reply = `You're very welcome! Let me know if you need anything else.`;
+        } else if (
           lower.includes('what are you') ||
           lower.includes('who are you') ||
           lower.includes('what can you do') ||
@@ -196,13 +204,13 @@ Provide clear explanations, definitions, and problem-solving steps, while emphas
         ) {
           reply = `I am **Gemini**, a large language model trained by Google.
 
-I can help answer questions, brainstorm ideas, write content, solve math problems, explain concepts, and assist with your studies.
+I can help answer questions, brainstorm ideas, write content, solve math problems, explain concepts, and assist with your everyday tasks.
 
 How can I help you today?`;
         } else {
           reply = `I understand your question regarding "${message.trim()}".
 
-To get live real-time generative responses directly from Google Gemini, connect your free Gemini API key using the **Connect Gemini API Key** button in the top navigation bar.
+To get live real-time generative responses directly from Google Gemini, connect your free Gemini API key using the **Connect Gemini API** button in the top navigation bar.
 
 In offline mode, feel free to ask about math formulas (permutations, probability, algebra), reading comprehension tone analysis, vocabulary definitions, or critical reasoning!`;
         }

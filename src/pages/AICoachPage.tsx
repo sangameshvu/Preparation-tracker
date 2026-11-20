@@ -530,10 +530,33 @@ export const AICoachPage: React.FC = () => {
       const activeGeminiKey = geminiApiKey.trim();
       if (activeGeminiKey) {
         try {
-          const historyPayload = activeSession.messages.slice(-8).map((m) => ({
-            role: m.sender === 'user' ? 'user' : 'model',
-            parts: [{ text: m.text }]
-          }));
+          // Format contents strictly according to Google Gemini REST API requirements:
+          // 1. Must alternate between 'user' and 'model'
+          // 2. First element MUST be 'user'
+          const geminiContents: Array<{ role: 'user' | 'model'; parts: [{ text: string }] }> = [];
+          for (const m of activeSession.messages.slice(-8)) {
+            const role = m.sender === 'user' ? ('user' as const) : ('model' as const);
+            if (geminiContents.length === 0 && role !== 'user') continue;
+            if (geminiContents.length > 0 && geminiContents[geminiContents.length - 1].role === role) continue;
+            if (m.text && m.text.trim()) {
+              geminiContents.push({
+                role,
+                parts: [{ text: m.text.trim() }]
+              });
+            }
+          }
+
+          if (geminiContents.length > 0 && geminiContents[geminiContents.length - 1].role === 'user') {
+            geminiContents[geminiContents.length - 1] = {
+              role: 'user',
+              parts: [{ text: text.trim() }]
+            };
+          } else {
+            geminiContents.push({
+              role: 'user',
+              parts: [{ text: text.trim() }]
+            });
+          }
 
           const isRawAssistant = activeMode === 'assistant' && !isCatTuned;
           let requestPayload: any;
@@ -541,10 +564,7 @@ export const AICoachPage: React.FC = () => {
           if (isRawAssistant) {
             // RAW GEMINI MODE: Send exact user prompt with ZERO custom wrapper or system prompt!
             requestPayload = {
-              contents: [
-                ...historyPayload,
-                { role: 'user', parts: [{ text: text.trim() }] }
-              ],
+              contents: geminiContents,
               generationConfig: {
                 temperature: 0.7,
                 maxOutputTokens: 2048
@@ -556,10 +576,7 @@ export const AICoachPage: React.FC = () => {
               systemInstruction: {
                 parts: [{ text: 'You are an AI Study Assistant customized specifically for CAT preparation. Provide clear explanations, definitions, and problem-solving steps, while emphasizing CAT Reading Comprehension nuances, root words, tone analysis, and exam relevance.' }]
               },
-              contents: [
-                ...historyPayload,
-                { role: 'user', parts: [{ text: text.trim() }] }
-              ],
+              contents: geminiContents,
               generationConfig: {
                 temperature: 0.7,
                 maxOutputTokens: 2048
@@ -571,10 +588,7 @@ export const AICoachPage: React.FC = () => {
               systemInstruction: {
                 parts: [{ text: `You are the dedicated CAT 2027 AI Preparation Coach & Strategy Mentor for a serious CAT 2027 aspirant. Ground advice strictly in the CAT 2027 blueprint. Focus on syllabus pacing, weak areas, mocks, and active recall.` }]
               },
-              contents: [
-                ...historyPayload,
-                { role: 'user', parts: [{ text: text.trim() }] }
-              ],
+              contents: geminiContents,
               generationConfig: {
                 temperature: 0.7,
                 maxOutputTokens: 2048

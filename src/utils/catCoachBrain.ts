@@ -295,7 +295,7 @@ In standard and academic usage, **${cleanWord.toLowerCase()}** denotes a distinc
 To build enduring vocabulary for CAT VARC, never memorize isolated dictionary definitions. Always note the word's **etymological roots (prefix/suffix)** and its **contextual valence (positive vs negative)**.`;
 }
 
-// Helper: Extract word from queries like "meaning of X", "define X", "what is X"
+// Helper: Extract word ONLY from explicit definition queries like "meaning of X", "define X", "what does X mean"
 function extractTargetWord(query: string): string | null {
   const lower = query.toLowerCase().trim();
   const patterns = [
@@ -314,11 +314,7 @@ function extractTargetWord(query: string): string | null {
     }
   }
 
-  // Check if query is just a single word
-  if (/^[a-zA-Z\-]{3,25}$/.test(lower)) {
-    return lower;
-  }
-
+  // Never match arbitrary bare words as dictionary lookups
   return null;
 }
 
@@ -330,52 +326,65 @@ export function generateAssistantResponse(query: string, context?: Partial<Coach
   const catTuned = context?.catTuned ?? false; // Default: OFF (Raw AI Chatbot Mode)
   const lower = query.toLowerCase().trim();
 
-  // 1. Vocabulary / Meaning / Definition queries
-  const targetWord = extractTargetWord(query);
-  if (targetWord) {
-    const foundEntry = vocabularyDictionary[targetWord];
-    if (foundEntry) {
-      return {
-        text: formatLexiconEntry(foundEntry, catTuned)
-      };
-    }
+  // 1. Natural Conversational Greetings & Social Interactions (Priority 1)
+  const greetingWords = ['hi', 'hello', 'hey', 'hii', 'hiii', 'heyy', 'hola', 'sup', 'yo', 'greetings', 'namaste'];
+  const isGreeting =
+    greetingWords.includes(lower) ||
+    greetingWords.some((g) => lower === g || lower.startsWith(g + ' ') || lower.startsWith(g + '!') || lower.startsWith(g + ',') || lower.startsWith(g + '.')) ||
+    lower.startsWith('good morning') ||
+    lower.startsWith('good afternoon') ||
+    lower.startsWith('good evening') ||
+    lower.startsWith('good day');
 
-    // Check partial key matches
-    for (const [key, entry] of Object.entries(vocabularyDictionary)) {
-      if (lower.includes(key)) {
-        return {
-          text: formatLexiconEntry(entry, catTuned)
-        };
-      }
-    }
-
-    return {
-      text: generateGeneralWordDefinition(targetWord, catTuned)
-    };
-  }
-
-  // 2. Greetings & Persona Inquiries
-  if (lower === 'hi' || lower === 'hello' || lower === 'hey' || lower.startsWith('hi ') || lower.startsWith('hello ')) {
+  if (isGreeting) {
     if (!catTuned) {
       return {
-        text: `Hello! How can I help you today?
-
-I am your general AI Assistant running in **Raw AI Chatbot Mode** (Default). You can ask me anything directly — from definitions, explanations, calculations, essay writing, to general problem solving without any custom CAT wrappers.`
+        text: `Hi! How are you? I am Gemini, your AI assistant. How can I help you today?`
       };
     }
     return {
-      text: `Hello! How can I help you today?
+      text: `Hello! How can I help you with your preparation today?
 
 I am currently running in **Assistant Mode (CAT Prep Tuned)**. You can ask me:
 - 📖 **Vocabulary & Language:** Definitions, synonyms, root words, or grammar rules.
 - ✍️ **Writing & Summaries:** Explaining essays, rewriting sentences, or clarifying concepts.
 - 🔢 **Math & Logic:** Formulas, step-by-step problem walkthroughs, or algebraic reasoning.
-- 💡 **General Q&A:** Any academic, analytical, or conceptual questions.
-
-*(Tip: Switch to **Coach Mode** anytime using the toggle above if you want tailored CAT study plans, syllabus pacing, and mock test diagnostic analysis!)*`
+- 💡 **General Q&A:** Any academic, analytical, or conceptual questions.`
     };
   }
 
+  // 2. Social Check-ins & Conversational Politeness
+  if (
+    lower.includes('how are you') ||
+    lower.includes('how r u') ||
+    lower.includes("how's it going") ||
+    lower.includes('how are things') ||
+    lower.includes('how have you been')
+  ) {
+    if (!catTuned) {
+      return {
+        text: `I'm doing great, thank you for asking! How are you doing today? What can I help you with?`
+      };
+    }
+    return {
+      text: `I'm energized and ready! How is your study session going today? Let me know what concept, formula, or RC set we should tackle.`
+    };
+  }
+
+  if (
+    lower === 'thanks' ||
+    lower === 'thank you' ||
+    lower.startsWith('thanks') ||
+    lower.startsWith('thank you') ||
+    lower === 'thx' ||
+    lower === 'appreciate it'
+  ) {
+    return {
+      text: `You're very welcome! If there's anything else you need assistance with, just let me know.`
+    };
+  }
+
+  // 3. Identity Inquiries
   if (
     lower.includes('who are you') ||
     lower.includes('what are you') ||
@@ -389,7 +398,7 @@ I am currently running in **Assistant Mode (CAT Prep Tuned)**. You can ask me:
       return {
         text: `I am **Gemini**, a large language model trained by Google.
 
-I can help you answer questions, brainstorm ideas, write and edit text, explain complex concepts, solve math and logic problems, and assist with your studies.
+I can help you answer questions, brainstorm ideas, write and edit text, explain complex concepts, solve math and logic problems, and assist with everyday tasks.
 
 How can I help you today?`
       };
@@ -402,6 +411,21 @@ I offer two integrated operating modes:
 2. **Assistant Mode (Active):** A versatile conversational AI for general question answering, word definitions, concept explanations, and problem solving.
 
 Feel free to ask me anything!`
+    };
+  }
+
+  // 4. Vocabulary / Meaning / Definition queries (ONLY when explicitly requested!)
+  const targetWord = extractTargetWord(query);
+  if (targetWord) {
+    const foundEntry = vocabularyDictionary[targetWord];
+    if (foundEntry) {
+      return {
+        text: formatLexiconEntry(foundEntry, catTuned)
+      };
+    }
+
+    return {
+      text: generateGeneralWordDefinition(targetWord, catTuned)
     };
   }
 
