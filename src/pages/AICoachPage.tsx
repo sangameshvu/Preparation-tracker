@@ -171,11 +171,12 @@ export const AICoachPage: React.FC = () => {
   const [keyTestError, setKeyTestError] = useState<string>('');
 
   const GEMINI_CANDIDATES = [
+    { ver: 'v1beta', model: 'gemini-3.1-flash-lite' },
+    { ver: 'v1beta', model: 'gemini-3.8-flash' },
+    { ver: 'v1beta', model: 'gemini-3.5-flash-lite' },
+    { ver: 'v1beta', model: 'gemini-flash-latest' },
     { ver: 'v1beta', model: 'gemini-2.0-flash' },
     { ver: 'v1beta', model: 'gemini-1.5-flash' },
-    { ver: 'v1beta', model: 'gemini-1.5-flash-latest' },
-    { ver: 'v1', model: 'gemini-1.5-flash' },
-    { ver: 'v1beta', model: 'gemini-1.5-pro' },
     { ver: 'v1beta', model: 'gemini-pro' }
   ];
 
