@@ -12,7 +12,12 @@ import {
   BookOpen,
   Calculator,
   Binary,
-  BookMarked
+  BookMarked,
+  Edit2,
+  Plus,
+  Trash2,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -20,11 +25,20 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Checkbox } from '../components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { SectionType, ConfidenceScore } from '../types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { SectionType, ConfidenceScore, TopicItem } from '../types';
 import { cn } from '../lib/utils';
 
 export const TopicTrackerPage: React.FC = () => {
-  const { topics, topicProgress, updateTopicProgress } = useAppData();
+  const {
+    topics,
+    updateTopic,
+    addTopic,
+    deleteTopic,
+    resetTopics,
+    topicProgress,
+    updateTopicProgress
+  } = useAppData();
   const location = useLocation();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +50,23 @@ export const TopicTrackerPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'sortOrder' | 'confidence' | 'planWeek'>('sortOrder');
   const [sortAsc, setSortAsc] = useState(true);
 
+  // Add Topic Dialog State
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newTopicName, setNewTopicName] = useState('');
+  const [newTopicSection, setNewTopicSection] = useState<SectionType>('Quant');
+  const [newTopicArea, setNewTopicArea] = useState('Arithmetic');
+  const [newTopicSubtopics, setNewTopicSubtopics] = useState('');
+  const [newTopicPlanWeek, setNewTopicPlanWeek] = useState('1');
+
+  // Edit Topic Dialog State
+  const [editingTopic, setEditingTopic] = useState<TopicItem | null>(null);
+  const [editTopicName, setEditTopicName] = useState('');
+  const [editTopicSection, setEditTopicSection] = useState<SectionType>('Quant');
+  const [editTopicArea, setEditTopicArea] = useState('');
+  const [editTopicSubtopics, setEditTopicSubtopics] = useState('');
+  const [editTopicPlanWeek, setEditTopicPlanWeek] = useState('');
+  const [editTopicSortOrder, setEditTopicSortOrder] = useState(1);
+
   // Sync with URL query parameter ?section=Quant etc.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -44,6 +75,60 @@ export const TopicTrackerPage: React.FC = () => {
       setSectionFilter(secParam as SectionType);
     }
   }, [location.search]);
+
+  const handleOpenEditTopic = (t: TopicItem) => {
+    setEditingTopic(t);
+    setEditTopicName(t.topicName);
+    setEditTopicSection(t.section);
+    setEditTopicArea(t.area);
+    setEditTopicSubtopics(t.subtopics || '');
+    setEditTopicPlanWeek(t.planWeek || '1');
+    setEditTopicSortOrder(t.sortOrder || 1);
+  };
+
+  const handleSaveEditTopic = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTopic || !editTopicName.trim()) return;
+    updateTopic(editingTopic.id, {
+      topicName: editTopicName.trim(),
+      section: editTopicSection,
+      area: editTopicArea.trim() || 'General',
+      subtopics: editTopicSubtopics.trim(),
+      planWeek: editTopicPlanWeek.trim() || '1',
+      sortOrder: Number(editTopicSortOrder) || editingTopic.sortOrder
+    });
+    setEditingTopic(null);
+  };
+
+  const handleDeleteEditingTopic = () => {
+    if (!editingTopic) return;
+    if (window.confirm(`Are you sure you want to delete topic "${editingTopic.topicName}"?`)) {
+      deleteTopic(editingTopic.id);
+      setEditingTopic(null);
+    }
+  };
+
+  const handleCreateNewTopic = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTopicName.trim()) return;
+    addTopic({
+      topicName: newTopicName.trim(),
+      section: newTopicSection,
+      area: newTopicArea.trim() || 'General',
+      subtopics: newTopicSubtopics.trim(),
+      planWeek: newTopicPlanWeek.trim() || '1',
+      sortOrder: topics.length + 1
+    });
+    setNewTopicName('');
+    setNewTopicSubtopics('');
+    setIsAddOpen(false);
+  };
+
+  const handleResetToDefaults = () => {
+    if (window.confirm('Reset all topics and weekly distributions back to default 53 CAT syllabus topics?')) {
+      resetTopics();
+    }
+  };
 
   const filteredTopics = useMemo(() => {
     return topics
@@ -58,7 +143,7 @@ export const TopicTrackerPage: React.FC = () => {
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchName = t.topicName.toLowerCase().includes(q);
-          const matchSub = t.subtopics.toLowerCase().includes(q);
+          const matchSub = t.subtopics?.toLowerCase().includes(q) || false;
           const matchArea = t.area.toLowerCase().includes(q);
           if (!matchName && !matchSub && !matchArea) return false;
         }
@@ -133,27 +218,130 @@ export const TopicTrackerPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 font-sans">
-      {/* 1. Page Header */}
+      {/* 1. Page Header with Edit Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {sectionFilter === 'All'
-              ? 'CAT Master Topic Tracker'
-              : sectionFilter === 'Quant'
-              ? 'Quantitative Aptitude Track'
-              : sectionFilter === 'DILR'
-              ? 'Data Interpretation & Logical Reasoning'
-              : 'Verbal Ability & Reading Comprehension'}
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {sectionFilter === 'All'
+                ? 'CAT Master Topic Tracker'
+                : sectionFilter === 'Quant'
+                ? 'Quantitative Aptitude Track'
+                : sectionFilter === 'DILR'
+                ? 'Data Interpretation & Logical Reasoning'
+                : 'Verbal Ability & Reading Comprehension'}
+            </h1>
+            <Badge variant="blue" className="font-mono text-xs font-semibold">
+              {topics.length} Topics
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Edit topics and weekly distribution. Changes dynamically update the 52-Week Study Planner.
+          </p>
         </div>
 
-        {/* Section Metrics Badge */}
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs self-start sm:self-auto">
-          <span className="font-semibold text-foreground">Completed:</span>
-          <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-            {completedInFilter} of {currentSectionTopics.length}
-          </span>
-          <span className="text-muted-foreground">({Math.round((completedInFilter / (currentSectionTopics.length || 1)) * 100)}%)</span>
+        {/* Section Metrics & Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs">
+            <span className="font-semibold text-foreground">Completed:</span>
+            <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+              {completedInFilter} of {currentSectionTopics.length}
+            </span>
+            <span className="text-muted-foreground">({Math.round((completedInFilter / (currentSectionTopics.length || 1)) * 100)}%)</span>
+          </div>
+
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="h-8 gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add Topic</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle className="text-base font-bold">Add New Syllabus Topic</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateNewTopic} className="space-y-3.5 pt-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">Topic Name</label>
+                  <Input
+                    placeholder="e.g., Logarithms & Progressions"
+                    value={newTopicName}
+                    onChange={(e) => setNewTopicName(e.target.value)}
+                    required
+                    className="text-xs"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground">Section</label>
+                    <Select value={newTopicSection} onValueChange={(v) => setNewTopicSection(v as SectionType)}>
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Quant">Quant</SelectItem>
+                        <SelectItem value="DILR">DILR</SelectItem>
+                        <SelectItem value="VARC">VARC</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground">Area / Module</label>
+                    <Input
+                      placeholder="e.g., Algebra, Arithmetic"
+                      value={newTopicArea}
+                      onChange={(e) => setNewTopicArea(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">Granular Subtopics / Concepts</label>
+                  <Input
+                    placeholder="e.g., Base change theorem, characteristics and mantissa, AP/GP formulas"
+                    value={newTopicSubtopics}
+                    onChange={(e) => setNewTopicSubtopics(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">
+                    Plan Week (Weekly Distribution)
+                  </label>
+                  <Input
+                    placeholder="e.g. 1, 2-3, 14 (Determines which week displays this in Planner)"
+                    value={newTopicPlanWeek}
+                    onChange={(e) => setNewTopicPlanWeek(e.target.value)}
+                    required
+                    className="text-xs"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Single week ('4') or range ('2-3'). The Weekly Planner dynamically shows this topic in that week's syllabus goals!
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsAddOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                    Add Topic
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleResetToDefaults}
+            className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
+            title="Reset topics list back to canonical 53 topics"
+          >
+            <RotateCcw className="h-3 w-3" />
+            <span className="hidden sm:inline">Reset Defaults</span>
+          </Button>
         </div>
       </div>
 
@@ -173,7 +361,7 @@ export const TopicTrackerPage: React.FC = () => {
               )}
               onClick={() => setSectionFilter(sec)}
             >
-              {sec === 'All' ? 'All (53)' : sec === 'Quant' ? 'Quant (29)' : sec === 'DILR' ? 'DILR (13)' : 'VARC (11)'}
+              {sec === 'All' ? `All (${topics.length})` : sec === 'Quant' ? `Quant (${topics.filter(t => t.section === 'Quant').length})` : sec === 'DILR' ? `DILR (${topics.filter(t => t.section === 'DILR').length})` : `VARC (${topics.filter(t => t.section === 'VARC').length})`}
             </Button>
           ))}
         </div>
@@ -228,7 +416,7 @@ export const TopicTrackerPage: React.FC = () => {
                       <ArrowUpDown className="h-3 w-3" />
                     </div>
                   </th>
-                  <th className="py-3 px-3 text-center">Details</th>
+                  <th className="py-3 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -280,7 +468,7 @@ export const TopicTrackerPage: React.FC = () => {
                             <span className="text-[11px] text-muted-foreground line-clamp-1">{topic.subtopics || '–'}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-center font-mono text-muted-foreground">
+                        <td className="py-3 px-3 text-center font-mono font-semibold text-blue-600 dark:text-blue-400">
                           W{topic.planWeek}
                         </td>
                         {/* Quick Milestones Progress */}
@@ -327,17 +515,28 @@ export const TopicTrackerPage: React.FC = () => {
                             </Select>
                           </div>
                         </td>
-                        {/* Expand Details */}
+                        {/* Actions: Edit & Expand */}
                         <td className="py-3 px-3 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => setExpandedTopicId(isExpanded ? null : topic.id)}
-                            title="Expand milestones & notes"
-                          >
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => handleOpenEditTopic(topic)}
+                              title="Edit Topic & Weekly Distribution"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => setExpandedTopicId(isExpanded ? null : topic.id)}
+                              title="Expand milestones & notes"
+                            >
+                              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
 
@@ -401,13 +600,30 @@ export const TopicTrackerPage: React.FC = () => {
                               </div>
 
                               {/* Granular Subtopics */}
-                              <div className="space-y-1.5 p-3 rounded-xl border border-border/80 bg-card">
-                                <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">
-                                  Granular Syllabus Subtopics
-                                </span>
+                              <div className="space-y-2 p-3 rounded-xl border border-border/80 bg-card">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">
+                                    Granular Syllabus Subtopics
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleOpenEditTopic(topic)}
+                                    className="h-6 text-[10px] text-blue-600 gap-1 px-1.5"
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                    <span>Edit</span>
+                                  </Button>
+                                </div>
                                 <p className="text-xs text-muted-foreground leading-relaxed">
                                   {topic.subtopics || 'No granular subtopics specified.'}
                                 </p>
+                                <div className="pt-1 text-[11px]">
+                                  <span className="text-muted-foreground">Assigned Week: </span>
+                                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                                    Week {topic.planWeek}
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Personal Topic Revision Notes */}
@@ -437,6 +653,116 @@ export const TopicTrackerPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Topic Dialog Modal */}
+      {editingTopic && (
+        <Dialog open={Boolean(editingTopic)} onOpenChange={(open) => !open && setEditingTopic(null)}>
+          <DialogContent className="sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold flex items-center justify-between">
+                <span>Edit Topic & Weekly Distribution</span>
+                <Badge variant="blue" className="text-xs font-mono">
+                  #{editingTopic.sortOrder}
+                </Badge>
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSaveEditTopic} className="space-y-3.5 pt-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground">Topic Name</label>
+                <Input
+                  value={editTopicName}
+                  onChange={(e) => setEditTopicName(e.target.value)}
+                  required
+                  className="text-xs font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">Section</label>
+                  <Select value={editTopicSection} onValueChange={(v) => setEditTopicSection(v as SectionType)}>
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Quant">Quant</SelectItem>
+                      <SelectItem value="DILR">DILR</SelectItem>
+                      <SelectItem value="VARC">VARC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">Area / Module</label>
+                  <Input
+                    value={editTopicArea}
+                    onChange={(e) => setEditTopicArea(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-foreground">Granular Subtopics / Concepts</label>
+                <Input
+                  value={editTopicSubtopics}
+                  onChange={(e) => setEditTopicSubtopics(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">
+                    Plan Week (Weekly Distribution)
+                  </label>
+                  <Input
+                    placeholder="e.g. 1, 2-3, 14"
+                    value={editTopicPlanWeek}
+                    onChange={(e) => setEditTopicPlanWeek(e.target.value)}
+                    required
+                    className="text-xs font-mono"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Assigns topic to 52-Week Planner.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground">Sort Order</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={editTopicSortOrder}
+                    onChange={(e) => setEditTopicSortOrder(Number(e.target.value))}
+                    className="text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteEditingTopic}
+                  className="text-xs gap-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Delete Topic</span>
+                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setEditingTopic(null)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
+export default TopicTrackerPage;

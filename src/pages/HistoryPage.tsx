@@ -37,7 +37,7 @@ export const HistoryPage: React.FC = () => {
   const [manualTitle, setManualTitle] = useState('');
   const [manualDetails, setManualDetails] = useState('');
   const [manualSection, setManualSection] = useState<SectionType>('Quant');
-  const [manualCategory, setManualCategory] = useState<ActivityCategory>('topic');
+  const [manualCategory, setManualCategory] = useState<ActivityCategory>('goal');
   const [manualDuration, setManualDuration] = useState(45);
   const [manualDate, setManualDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
@@ -99,14 +99,14 @@ export const HistoryPage: React.FC = () => {
     <div className="space-y-6 pb-12 font-sans">
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Student Activity History</h1>
-            <Badge variant="blue" className="font-mono text-xs">
-              Daily Tracking
-            </Badge>
-          </div>
-        </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Completed Goals & Targets Log</h1>
+                <Badge variant="blue" className="font-mono text-xs">
+                  Daily Targets Completed
+                </Badge>
+              </div>
+            </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -258,7 +258,7 @@ export const HistoryPage: React.FC = () => {
                   <span>Activities Logged on {selectedDate}</span>
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  {currentDayActivities.length} study events recorded on this date.
+                  {currentDayActivities.length} daily target completions recorded on this date.
                 </CardDescription>
               </div>
 
@@ -269,13 +269,10 @@ export const HistoryPage: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all">All Targets</SelectItem>
+                    <SelectItem value="goal">Daily Goals</SelectItem>
                     <SelectItem value="topic">Topics</SelectItem>
                     <SelectItem value="task">Tasks</SelectItem>
-                    <SelectItem value="mock">Mocks</SelectItem>
-                    <SelectItem value="mistake">Mistakes</SelectItem>
-                    <SelectItem value="goal">Goals</SelectItem>
-                    <SelectItem value="note">Notes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -285,9 +282,9 @@ export const HistoryPage: React.FC = () => {
               {currentDayActivities.length === 0 ? (
                 <div className="text-center py-12 border border-dashed rounded-xl">
                   <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                  <p className="text-xs font-semibold text-foreground">No study activities recorded on this date</p>
+                  <p className="text-xs font-semibold text-foreground">No completed targets recorded on this date</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Study activities automatically record as you complete topics, tasks, and mocks.
+                    When you check off today's goals or completed study targets, your accomplishments are automatically logged here.
                   </p>
                   <Button
                     size="sm"

@@ -183,3 +183,40 @@ export function getDailyScheduleFocus(
     ]
   };
 }
+
+/**
+ * Helper to determine if a topic's planWeek matches the target week number.
+ * Supports single numbers ('1', '4'), ranges ('2-3', '2–3', '10-12'),
+ * comma/semicolon-separated values ('1, 3, 5'), or prefixes ('Week 4', 'W5').
+ */
+export function isTopicInWeek(planWeek: string | undefined | null, targetWeek: number): boolean {
+  if (!planWeek) return false;
+  const clean = String(planWeek).trim().replace(/\u2013|\u2014/g, '-');
+  const parts = clean.split(/[,;/]+/);
+
+  for (const part of parts) {
+    const trimmed = part.trim().replace(/^week\s*/i, '').replace(/^w\s*/i, '');
+    if (!trimmed) continue;
+
+    if (trimmed.includes('-')) {
+      const [startStr, endStr] = trimmed.split('-');
+      const start = parseInt(startStr.trim(), 10);
+      const end = parseInt(endStr.trim(), 10);
+      if (!isNaN(start) && !isNaN(end)) {
+        if (targetWeek >= Math.min(start, end) && targetWeek <= Math.max(start, end)) {
+          return true;
+        }
+      } else if (!isNaN(start) && targetWeek === start) {
+        return true;
+      }
+    } else {
+      const num = parseInt(trimmed, 10);
+      if (!isNaN(num) && num === targetWeek) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
