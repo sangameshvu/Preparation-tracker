@@ -56,4 +56,57 @@ export const initialActivities: StudyActivityItem[] = [
   }
 ];
 
-export const initialDailyGoals: DailyGoalItem[] = [];
+export const initialDailyGoals: DailyGoalItem[] = [
+  {
+    id: 'goal-seed-1',
+    date: yesterday,
+    title: 'Diagnostic Fraction to % Drills (1/2 to 1/20)',
+    section: 'Quant',
+    targetMinutes: 45,
+    completed: true,
+    completedAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'goal-seed-2',
+    date: yesterday,
+    title: 'Aeon Essay: Daily Long-form Reading & Main Idea Note',
+    section: 'VARC',
+    targetMinutes: 35,
+    completed: true,
+    completedAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'goal-seed-3',
+    date: yesterday,
+    title: '2 Practice Sets on Circular Seating Arrangements',
+    section: 'DILR',
+    targetMinutes: 40,
+    completed: false
+  },
+  {
+    id: 'goal-seed-4',
+    date: twoDaysAgo,
+    title: 'Daily Reading: The Philosophy of Time',
+    section: 'VARC',
+    targetMinutes: 35,
+    completed: true,
+    completedAt: new Date(Date.now() - 172800000).toISOString()
+  },
+  {
+    id: 'goal-seed-5',
+    date: twoDaysAgo,
+    title: 'Multiplication Tables & Square Shortcuts 1-30',
+    section: 'Quant',
+    targetMinutes: 30,
+    completed: true,
+    completedAt: new Date(Date.now() - 172800000).toISOString()
+  },
+  {
+    id: 'goal-seed-6',
+    date: twoDaysAgo,
+    title: 'Matrix Arrangement Caselet Analysis',
+    section: 'DILR',
+    targetMinutes: 45,
+    completed: false
+  }
+];

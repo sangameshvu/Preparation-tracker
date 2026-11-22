@@ -202,6 +202,24 @@ test('Study Streak engine and retroactive yesterday backfill are implemented', (
   assert(planner.includes('Streak'), 'Streak badge missing from WeeklyPlannerPage');
 });
 
+// 20. VERIFY CALENDAR IN STUDY HISTORY & COMPLETED + PENDING GOALS
+test('Calendar in Study History section displays selected day goals (completed & pending)', () => {
+  const historyContent = fs.readFileSync(path.join(__dirname, 'src/pages/HistoryPage.tsx'), 'utf8');
+  assert(historyContent.includes('Study History Calendar'), 'Study History Calendar title missing');
+  assert(historyContent.includes('startOfMonth') && historyContent.includes('eachDayOfInterval'), 'Month interval missing');
+  assert(historyContent.includes('goalsFilter'), 'Goals completed/pending filter missing');
+  assert(historyContent.includes('toggleDailyGoal'), 'toggleDailyGoal missing from HistoryPage');
+  assert(historyContent.includes('addDailyGoal'), 'addDailyGoal missing from HistoryPage');
+  assert(historyContent.includes('Completed ✓') && historyContent.includes('Pending'), 'Completed and Pending badges missing');
+  assert(historyContent.includes('All Goals Done'), 'All Goals Done legend missing');
+  assert(historyContent.includes('Pending Goals'), 'Pending Goals legend missing');
+
+  // Verify initialDailyGoals includes seed completed and pending goals
+  const initAct = fs.readFileSync(path.join(__dirname, 'src/data/initialActivities.ts'), 'utf8');
+  assert(initAct.includes('initialDailyGoals'), 'initialDailyGoals missing');
+  assert(initAct.includes('completed: true') && initAct.includes('completed: false'), 'Completed & Pending initial daily goals missing');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

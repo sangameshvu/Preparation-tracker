@@ -250,9 +250,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return saved.filter((a) => a.category === 'goal' && a.title.toLowerCase().includes('completed'));
   });
 
-  const [dailyGoals, setDailyGoals] = useState<DailyGoalItem[]>(() =>
-    getInitialState('dailyGoals', initialDailyGoals)
-  );
+  const [dailyGoals, setDailyGoals] = useState<DailyGoalItem[]>(() => {
+    const saved = getInitialState<DailyGoalItem[]>('dailyGoals', initialDailyGoals);
+    if (!saved || saved.length === 0) {
+      return initialDailyGoals;
+    }
+    return saved;
+  });
 
   // Aeon Daily Reading Habit State with retroactive completion & streak protection
   const [aeonCompletedDates, setAeonCompletedDates] = useState<string[]>(() => {
