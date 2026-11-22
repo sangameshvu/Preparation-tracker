@@ -67,7 +67,9 @@ export const WeeklyPlannerPage: React.FC = () => {
     addDailyGoal,
     addMultipleDailyGoals,
     toggleDailyGoal,
-    deleteDailyGoal
+    deleteDailyGoal,
+    aeonHabit,
+    markYesterdayAeonDone
   } = useAppData();
 
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
@@ -450,6 +452,15 @@ export const WeeklyPlannerPage: React.FC = () => {
               <h3 className="text-sm font-bold text-foreground">
                 Today's Goals
               </h3>
+              <button
+                type="button"
+                onClick={() => navigate('/practice')}
+                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800/60 cursor-pointer hover:bg-amber-200/80 transition-colors"
+                title={`Active reading streak: ${aeonHabit.streak} days. Click to view reading tracker.`}
+              >
+                <Flame className="h-3 w-3 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>{aeonHabit.streak}d Streak</span>
+              </button>
               <RadixTooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -473,13 +484,27 @@ export const WeeklyPlannerPage: React.FC = () => {
             </div>
           </div>
 
-          <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="h-8 gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                <Plus className="h-3.5 w-3.5" />
-                <span>Add Goal</span>
+          <div className="flex items-center gap-2">
+            {!aeonHabit.isYesterdayDone && (
+              <Button
+                size="sm"
+                onClick={() => markYesterdayAeonDone()}
+                className="h-8 gap-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg shadow-xs animate-pulse cursor-pointer"
+                title="Forgot yesterday's Aeon essay? Mark done to save your streak!"
+              >
+                <Flame className="h-3.5 w-3.5 fill-slate-950 text-slate-950" />
+                <span className="hidden sm:inline">Save Yesterday's Streak</span>
+                <span className="sm:hidden">Save Streak</span>
               </Button>
-            </DialogTrigger>
+            )}
+
+            <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-8 gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add Goal</span>
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[420px]">
               <DialogHeader>
                 <DialogTitle className="text-base font-bold">Add Today's Goal</DialogTitle>
@@ -534,8 +559,9 @@ export const WeeklyPlannerPage: React.FC = () => {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
 
-        {/* Daily Goals Vertical List & Intake Prompt */}
+      {/* Daily Goals Vertical List & Intake Prompt */}
         <div className="flex flex-col gap-2.5 pt-4">
           {todayGoals.length === 0 ? (
             <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-white/70 dark:bg-slate-900/40 p-4 space-y-3">

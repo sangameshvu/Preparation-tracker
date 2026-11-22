@@ -246,6 +246,18 @@ export interface DailyGoalItem {
   completedAt?: string;
 }
 
+export interface AeonHabitState {
+  completedDates: string[]; // List of 'yyyy-MM-dd' dates when Aeon essay was read
+  streak: number; // Current active streak in days
+  bestStreak: number; // All-time best streak
+  totalRead: number; // Total number of essays read
+  lastReadDate?: string; // Latest completed date
+  isYesterdayDone: boolean; // Whether yesterday's essay was read
+  isTodayDone: boolean; // Whether today's essay was read
+  streakAtRisk: boolean; // True if yesterday is missing but previous streak > 0
+  previousStreakLength: number; // The streak length that can be preserved if yesterday is marked done
+}
+
 export interface DashboardStats {
   daysRemaining: number;
   currentWeek: number;
@@ -261,4 +273,9 @@ export interface DashboardStats {
   averageMockScore?: number | null;
   pendingMistakesCount: number;
   overdueMistakesCount: number;
+  currentStreak: number;
+  bestStreak: number;
+  isYesterdayDone: boolean;
+  isTodayDone: boolean;
+  streakAtRisk: boolean;
 }

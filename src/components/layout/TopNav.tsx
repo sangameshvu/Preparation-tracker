@@ -6,7 +6,8 @@ import {
   Moon,
   Sparkles,
   User,
-  Bot
+  Bot,
+  Flame
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../../context/ThemeContext';
@@ -76,7 +77,7 @@ export const TopNav: React.FC<TopNavProps> = ({
         </button>
       </div>
 
-      {/* Right: Coach Pill, Quick Add, Theme, Avatar */}
+      {/* Right: Streak Pill, Coach Pill, Quick Add, Theme, Avatar */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         {/* Mobile Search Button (<640px) */}
         <button
@@ -87,6 +88,20 @@ export const TopNav: React.FC<TopNavProps> = ({
         >
           <Search className="h-4 w-4" />
         </button>
+
+        {/* Study Streak Flame Pill */}
+        <Link
+          to="/practice"
+          className={`inline-flex items-center gap-1 h-8 px-2.5 rounded-full text-xs font-bold transition-all shadow-2xs ${
+            stats.streakAtRisk
+              ? 'bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 animate-pulse'
+              : 'glass-thin text-amber-700 dark:text-amber-300 hover:bg-amber-500/10'
+          }`}
+          title={`Active Aeon Reading Streak: ${stats.currentStreak} days (Best: ${stats.bestStreak}d). ${stats.streakAtRisk ? 'Streak at risk! Yesterday missing — click to save!' : 'Streak active.'}`}
+        >
+          <Flame className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />
+          <span className="font-mono">{stats.currentStreak}d</span>
+        </Link>
 
         {/* Ask Coach Outlined Pill Button */}
         <button

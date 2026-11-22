@@ -16,7 +16,8 @@ import {
   TaskStatus,
   ConfidenceScore,
   StudyActivityItem,
-  DailyGoalItem
+  DailyGoalItem,
+  AeonHabitState
 } from '../types';
 import { initialPhases } from '../data/phases';
 import { initialTopics } from '../data/topics';
@@ -26,8 +27,10 @@ import { initialRoutines } from '../data/routines';
 import { initialGuideSections } from '../data/guideSections';
 import { initialStudyNotes } from '../data/initialNotes';
 import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake';
-import { initialActivities, initialDailyGoals } from '../data/initialActivities';
-import { addDays, differenceInCalendarDays, parseISO, format } from 'date-fns';
+import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from '../data/initialActivities';
+import { addDays, subDays, differenceInCalendarDays, parseISO, format } from 'date-fns';
+import { calculateStreak } from '../utils/streakCalculator';
+import { toast } from 'sonner';
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'user-default',
@@ -101,6 +104,10 @@ interface AppDataContextType {
   ) => void;
   toggleDailyGoal: (id: string) => void;
   deleteDailyGoal: (id: string) => void;
+  aeonHabit: AeonHabitState;
+  toggleAeonDate: (dateStr: string, title?: string) => void;
+  markYesterdayAeonDone: (title?: string) => void;
+  markTodayAeonDone: (title?: string) => void;
   stats: DashboardStats;
   resetAllData: () => void;
 }
@@ -246,6 +253,66 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [dailyGoals, setDailyGoals] = useState<DailyGoalItem[]>(() =>
     getInitialState('dailyGoals', initialDailyGoals)
   );
+
+  // Aeon Daily Reading Habit State with retroactive completion & streak protection
+  const [aeonCompletedDates, setAeonCompletedDates] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('cat2027_aeon_reading');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.completedDates) && parsed.completedDates.length > 0) {
+          return parsed.completedDates;
+        }
+        // Backward-compatibility: reconstruct dates if old format had lastReadDate + streak
+        if (parsed.lastReadDate && parsed.streak > 0) {
+          const dates: string[] = [];
+          const anchor = parseISO(parsed.lastReadDate);
+          for (let i = 0; i < parsed.streak; i++) {
+            dates.push(format(subDays(anchor, i), 'yyyy-MM-dd'));
+          }
+          return dates;
+        }
+      }
+    } catch (e) {
+      console.error('Error loading cat2027_aeon_reading from storage', e);
+    }
+    return initialAeonCompletedDates;
+  });
+
+  const streakData = useMemo(() => {
+    return calculateStreak(aeonCompletedDates);
+  }, [aeonCompletedDates]);
+
+  const aeonHabit: AeonHabitState = useMemo(() => {
+    return {
+      completedDates: aeonCompletedDates,
+      streak: streakData.currentStreak,
+      bestStreak: streakData.bestStreak,
+      totalRead: aeonCompletedDates.length,
+      lastReadDate: streakData.lastActiveDate,
+      isYesterdayDone: streakData.isYesterdayDone,
+      isTodayDone: streakData.isTodayDone,
+      streakAtRisk: streakData.streakAtRisk,
+      previousStreakLength: streakData.previousStreakLength
+    };
+  }, [aeonCompletedDates, streakData]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'cat2027_aeon_reading',
+        JSON.stringify({
+          completedDates: aeonCompletedDates,
+          streak: aeonHabit.streak,
+          bestStreak: aeonHabit.bestStreak,
+          totalRead: aeonHabit.totalRead,
+          lastReadDate: aeonHabit.lastReadDate
+        })
+      );
+    } catch (e) {
+      console.error('Error saving aeon reading habit to storage', e);
+    }
+  }, [aeonCompletedDates, aeonHabit]);
 
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
   const todayGoals = useMemo(() => {
@@ -393,6 +460,81 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const deleteDailyGoal = (id: string) => {
     setDailyGoals((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  const toggleAeonDate = (dateStr: string, title?: string) => {
+    const isAlreadyDone = aeonCompletedDates.includes(dateStr);
+    const updatedDates = isAlreadyDone
+      ? aeonCompletedDates.filter((d) => d !== dateStr)
+      : [...aeonCompletedDates, dateStr];
+
+    setAeonCompletedDates(updatedDates);
+
+    if (!isAlreadyDone) {
+      addActivity({
+        date: dateStr,
+        category: 'goal',
+        title: title || 'Completed Goal: Aeon Essay (Daily Reading)',
+        details: 'Daily target achieved: 35m in VARC (Long-form Reading Stamina).',
+        section: 'VARC',
+        durationMinutes: 35
+      });
+
+      // Synchronize with dailyGoals for that date
+      setDailyGoals((prev) => {
+        const hasGoal = prev.some(
+          (g) => g.date === dateStr && g.section === 'VARC' && g.title.toLowerCase().includes('aeon')
+        );
+        if (!hasGoal) {
+          const newGoal: DailyGoalItem = {
+            id: `goal-aeon-${dateStr}-${Date.now()}`,
+            date: dateStr,
+            title: 'Aeon Essay: Daily Long-form Reading',
+            section: 'VARC',
+            targetMinutes: 35,
+            completed: true,
+            completedAt: new Date().toISOString()
+          };
+          return [newGoal, ...prev];
+        }
+        return prev.map((g) => {
+          if (g.date === dateStr && g.section === 'VARC' && g.title.toLowerCase().includes('aeon')) {
+            return { ...g, completed: true, completedAt: new Date().toISOString() };
+          }
+          return g;
+        });
+      });
+    }
+  };
+
+  const markYesterdayAeonDone = (title?: string) => {
+    const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    if (aeonCompletedDates.includes(yesterdayStr)) {
+      toast.info("Yesterday's Aeon essay is already marked as done!");
+      return;
+    }
+    toggleAeonDate(
+      yesterdayStr,
+      title || "Completed Goal: Yesterday's Aeon Essay (Streak Protected)"
+    );
+    const simulatedDates = [...aeonCompletedDates, yesterdayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🔥 Streak Protected! Yesterday's Aeon essay marked done. Streak is unbroken at ${newStreak} days!`);
+  };
+
+  const markTodayAeonDone = (title?: string) => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    if (aeonCompletedDates.includes(todayStr)) {
+      toast.info("Today's Aeon essay is already marked as done!");
+      return;
+    }
+    toggleAeonDate(
+      todayStr,
+      title || "Completed Goal: Today's Aeon Essay"
+    );
+    const simulatedDates = [...aeonCompletedDates, todayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🎉 Great job! Today's Aeon essay completed! Current streak: ${newStreak} days.`);
   };
 
   const updateProfile = (updates: Partial<UserProfile>) => {
@@ -772,9 +914,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       bestMockScore,
       averageMockScore,
       pendingMistakesCount,
-      overdueMistakesCount
+      overdueMistakesCount,
+      currentStreak: aeonHabit.streak,
+      bestStreak: aeonHabit.bestStreak,
+      isYesterdayDone: aeonHabit.isYesterdayDone,
+      isTodayDone: aeonHabit.isTodayDone,
+      streakAtRisk: aeonHabit.streakAtRisk
     };
-  }, [profile, topicProgress, mockTests, mistakes]);
+  }, [profile, topicProgress, mockTests, mistakes, aeonHabit]);
 
   return (
     <AppDataContext.Provider
@@ -834,6 +981,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         addMultipleDailyGoals,
         toggleDailyGoal,
         deleteDailyGoal,
+        aeonHabit,
+        toggleAeonDate,
+        markYesterdayAeonDone,
+        markTodayAeonDone,
         stats,
         resetAllData
       }}

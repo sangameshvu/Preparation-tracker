@@ -31,6 +31,7 @@ import {
 } from '../../utils/catPracticeEngine';
 import { useAppData } from '../../context/AppDataContext';
 import { MistakeCategory, SectionType } from '../../types';
+import { getRecentHabitDays } from '../../utils/streakCalculator';
 import { toast } from 'sonner';
 
 interface CATPracticeEngineProps {
@@ -38,7 +39,13 @@ interface CATPracticeEngineProps {
 }
 
 export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchToMistakes }) => {
-  const { addMistake } = useAppData();
+  const {
+    addMistake,
+    aeonHabit,
+    toggleAeonDate,
+    markYesterdayAeonDone,
+    markTodayAeonDone
+  } = useAppData();
 
   // Mode & Configuration State
   const [section, setSection] = useState<'Quant' | 'DILR' | 'VARC'>('Quant');
@@ -76,46 +83,16 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
   // Recent practice history
   const [history, setHistory] = useState<PracticeSessionRecord[]>([]);
 
-  // Daily Aeon Reading Habit State (Key: cat2027_aeon_reading)
-  const [aeonHabit, setAeonHabit] = useState<{
-    lastReadDate?: string;
-    streak: number;
-    totalRead: number;
-  }>(() => {
-    try {
-      const raw = localStorage.getItem('cat2027_aeon_reading');
-      return raw ? JSON.parse(raw) : { streak: 0, totalRead: 0 };
-    } catch {
-      return { streak: 0, totalRead: 0 };
-    }
-  });
-
+  // Daily Aeon Reading Habit (Global context with retroactive yesterday completion)
   const todayStr = new Date().toISOString().split('T')[0];
-  const isAeonReadToday = aeonHabit.lastReadDate === todayStr;
+  const isAeonReadToday = aeonHabit.isTodayDone;
 
   const handleToggleAeonRead = () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-    const updated = isAeonReadToday
-      ? {
-          lastReadDate: undefined,
-          streak: Math.max(0, aeonHabit.streak - 1),
-          totalRead: Math.max(0, aeonHabit.totalRead - 1)
-        }
-      : {
-          lastReadDate: todayStr,
-          streak: (aeonHabit.lastReadDate === yesterdayStr ? aeonHabit.streak : 0) + 1,
-          totalRead: aeonHabit.totalRead + 1
-        };
-
-    setAeonHabit(updated);
-    localStorage.setItem('cat2027_aeon_reading', JSON.stringify(updated));
-    if (!isAeonReadToday) {
-      toast.success('Awesome! Marked today\'s Aeon essay as read. Reading streak updated!');
+    if (isAeonReadToday) {
+      toggleAeonDate(todayStr);
+      toast.info('Marked today\'s Aeon essay as unread.');
     } else {
-      toast.info('Marked Aeon essay as unread.');
+      markTodayAeonDone();
     }
   };
 
@@ -602,36 +579,54 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
               </div>
             </div>
 
-            {/* Habit Streak Badge */}
-            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
-                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
-                <span>{aeonHabit.streak} Day Streak</span>
-              </div>
+            {/* Habit Streak Badge & Status */}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              {aeonHabit.streakAtRisk ? (
+                <div className="flex items-center gap-1.5 rounded-xl border border-rose-300/80 bg-rose-100/70 px-3 py-1.5 text-xs font-bold text-rose-900 dark:border-rose-800/80 dark:bg-rose-950/60 dark:text-rose-200 shadow-2xs animate-pulse">
+                  <Flame className="h-4 w-4 text-rose-600 dark:text-rose-400 fill-rose-500" />
+                  <span>Streak at Risk! (Forgot Yesterday)</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
+                  <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                  <span>{aeonHabit.streak} Day Streak</span>
+                  {aeonHabit.bestStreak > aeonHabit.streak && (
+                    <span className="text-[10px] opacity-75 font-normal ml-0.5">(Best: {aeonHabit.bestStreak}d)</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Action Row: Read Today's Essay & Toggle Habit */}
-          <div className="flex flex-wrap items-center gap-3 pt-1">
+          {/* Action Row: Read Today's Essay, Streak Saver, & Toggle Habit */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
             <a
               href="https://aeon.co/essays"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/20 active:scale-[0.98] transition-all cursor-pointer"
             >
               <span>Read Today's Aeon Essay</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
 
-            <a
-              href="https://aeon.co/ideas"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
-            >
-              <span>Explore Aeon Ideas (1k words)</span>
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
-            </a>
+            {/* Streak Saver / Grace Period for Yesterday */}
+            {!aeonHabit.isYesterdayDone ? (
+              <button
+                type="button"
+                onClick={() => markYesterdayAeonDone()}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/90 bg-amber-100 hover:bg-amber-200 text-amber-950 dark:bg-amber-950/70 dark:hover:bg-amber-900/80 dark:text-amber-200 dark:border-amber-700/80 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95"
+                title="Forgot yesterday? Click to mark yesterday's essay as done and protect your unbroken streak!"
+              >
+                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>Mark Yesterday's Essay Done (Save Streak)</span>
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-xl border border-emerald-300/80 bg-emerald-50/80 dark:border-emerald-800/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-3 py-1.5 text-xs font-semibold">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Yesterday's Streak Protected ✓</span>
+              </span>
+            )}
 
             <button
               type="button"
@@ -646,9 +641,52 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
               <span>{isAeonReadToday ? 'Today\'s Essay Completed ✓' : 'Mark Today\'s Essay as Read'}</span>
             </button>
 
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-auto">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-auto font-medium">
               Total Read: <strong className="font-mono text-slate-900 dark:text-white">{aeonHabit.totalRead} essays</strong>
             </span>
+          </div>
+
+          {/* 7-Day Reading Habit Tracker with 1-Click Retroactive Toggles */}
+          <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                Recent 7-Day Reading Log (Click any day to backfill / edit):
+              </span>
+              {!aeonHabit.isYesterdayDone && (
+                <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 animate-pulse">
+                  ⚡ Yesterday missing — click yesterday to restore streak!
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              {getRecentHabitDays(aeonHabit.completedDates, 7).map((d) => (
+                <button
+                  key={d.dateStr}
+                  type="button"
+                  onClick={() => toggleAeonDate(d.dateStr, `Aeon Essay: ${d.label}`)}
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                    d.completed
+                      ? 'border-emerald-300/80 bg-emerald-50/70 text-emerald-900 dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-200 shadow-2xs'
+                      : d.isYesterday
+                      ? 'border-amber-300 bg-amber-50/80 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 hover:border-amber-400'
+                      : 'border-slate-200 bg-white/70 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400 hover:border-slate-300'
+                  }`}
+                  title={`${d.label} (${d.dateStr}): ${d.completed ? 'Completed ✓ (Click to unmark)' : 'Not done (Click to mark done)'}`}
+                >
+                  <span className="text-[10px] uppercase font-bold tracking-wider">{d.dayName}</span>
+                  <div className="my-1">
+                    {d.completed ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <div className={`h-4 w-4 rounded-full border-2 ${d.isYesterday ? 'border-amber-500 border-dashed animate-pulse' : 'border-slate-300 dark:border-slate-600'}`} />
+                    )}
+                  </div>
+                  <span className={`text-[10px] font-semibold truncate ${d.isToday || d.isYesterday ? 'font-bold underline' : ''}`}>
+                    {d.isToday ? 'Today' : d.isYesterday ? 'Y\'day' : d.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Curated High-Frequency CAT Genres on Aeon */}

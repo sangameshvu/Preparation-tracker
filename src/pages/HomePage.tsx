@@ -22,7 +22,8 @@ import {
   Check,
   Trash2,
   ExternalLink,
-  Info
+  Info,
+  Flame
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -69,7 +70,11 @@ export const HomePage: React.FC = () => {
     mockTests,
     mistakes,
     topics,
-    topicProgress
+    topicProgress,
+    aeonHabit,
+    markYesterdayAeonDone,
+    markTodayAeonDone,
+    toggleAeonDate
   } = useAppData();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -215,9 +220,25 @@ export const HomePage: React.FC = () => {
         {/* Left: Hero Gradient Card (60% width on desktop) */}
         <div className="lg:col-span-7 relative overflow-hidden rounded-3xl glass-tint specular-follow p-7 md:p-8 text-white shadow-xl flex flex-col justify-between">
           <div className="space-y-4 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-thin text-white text-xs font-semibold border border-white/20">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-thin text-white text-xs font-semibold border border-white/20">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                <span>Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/practice')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/25 hover:bg-amber-500/35 border border-amber-300/40 text-amber-200 text-xs font-extrabold glass-thin transition-all cursor-pointer shadow-xs"
+                title={`Consecutive reading streak: ${aeonHabit.streak} days. Click to view reading log.`}
+              >
+                <Flame className="h-3.5 w-3.5 text-amber-300 fill-amber-400" />
+                <span>{aeonHabit.streak} Day Streak</span>
+                {aeonHabit.streakAtRisk && (
+                  <span className="text-[10px] bg-rose-500 text-white font-extrabold px-1.5 rounded-full ml-1 animate-pulse">
+                    Risk!
+                  </span>
+                )}
+              </button>
             </div>
 
             <div>
@@ -230,7 +251,7 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Clean White Primary Button (Prevents blue-on-blue blending) */}
+          {/* Clean Action Row with Direct Aeon Tracker & Streak Saver */}
           <div className="pt-6 relative z-10 flex items-center flex-wrap gap-2.5">
             <Button
               size="sm"
@@ -259,6 +280,33 @@ export const HomePage: React.FC = () => {
               <span>Today's Aeon Essay</span>
               <ExternalLink className="h-3 w-3 opacity-70" />
             </a>
+
+            {/* Direct 1-Click Aeon Completion Toggle */}
+            <button
+              type="button"
+              onClick={() => (aeonHabit.isTodayDone ? toggleAeonDate(todayDateStr) : markTodayAeonDone())}
+              className={`inline-flex items-center gap-1.5 text-xs rounded-xl px-3 py-2 font-bold transition-all cursor-pointer shadow-xs ${
+                aeonHabit.isTodayDone
+                  ? 'bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-100 border border-emerald-400/50'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/30'
+              }`}
+            >
+              <CheckCircle2 className={`h-3.5 w-3.5 ${aeonHabit.isTodayDone ? 'text-emerald-300' : 'text-amber-300'}`} />
+              <span>{aeonHabit.isTodayDone ? "Today's Essay Done ✓" : "Mark Today's Read"}</span>
+            </button>
+
+            {/* Streak Saver button if yesterday's essay was forgotten */}
+            {!aeonHabit.isYesterdayDone && (
+              <button
+                type="button"
+                onClick={() => markYesterdayAeonDone()}
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-extrabold text-xs rounded-xl px-3 py-2 shadow-sm transition-all cursor-pointer animate-pulse"
+                title="Forgot yesterday's Aeon essay? Click to mark done and save your streak!"
+              >
+                <Flame className="h-3.5 w-3.5 fill-slate-950 text-slate-950" />
+                <span>Mark Yesterday Done (Save Streak)</span>
+              </button>
+            )}
           </div>
 
           {/* Ambient inner glow */}
@@ -335,6 +383,54 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 2.5 STREAK SAVER / YESTERDAY RECOVERY BANNER */}
+      {!aeonHabit.isYesterdayDone ? (
+        <div className="rounded-3xl border border-amber-300/80 dark:border-amber-700/70 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-slate-900/60 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Flame className="h-6 w-6 fill-white animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-100">
+                  Streak Saver Available: Yesterday's Aeon Essay Pending
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                  Grace Period Active
+                </span>
+              </div>
+              <p className="text-xs text-amber-900/80 dark:text-amber-300/80 mt-0.5">
+                Forgot to log yesterday's Aeon essay? Mark it completed now to protect your daily study streak without breaking it.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => markYesterdayAeonDone()}
+            className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-xs rounded-xl h-9 px-4 shrink-0 shadow-xs flex items-center gap-2 cursor-pointer self-stretch sm:self-auto"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            <span>Mark Yesterday's Essay Done</span>
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20 px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="font-semibold text-emerald-900 dark:text-emerald-200">
+              Streak Protected: Yesterday's Aeon essay is logged. Active streak: <strong className="font-mono text-foreground">{aeonHabit.streak} days</strong>.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/practice')}
+            className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 cursor-pointer"
+          >
+            View Reading Log →
+          </button>
+        </div>
+      )}
 
       {/* 3. ROW 2: MAIN MIDDLE GRID (Today's Focus + Hours Chart) & DESKTOP RIGHT RAIL */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">

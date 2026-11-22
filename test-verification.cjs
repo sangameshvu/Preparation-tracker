@@ -168,6 +168,40 @@ test('Production build output contains all expected bundles', () => {
   assert(assets.some(f => f.startsWith('index-') && f.endsWith('.css')), 'CSS bundle missing');
 });
 
+// 19. VERIFY STREAK PRESERVATION & YESTERDAY AEON BACKFILL
+test('Study Streak engine and retroactive yesterday backfill are implemented', () => {
+  assert(fs.existsSync(path.join(__dirname, 'src/utils/streakCalculator.ts')), 'streakCalculator.ts missing');
+  const streakCalc = fs.readFileSync(path.join(__dirname, 'src/utils/streakCalculator.ts'), 'utf8');
+  assert(streakCalc.includes('calculateStreak'), 'calculateStreak function missing');
+  assert(streakCalc.includes('isYesterdayDone'), 'isYesterdayDone missing');
+  assert(streakCalc.includes('streakAtRisk'), 'streakAtRisk logic missing');
+  assert(streakCalc.includes('getRecentHabitDays'), 'getRecentHabitDays function missing');
+
+  // Verify AppDataContext integration
+  const appCtx = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(appCtx.includes('markYesterdayAeonDone'), 'markYesterdayAeonDone missing from AppDataContext');
+  assert(appCtx.includes('markTodayAeonDone'), 'markTodayAeonDone missing from AppDataContext');
+  assert(appCtx.includes('toggleAeonDate'), 'toggleAeonDate missing from AppDataContext');
+  assert(appCtx.includes('cat2027_aeon_reading'), 'LocalStorage cat2027_aeon_reading missing');
+
+  // Verify HomePage streak display & yesterday saver
+  const home = fs.readFileSync(path.join(__dirname, 'src/pages/HomePage.tsx'), 'utf8');
+  assert(home.includes('Day Streak'), 'Day Streak badge missing from HomePage');
+  assert(home.includes('markYesterdayAeonDone'), 'markYesterdayAeonDone button missing from HomePage');
+  assert(home.includes('Streak Saver Available'), 'Streak Saver banner missing from HomePage');
+
+  // Verify CATPracticeEngine integration
+  const practice = fs.readFileSync(path.join(__dirname, 'src/components/practice/CATPracticeEngine.tsx'), 'utf8');
+  assert(practice.includes('markYesterdayAeonDone'), 'markYesterdayAeonDone missing from CATPracticeEngine');
+  assert(practice.includes('getRecentHabitDays'), 'getRecentHabitDays missing from CATPracticeEngine');
+  assert(practice.includes('Save Streak'), 'Save Streak action missing from CATPracticeEngine');
+
+  // Verify WeeklyPlannerPage streak badge & yesterday action
+  const planner = fs.readFileSync(path.join(__dirname, 'src/pages/WeeklyPlannerPage.tsx'), 'utf8');
+  assert(planner.includes('markYesterdayAeonDone'), 'markYesterdayAeonDone missing from WeeklyPlannerPage');
+  assert(planner.includes('Streak'), 'Streak badge missing from WeeklyPlannerPage');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {
