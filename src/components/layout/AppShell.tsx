@@ -5,6 +5,8 @@ import { TopNav } from './TopNav';
 import { MobileBottomNav } from './MobileBottomNav';
 import { CommandPalette } from '../ui/CommandPalette';
 import { QuickAddModal } from './QuickAddModal';
+import { StudyTimerModal } from '../timer/StudyTimerModal';
+import { StudyTimerFloatingDock } from '../timer/StudyTimerFloatingDock';
 import { AmbientBackground } from '../common/AmbientBackground';
 import { Sparkles } from 'lucide-react';
 
@@ -95,6 +97,10 @@ export const AppShell: React.FC = () => {
 
       {/* Global Quick Add Modal */}
       <QuickAddModal open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+
+      {/* Global Study Focus Timer Modal & Floating Dock */}
+      <StudyTimerModal />
+      <StudyTimerFloatingDock />
     </div>
   );
 };

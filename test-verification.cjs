@@ -303,6 +303,46 @@ test('Free Resources is renamed to Resources across Sidebar, TopNav, and Resourc
   assert(resourcesPageContent.includes('Curated directory of hand-picked CAT preparation resources'), 'Subtitle missing');
 });
 
+// 25. VERIFY STUDY FOCUS TIMER, PICTURE-IN-PICTURE (PIP) ENGINE, AND STUDY TIME LOGGING
+test('Study Focus Timer provides full pause/resume controls, Picture-in-Picture (Document & Video PiP), and logs study time to activity history', () => {
+  const timerContext = fs.readFileSync(path.join(__dirname, 'src/context/StudyTimerContext.tsx'), 'utf8');
+  assert(timerContext.includes('documentPictureInPicture'), 'Document Picture-in-Picture support missing in StudyTimerContext');
+  assert(timerContext.includes('captureStream'), 'Video Picture-in-Picture canvas stream fallback missing');
+  assert(timerContext.includes('pauseTimer'), 'pauseTimer function missing');
+  assert(timerContext.includes('resumeTimer'), 'resumeTimer function missing');
+  assert(timerContext.includes('togglePause'), 'togglePause function missing');
+  assert(timerContext.includes('stopAndLog'), 'stopAndLog function missing');
+  assert(timerContext.includes('resetTimer'), 'resetTimer function missing');
+  assert(timerContext.includes('category: \'study\''), 'Activity logging with category study missing');
+  assert(timerContext.includes('cat2027_active_study_timer'), 'Storage persistence key missing');
+  assert(timerContext.includes('mediaSession'), 'MediaSession integration missing');
+
+  // Verify UI components
+  const modalContent = fs.readFileSync(path.join(__dirname, 'src/components/timer/StudyTimerModal.tsx'), 'utf8');
+  assert(modalContent.includes('CAT Study Focus Timer'), 'Timer title missing in StudyTimerModal');
+  assert(modalContent.includes('togglePip'), 'Picture-in-Picture trigger missing in StudyTimerModal');
+  assert(modalContent.includes('togglePause'), 'Pause/resume trigger missing in StudyTimerModal');
+  assert(modalContent.includes('stopAndLog'), 'Finish and log trigger missing in StudyTimerModal');
+  assert(modalContent.includes('formatTimerDigits'), 'formatTimerDigits missing in StudyTimerModal');
+
+  const dockContent = fs.readFileSync(path.join(__dirname, 'src/components/timer/StudyTimerFloatingDock.tsx'), 'utf8');
+  assert(dockContent.includes('StudyTimerFloatingDock'), 'StudyTimerFloatingDock component missing');
+  assert(dockContent.includes('togglePause'), 'togglePause missing in StudyTimerFloatingDock');
+  assert(dockContent.includes('togglePip'), 'togglePip missing in StudyTimerFloatingDock');
+
+  // Verify App integration
+  const appContent = fs.readFileSync(path.join(__dirname, 'src/App.tsx'), 'utf8');
+  assert(appContent.includes('StudyTimerProvider'), 'StudyTimerProvider missing in App.tsx');
+
+  const shellContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/AppShell.tsx'), 'utf8');
+  assert(shellContent.includes('StudyTimerModal'), 'StudyTimerModal missing in AppShell');
+  assert(shellContent.includes('StudyTimerFloatingDock'), 'StudyTimerFloatingDock missing in AppShell');
+
+  const topNavContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/TopNav.tsx'), 'utf8');
+  assert(topNavContent.includes('useStudyTimer'), 'useStudyTimer hook missing in TopNav');
+  assert(topNavContent.includes('openTimerModal'), 'openTimerModal trigger missing in TopNav');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

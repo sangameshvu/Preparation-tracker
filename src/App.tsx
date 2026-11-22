@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AppDataProvider } from './context/AppDataContext';
+import { StudyTimerProvider } from './context/StudyTimerContext';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 import { TooltipProvider } from './components/ui/tooltip';
@@ -34,40 +35,42 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AppDataProvider>
-        <TooltipProvider delayDuration={150}>
-          <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppShell />}>
-              <Route index element={<HomePage />} />
-              {/* Canonical Hub Routes */}
-              <Route path="plan" element={<PlanPage />} />
-              <Route path="practice" element={<PracticePage />} />
-              <Route path="insights" element={<InsightsPage />} />
-              <Route path="notes" element={<NotesContainerPage />} />
+        <StudyTimerProvider>
+          <TooltipProvider delayDuration={150}>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<AppShell />}>
+                  <Route index element={<HomePage />} />
+                  {/* Canonical Hub Routes */}
+                  <Route path="plan" element={<PlanPage />} />
+                  <Route path="practice" element={<PracticePage />} />
+                  <Route path="insights" element={<InsightsPage />} />
+                  <Route path="notes" element={<NotesContainerPage />} />
 
-              {/* Sub-routes and Legacy Direct Navigation */}
-              <Route path="planner" element={<PlanPage defaultTab="planner" />} />
-              <Route path="topics" element={<PlanPage defaultTab="topics" />} />
-              <Route path="mocks" element={<PracticePage defaultTab="mocks" />} />
-              <Route path="mistakes" element={<PracticePage defaultTab="mistakes" />} />
-              <Route path="analytics" element={<InsightsPage defaultTab="analytics" />} />
-              <Route path="history" element={<InsightsPage defaultTab="history" />} />
-              <Route path="sticky-board" element={<NotesContainerPage defaultTab="sticky-board" />} />
-              <Route path="resources" element={<FreeResourcesPage />} />
-              <Route path="routines" element={<DailyRoutinesPage />} />
-              <Route path="guide" element={<PrepGuidePage />} />
-              <Route path="ai-coach" element={<AICoachPage />} />
-              <Route path="coach" element={<Navigate to="/ai-coach" replace />} />
-              <Route path="settings" element={<ProfileSettingsPage />} />
-              <Route path="admin" element={<AdminPanelPage />} />
-              <Route path="dev/glass" element={<DevGlassPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-          <Toaster position="top-right" richColors />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AppDataProvider>
+                  {/* Sub-routes and Legacy Direct Navigation */}
+                  <Route path="planner" element={<PlanPage defaultTab="planner" />} />
+                  <Route path="topics" element={<PlanPage defaultTab="topics" />} />
+                  <Route path="mocks" element={<PracticePage defaultTab="mocks" />} />
+                  <Route path="mistakes" element={<PracticePage defaultTab="mistakes" />} />
+                  <Route path="analytics" element={<InsightsPage defaultTab="analytics" />} />
+                  <Route path="history" element={<InsightsPage defaultTab="history" />} />
+                  <Route path="sticky-board" element={<NotesContainerPage defaultTab="sticky-board" />} />
+                  <Route path="resources" element={<FreeResourcesPage />} />
+                  <Route path="routines" element={<DailyRoutinesPage />} />
+                  <Route path="guide" element={<PrepGuidePage />} />
+                  <Route path="ai-coach" element={<AICoachPage />} />
+                  <Route path="coach" element={<Navigate to="/ai-coach" replace />} />
+                  <Route path="settings" element={<ProfileSettingsPage />} />
+                  <Route path="admin" element={<AdminPanelPage />} />
+                  <Route path="dev/glass" element={<DevGlassPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+              <Toaster position="top-right" richColors />
+            </BrowserRouter>
+          </TooltipProvider>
+        </StudyTimerProvider>
+      </AppDataProvider>
     </ThemeProvider>
   );
 };

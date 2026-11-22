@@ -8,11 +8,13 @@ import {
   User,
   Bot,
   Flame,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../../context/ThemeContext';
 import { useAppData } from '../../context/AppDataContext';
+import { useStudyTimer, formatTimerDigits } from '../../context/StudyTimerContext';
 import { Link, useLocation } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 
@@ -29,6 +31,7 @@ export const TopNav: React.FC<TopNavProps> = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const { profile, stats, isAuthenticated } = useAppData();
+  const { isRunning, isPaused, displaySeconds, isPipActive, openTimerModal } = useStudyTimer();
   const location = useLocation();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
@@ -105,6 +108,52 @@ export const TopNav: React.FC<TopNavProps> = ({
           <Flame className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0" />
           <span className="font-mono">{stats.currentStreak}d</span>
         </Link>
+
+        {/* Study Focus Timer Pill */}
+        <button
+          type="button"
+          onClick={openTimerModal}
+          className={`inline-flex items-center justify-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-full text-xs font-semibold transition-all shadow-xs cursor-pointer ${
+            isRunning
+              ? isPaused
+                ? 'bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400'
+                : 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 animate-pulse'
+              : 'glass-thin hover:bg-emerald-500/10 hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+          }`}
+          title={`${
+            !isRunning
+              ? 'Open Study Timer (with Picture-in-Picture mode)'
+              : isPaused
+              ? 'Study Timer Paused - Click to resume or pop out'
+              : 'Study Timer Active - Click to manage or pop out'
+          }`}
+        >
+          {isRunning ? (
+            <span className="relative flex h-2 w-2">
+              {!isPaused && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isPaused ? 'bg-amber-500' : 'bg-emerald-500'
+                }`}
+              />
+            </span>
+          ) : (
+            <Clock className="h-3.5 w-3.5" />
+          )}
+          <span className={isRunning ? 'font-mono font-bold' : 'hidden sm:inline'}>
+            {isRunning ? formatTimerDigits(displaySeconds) : 'Timer'}
+          </span>
+          {isPipActive && (
+            <span
+              className="text-[9px] font-mono px-1 rounded bg-blue-500/20 text-blue-600 dark:text-blue-300 ml-0.5"
+              title="Picture-in-Picture active"
+            >
+              PiP
+            </span>
+          )}
+        </button>
 
         {/* Ask Coach Outlined Pill Button */}
         <button

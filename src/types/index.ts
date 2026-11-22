@@ -239,7 +239,38 @@ export interface PrepGuideSection {
   sortOrder: number;
 }
 
-export type ActivityCategory = 'topic' | 'task' | 'mock' | 'mistake' | 'note' | 'goal';
+export type ActivityCategory = 'topic' | 'task' | 'mock' | 'mistake' | 'note' | 'goal' | 'study';
+
+export type TimerMode = 'stopwatch' | 'pomodoro';
+
+export interface StudyTimerSession {
+  id: string;
+  startTime: string; // ISO datetime
+  endTime?: string;
+  durationSeconds: number;
+  durationMinutes: number;
+  section: SectionType;
+  topicId?: string;
+  topicName?: string;
+  notes?: string;
+  mode: TimerMode;
+  targetMinutes?: number;
+  completedAt?: string;
+}
+
+export interface StudyTimerPersistedState {
+  isRunning: boolean;
+  isPaused: boolean;
+  mode: TimerMode;
+  accumulatedSeconds: number;
+  lastStartTimestamp: number | null;
+  targetMinutes: number;
+  section: SectionType;
+  topicId: string;
+  topicName: string;
+  sessionNotes: string;
+  soundEnabled: boolean;
+}
 
 export interface StudyActivityItem {
   id: string;

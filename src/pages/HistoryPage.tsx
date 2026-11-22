@@ -142,7 +142,8 @@ export const HistoryPage: React.FC = () => {
     mock: <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" />,
     mistake: <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />,
     goal: <Flame className="h-4 w-4 text-orange-600 dark:text-orange-400" />,
-    note: <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+    note: <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />,
+    study: <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
   };
 
   const handleDateShift = (direction: 'prev' | 'next') => {
@@ -693,6 +694,7 @@ export const HistoryPage: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Targets</SelectItem>
+                    <SelectItem value="study">Study Sessions</SelectItem>
                     <SelectItem value="goal">Daily Goals</SelectItem>
                     <SelectItem value="topic">Topics</SelectItem>
                     <SelectItem value="task">Tasks</SelectItem>

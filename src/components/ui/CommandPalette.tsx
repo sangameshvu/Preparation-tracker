@@ -19,6 +19,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useStudyTimer } from '../../context/StudyTimerContext';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 
 interface CommandPaletteProps {
@@ -36,6 +37,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 }) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { openTimerModal, togglePip } = useStudyTimer();
 
   // Global keyboard shortcut listener (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -107,6 +109,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <span>Quick Add (Task, Mistake, Mock, Note)</span>
                   </Command.Item>
                 )}
+
+                <Command.Item
+                  onSelect={() => runCommand(openTimerModal)}
+                  className="relative flex cursor-pointer select-none items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground outline-hidden data-[selected=true]:bg-blue-50 data-[selected=true]:text-blue-700 dark:data-[selected=true]:bg-blue-950/40 dark:data-[selected=true]:text-blue-300 transition-colors"
+                >
+                  <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Open Study Focus Timer</span>
+                  <span className="ml-auto text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                    Timer
+                  </span>
+                </Command.Item>
+
+                <Command.Item
+                  onSelect={() => runCommand(() => togglePip())}
+                  className="relative flex cursor-pointer select-none items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-foreground outline-hidden data-[selected=true]:bg-blue-50 data-[selected=true]:text-blue-700 dark:data-[selected=true]:bg-blue-950/40 dark:data-[selected=true]:text-blue-300 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span>Launch Timer in Picture-in-Picture (Float Over Other Websites)</span>
+                  <span className="ml-auto text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full font-bold">
+                    PiP
+                  </span>
+                </Command.Item>
 
                 <Command.Item
                   onSelect={() =>
