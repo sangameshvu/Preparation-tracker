@@ -217,35 +217,40 @@ export const HomePage: React.FC = () => {
 
       {/* 2. ROW 1: HERO GRADIENT CARD + 3 STAT CARDS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Left: Hero Countdown Card (Calm deep gradient, not over-bright) */}
-        <div className="lg:col-span-7 relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 dark:from-blue-700 dark:via-blue-600 dark:to-indigo-700 p-7 md:p-8 text-white shadow-xs flex flex-col justify-between">
+        {/* Left: Hero Gradient Card (60% width on desktop, original glass-tint gradient) */}
+        <div className="lg:col-span-7 relative overflow-hidden rounded-3xl glass-tint specular-follow p-7 md:p-8 text-white shadow-xl flex flex-col justify-between">
           {/* Top: Big Countdown */}
           <div className="relative z-10 space-y-1">
             <div className="flex items-baseline gap-2">
               <span className="text-4xl sm:text-5xl font-black tracking-tight font-mono text-white">
                 {stats.daysRemaining}
               </span>
-              <span className="text-base sm:text-lg font-medium text-blue-100/90">days to CAT 2027</span>
+              <span className="text-base sm:text-lg font-medium text-blue-100">days to CAT 2027</span>
             </div>
             <p className="text-xs sm:text-sm text-blue-100/80 mt-1 max-w-md leading-relaxed">
               Consistency is the key to 99+ percentile. Maintain deliberate practice and review your error log.
             </p>
           </div>
 
-          {/* Bottom: Phase and Streak Badges (Calm, subtle reduced borders) */}
+          {/* Bottom: Phase and Streak Badges (retained at bottom, identical styling from original) */}
           <div className="pt-6 relative z-10 flex items-center gap-2.5 flex-wrap">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-thin text-white/95 text-xs font-semibold border-white/5">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-thin text-white text-xs font-semibold border border-white/20">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" />
               <span>Phase {stats.currentPhase.phaseNumber}: {stats.currentPhase.name}</span>
             </div>
             <button
               type="button"
               onClick={() => navigate('/practice')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-thin hover:bg-white/20 text-white/95 text-xs font-semibold border-white/5 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/25 hover:bg-amber-500/35 border border-amber-300/40 text-amber-200 text-xs font-extrabold glass-thin transition-all cursor-pointer shadow-xs"
               title={`Consecutive reading streak: ${aeonHabit.streak} days. Click to view reading log.`}
             >
-              <Flame className="h-3.5 w-3.5 text-amber-300 fill-amber-300" />
+              <Flame className="h-3.5 w-3.5 text-amber-300 fill-amber-400" />
               <span>{aeonHabit.streak} Day Streak</span>
+              {aeonHabit.streakAtRisk && (
+                <span className="text-[10px] bg-rose-500 text-white font-extrabold px-1.5 rounded-full ml-1 animate-pulse">
+                  Risk!
+                </span>
+              )}
             </button>
           </div>
         </div>
