@@ -220,6 +220,39 @@ test('Calendar in Study History section displays selected day goals (completed &
   assert(initAct.includes('completed: true') && initAct.includes('completed: false'), 'Completed & Pending initial daily goals missing');
 });
 
+// 21. VERIFY STICKY BOARD WORD-LIKE MARKDOWN CANVAS & METADATA INTAKE
+test('Sticky Board retains name, provides Word-like markdown canvas editor, preview cards, and metadata intake modal', () => {
+  const stickyContent = fs.readFileSync(path.join(__dirname, 'src/pages/StickyBoardPage.tsx'), 'utf8');
+  
+  // Feature naming
+  assert(stickyContent.includes('Sticky Board'), 'Feature name Sticky Board missing');
+  assert(stickyContent.includes('Word Canvas & Markdown Editor'), 'Word canvas tagline missing');
+
+  // Initial Metadata intake modal
+  assert(stickyContent.includes('New Sticky Board Note Setup') || stickyContent.includes('metadataModalOpen'), 'Metadata intake modal missing');
+  assert(stickyContent.includes('Note Name / Title *'), 'Note title field missing in intake modal');
+  assert(stickyContent.includes('Purpose / Category *'), 'Purpose field missing in intake modal');
+  assert(stickyContent.includes('Subject Section *'), 'Section field missing in intake modal');
+  assert(stickyContent.includes('Open Word Canvas Editor'), 'Open Word Canvas Editor button missing');
+
+  // Word-like Canvas Toolbar & Modes
+  assert(stickyContent.includes('insertFormatting'), 'Formatting helper missing');
+  assert(stickyContent.includes('insertQATemplate'), 'Q&A template helper missing');
+  assert(stickyContent.includes('insertFormulaTemplate'), 'Formula table template helper missing');
+  assert(stickyContent.includes('handleImageUpload'), 'Notebook scan upload helper missing');
+  assert(stickyContent.includes('Split View') && stickyContent.includes('Formatted Word View'), 'Canvas modes missing');
+
+  // Preview Cards & Lightbox
+  assert(stickyContent.includes('Open Canvas'), 'Open Canvas card action missing');
+  assert(stickyContent.includes('setReadingNote'), 'Read note action missing');
+  assert(stickyContent.includes('setLightboxImage'), 'Lightbox scan action missing');
+
+  // Types verification
+  const typesContent = fs.readFileSync(path.join(__dirname, 'src/types/index.ts'), 'utf8');
+  assert(typesContent.includes('title?: string') && typesContent.includes('purpose?: string'), 'StickyNoteItem metadata fields missing');
+  assert(typesContent.includes('images?: NoteImageItem[]'), 'StickyNoteItem images field missing');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

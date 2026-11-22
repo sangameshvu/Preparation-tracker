@@ -177,6 +177,10 @@ export interface DailyRoutineTemplate {
 
 export interface StickyNoteItem {
   id: string;
+  title?: string;
+  purpose?: string;
+  date?: string;
+  section?: SectionType | 'General';
   content: string;
   color: 'charcoal' | 'lavender' | 'emerald' | 'amber' | 'rose' | 'cyan';
   positionX: number;
@@ -185,7 +189,9 @@ export interface StickyNoteItem {
   linkedTopicId?: string;
   linkedTaskId?: string;
   linkedMockId?: string;
+  images?: NoteImageItem[];
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type NoteCategoryType = 'Notes' | 'QA' | 'Quick Ref';
