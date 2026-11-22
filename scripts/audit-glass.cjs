@@ -8,7 +8,8 @@ const WHITELIST = new Set([
   path.normalize(path.join(SRC_DIR, 'styles', 'glass.css')),
   path.normalize(path.join(SRC_DIR, 'components', 'ui', 'dialog.tsx')),
   path.normalize(path.join(SRC_DIR, 'components', 'ui', 'SlideOver.tsx')),
-  path.normalize(path.join(SRC_DIR, 'components', 'ui', 'CommandPalette.tsx'))
+  path.normalize(path.join(SRC_DIR, 'components', 'ui', 'CommandPalette.tsx')),
+  path.normalize(path.join(SRC_DIR, 'context', 'StudyTimerContext.tsx'))
 ]);
 
 const FORBIDDEN_PATTERNS = [

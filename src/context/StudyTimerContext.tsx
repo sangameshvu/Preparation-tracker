@@ -459,43 +459,99 @@ export const StudyTimerProvider: React.FC<{ children: ReactNode }> = ({ children
         setIsPipActive(true);
         setPipType('document');
 
-        // Style the Document PiP window
+        // Style the Document PiP window with authentic Liquid Glass (glassmorphism) theme
         const styleEl = pipWin.document.createElement('style');
         styleEl.textContent = `
           * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-          body {
-            background: #090d16;
+          html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.28), transparent 70%),
+                        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.16), transparent 60%),
+                        #080c14;
             color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .glass-pip-container {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            display: flex;
+          }
+          .glass-pip-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100vh;
-            padding: 16px;
-            user-select: none;
+            border-radius: 20px;
+            background: rgba(18, 24, 38, 0.70);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+              inset 0 1px 0 rgba(255, 255, 255, 0.24),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+              0 12px 32px 0 rgba(0, 0, 0, 0.45);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          .glass-pip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 15%;
+            right: 15%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            pointer-events: none;
           }
           .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 11px;
-            color: #94a3b8;
+            gap: 8px;
           }
           .badge {
-            padding: 3px 9px;
+            padding: 3px 10px;
             border-radius: 9999px;
             font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
           }
-          .badge-quant { background: rgba(59, 130, 246, 0.25); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.5); }
-          .badge-dilr { background: rgba(168, 85, 247, 0.25); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); }
-          .badge-varc { background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); }
-          .badge-general { background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); }
+          .badge-quant {
+            background: rgba(37, 99, 235, 0.28);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+          }
+          .badge-dilr {
+            background: rgba(147, 51, 234, 0.28);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+          }
+          .badge-varc {
+            background: rgba(217, 119, 6, 0.28);
+            color: #fde68a;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+          }
+          .badge-general {
+            background: rgba(16, 185, 129, 0.28);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+          }
           .topic {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #cbd5e1;
             white-space: nowrap;
@@ -505,41 +561,44 @@ export const StudyTimerProvider: React.FC<{ children: ReactNode }> = ({ children
           }
           .timer-box {
             text-align: center;
-            margin: 6px 0;
+            margin: 2px 0;
           }
           .digits {
-            font-size: 46px;
+            font-size: 48px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
             font-weight: 800;
-            letter-spacing: 0.02em;
-            color: #38bdf8;
-            text-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
-            line-height: 1.1;
+            letter-spacing: 0.03em;
+            color: #ffffff;
+            text-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
+            line-height: 1;
           }
           .digits.paused {
             color: #fbbf24;
-            text-shadow: 0 0 24px rgba(251, 191, 36, 0.35);
+            text-shadow: 0 0 24px rgba(251, 191, 36, 0.45);
           }
           .status-line {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.05em;
-            color: #64748b;
-            margin-top: 4px;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-top: 5px;
+            text-transform: uppercase;
           }
           .dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: #10b981;
-            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 1.8s infinite;
           }
           .dot.paused {
             background: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
             animation: none;
           }
           @keyframes pulse {
@@ -557,70 +616,90 @@ export const StudyTimerProvider: React.FC<{ children: ReactNode }> = ({ children
             cursor: pointer;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11px;
             padding: 9px 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             transition: all 0.15s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
           }
           .btn-primary {
             flex: 2;
-            background: #2563eb;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.85), rgba(59, 130, 246, 0.75));
             color: #ffffff;
-            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(37, 99, 235, 0.35);
           }
-          .btn-primary:hover { background: #1d4ed8; }
+          .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.95), rgba(37, 99, 235, 0.85));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 18px rgba(37, 99, 235, 0.45);
+          }
           .btn-pause {
             flex: 2;
-            background: #d97706;
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.85), rgba(245, 158, 11, 0.75));
             color: #ffffff;
-            box-shadow: 0 2px 10px rgba(217, 119, 6, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(217, 119, 6, 0.35);
           }
-          .btn-pause:hover { background: #b45309; }
+          .btn-pause:hover {
+            background: linear-gradient(135deg, rgba(180, 83, 9, 0.95), rgba(217, 119, 6, 0.85));
+          }
           .btn-secondary {
             flex: 2;
-            background: #059669;
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.85), rgba(16, 185, 129, 0.75));
             color: #ffffff;
-            box-shadow: 0 2px 10px rgba(5, 150, 105, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(5, 150, 105, 0.35);
           }
-          .btn-secondary:hover { background: #047857; }
+          .btn-secondary:hover {
+            background: linear-gradient(135deg, rgba(4, 120, 87, 0.95), rgba(5, 150, 105, 0.85));
+          }
           .btn-icon {
-            background: #1e293b;
-            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
             padding: 9px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
           }
-          .btn-icon:hover { background: #334155; color: #ffffff; }
+          .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+          }
         `;
         pipWin.document.head.appendChild(styleEl);
 
-        // Body content
+        // Body content inside Liquid Glass card
         pipWin.document.body.innerHTML = `
-          <div class="header">
-            <span id="pip-badge" class="badge badge-${persisted.section.toLowerCase()}">${persisted.section}</span>
-            <span id="pip-topic" class="topic">${persisted.topicName || 'CAT Study Session'}</span>
-          </div>
+          <div class="glass-pip-container">
+            <div class="glass-pip-card">
+              <div class="header">
+                <span id="pip-badge" class="badge badge-${persisted.section.toLowerCase()}">${persisted.section}</span>
+                <span id="pip-topic" class="topic">${persisted.topicName || 'CAT Study Session'}</span>
+              </div>
 
-          <div class="timer-box">
-            <div id="pip-digits" class="digits">${formatTimerDigits(displaySeconds)}</div>
-            <div class="status-line">
-              <span id="pip-status-dot" class="dot ${persisted.isPaused ? 'paused' : ''}"></span>
-              <span id="pip-status-text">${persisted.isPaused ? 'PAUSED' : 'FOCUSING...'}</span>
+              <div class="timer-box">
+                <div id="pip-digits" class="digits">${formatTimerDigits(displaySeconds)}</div>
+                <div class="status-line">
+                  <span id="pip-status-dot" class="dot ${persisted.isPaused ? 'paused' : ''}"></span>
+                  <span id="pip-status-text">${persisted.isPaused ? 'PAUSED' : 'FOCUSING...'}</span>
+                </div>
+              </div>
+
+              <div class="controls">
+                <button id="pip-pause-btn" class="${persisted.isPaused ? 'btn-primary' : 'btn-pause'}">
+                  ${persisted.isPaused ? '▶ Resume' : '⏸ Pause'}
+                </button>
+                <button id="pip-log-btn" class="btn-secondary">
+                  ✓ Log Time
+                </button>
+                <button id="pip-reset-btn" class="btn-icon" title="Reset Timer">
+                  ↺
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div class="controls">
-            <button id="pip-pause-btn" class="${persisted.isPaused ? 'btn-primary' : 'btn-pause'}">
-              ${persisted.isPaused ? '▶ Resume' : '⏸ Pause'}
-            </button>
-            <button id="pip-log-btn" class="btn-secondary">
-              ✓ Log Time
-            </button>
-            <button id="pip-reset-btn" class="btn-icon" title="Reset Timer">
-              ↺
-            </button>
           </div>
         `;
 
@@ -687,50 +766,126 @@ export const StudyTimerProvider: React.FC<{ children: ReactNode }> = ({ children
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Draw canvas loop
+      // Draw liquid glass canvas loop for Video PiP fallback
       const renderCanvas = () => {
-        // Gradient background
-        const grad = ctx.createLinearGradient(0, 0, 480, 320);
-        grad.addColorStop(0, '#090d16');
-        grad.addColorStop(1, '#111827');
-        ctx.fillStyle = grad;
+        // 1. Ambient Background Canvas
+        const bgGrad = ctx.createLinearGradient(0, 0, 480, 320);
+        bgGrad.addColorStop(0, '#080c14');
+        bgGrad.addColorStop(0.5, '#0b1120');
+        bgGrad.addColorStop(1, '#080c14');
+        ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, 480, 320);
 
-        // Header Section
-        ctx.fillStyle = '#60a5fa';
-        ctx.font = 'bold 16px -apple-system, sans-serif';
-        ctx.fillText(`CAT 2027 HQ • ${persisted.section.toUpperCase()}`, 30, 45);
+        // Soft ambient radial lights (blue and emerald specular orbs)
+        const orbGrad1 = ctx.createRadialGradient(240, 20, 10, 240, 20, 160);
+        orbGrad1.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+        orbGrad1.addColorStop(1, 'transparent');
+        ctx.fillStyle = orbGrad1;
+        ctx.fillRect(0, 0, 480, 320);
 
-        // Topic name
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '14px -apple-system, sans-serif';
-        ctx.fillText(persisted.topicName || 'Active Study Session', 30, 72);
+        const orbGrad2 = ctx.createRadialGradient(420, 280, 10, 420, 280, 140);
+        orbGrad2.addColorStop(0, 'rgba(16, 185, 129, 0.14)');
+        orbGrad2.addColorStop(1, 'transparent');
+        ctx.fillStyle = orbGrad2;
+        ctx.fillRect(0, 0, 480, 320);
 
-        // Big Digits
+        // 2. Liquid Glass Card (Rounded rectangle: 16, 14, 448, 292, r: 20)
+        ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(16, 14, 448, 292, 20);
+        } else {
+          ctx.rect(16, 14, 448, 292);
+        }
+        ctx.fillStyle = 'rgba(18, 24, 38, 0.72)';
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.stroke();
+
+        // Top specular reflection highlight
+        ctx.beginPath();
+        ctx.moveTo(40, 14);
+        ctx.lineTo(440, 14);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.stroke();
+
+        // 3. Header: Glass Pill Badge + Topic Name
+        // Glass badge for Section
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(32, 28, 80, 24, 12);
+        } else {
+          ctx.rect(32, 28, 80, 24);
+        }
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.30)';
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.45)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#93c5fd';
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(persisted.section.toUpperCase(), 72, 44);
+
+        // Topic Title
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 13px -apple-system, sans-serif';
+        const displayTopic = persisted.topicName ? persisted.topicName.slice(0, 32) : 'CAT Study Session';
+        ctx.fillText(displayTopic, 124, 44);
+
+        // 4. Large Digital Clock with Glow
         const digits = formatTimerDigits(displaySeconds);
-        ctx.font = 'bold 72px ui-monospace, monospace';
-        ctx.fillStyle = persisted.isPaused ? '#fbbf24' : '#38bdf8';
-        ctx.fillText(digits, 30, 175);
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 68px ui-monospace, SFMono-Regular, monospace';
+        ctx.fillStyle = persisted.isPaused ? '#fbbf24' : '#ffffff';
+        ctx.shadowColor = persisted.isPaused ? 'rgba(251, 191, 36, 0.45)' : 'rgba(56, 189, 248, 0.45)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(digits, 240, 148);
+        ctx.shadowBlur = 0; // reset
 
-        // Status badge
+        // 5. Status Line (Status dot + text)
+        ctx.font = 'bold 12px -apple-system, sans-serif';
         ctx.fillStyle = persisted.isPaused ? '#f59e0b' : '#10b981';
         ctx.beginPath();
-        ctx.arc(40, 230, 7, 0, Math.PI * 2);
+        ctx.arc(170, 195, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.font = 'bold 18px -apple-system, sans-serif';
-        ctx.fillStyle = '#f8fafc';
+        ctx.fillStyle = '#94a3b8';
         ctx.fillText(
           persisted.isPaused ? 'PAUSED (Tap Play to Resume)' : 'FOCUSING (Tap Pause to Hold)',
-          58,
-          236
+          248,
+          199
         );
 
-        // Progress bar
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(30, 270, 420, 10);
-        ctx.fillStyle = '#3b82f6';
-        ctx.fillRect(30, 270, (420 * progressPercent) / 100, 10);
+        // 6. Liquid Glass Progress Track & Bar
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(36, 235, 408, 8, 4);
+        } else {
+          ctx.rect(36, 235, 408, 8);
+        }
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.fill();
+
+        const barWidth = Math.max(6, (408 * progressPercent) / 100);
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(36, 235, barWidth, 8, 4);
+        } else {
+          ctx.rect(36, 235, barWidth, 8);
+        }
+        ctx.fillStyle = persisted.isPaused ? '#f59e0b' : '#38bdf8';
+        ctx.fill();
+
+        // 7. Footer Caption
+        ctx.font = '500 11px -apple-system, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.fillText('CAT 2027 HQ • Liquid Glass Picture-in-Picture', 240, 278);
+        ctx.restore();
 
         animationFrameRef.current = requestAnimationFrame(renderCanvas);
       };
