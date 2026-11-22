@@ -33,7 +33,7 @@ import { addDays, subDays, differenceInCalendarDays, parseISO, format } from 'da
 import { calculateStreak } from '../utils/streakCalculator';
 import { toast } from 'sonner';
 
-const DEFAULT_PROFILE: UserProfile = {
+export const SANGAMESH_PROFILE: UserProfile = {
   id: 'user-sangamesh-vu',
   email: 'sangamesh.vu@gmail.com',
   password: 'Sangamesh.vu@',
@@ -51,12 +51,33 @@ const DEFAULT_PROFILE: UserProfile = {
   lastLoginAt: '2026-11-22T15:00:00.000Z'
 };
 
+export const GUEST_PROFILE: UserProfile = {
+  id: 'user-guest',
+  displayName: 'CAT Aspirant',
+  email: '',
+  password: '',
+  avatarUrl: '',
+  catTargetYear: 2027,
+  prepStartDate: '2026-11-17',
+  targetExamDate: '2027-11-28',
+  preferredDailyHours: 3.0,
+  preferredRoutine: 'working_professional_weekday',
+  themePreference: 'dark',
+  dateFormat: 'DD/MM/YYYY',
+  timeFormat: '12h',
+  isAdmin: false
+};
+
+const DEFAULT_PROFILE: UserProfile = GUEST_PROFILE;
+
 interface AppDataContextType {
   profile: UserProfile;
   updateProfile: (updates: Partial<UserProfile>) => void;
+  registeredProfiles: UserProfile[];
   authSession: AuthSession;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (displayName: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   syncDataToCloudVault: () => string;
   importDataFromCloudVault: (jsonStr: string) => boolean;
@@ -138,30 +159,35 @@ function getInitialState<T>(key: string, fallback: T): T {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = getInitialState<UserProfile>('profile', DEFAULT_PROFILE);
-    if (!saved.email || saved.id === 'user-default') {
-      return {
-        ...saved,
-        id: 'user-sangamesh-vu',
-        email: 'sangamesh.vu@gmail.com',
-        password: 'Sangamesh.vu@',
-        displayName: saved.displayName === 'CAT 2027 Aspirant' ? 'Sangamesh V U' : saved.displayName,
-        lastLoginAt: saved.lastLoginAt || new Date().toISOString()
-      };
+  // Profiles Registry: stores all registered user profiles (seeded with Sangamesh's profile)
+  const [registeredProfiles, setRegisteredProfiles] = useState<UserProfile[]>(() => {
+    const saved = getInitialState<UserProfile[]>('registered_profiles', [SANGAMESH_PROFILE]);
+    if (!saved.some((p) => p.email?.toLowerCase() === 'sangamesh.vu@gmail.com')) {
+      return [...saved, SANGAMESH_PROFILE];
     }
     return saved;
   });
 
+  // Active Session: defaults to unauthenticated guest so Sangamesh is NOT the default profile!
   const [authSession, setAuthSession] = useState<AuthSession>(() => {
     const saved = getInitialState<AuthSession | null>('auth_session', null);
-    if (saved && saved.user) return saved;
+    if (saved && saved.isAuthenticated && saved.user && saved.user.email) {
+      return saved;
+    }
     return {
-      user: DEFAULT_PROFILE,
-      token: 'sess_sangamesh_' + Date.now(),
-      isAuthenticated: true,
-      loginTime: new Date().toISOString()
+      user: GUEST_PROFILE,
+      token: '',
+      isAuthenticated: false,
+      loginTime: ''
     };
+  });
+
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    const savedSession = getInitialState<AuthSession | null>('auth_session', null);
+    if (savedSession && savedSession.isAuthenticated && savedSession.user && savedSession.user.email) {
+      return savedSession.user;
+    }
+    return GUEST_PROFILE;
   });
 
   const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlanItem[]>(() =>
@@ -362,8 +388,49 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [profile]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(authSession));
+    localStorage.setItem(STORAGE_PREFIX + 'registered_profiles', JSON.stringify(registeredProfiles));
+  }, [registeredProfiles]);
+
+  useEffect(() => {
+    if (authSession.isAuthenticated && authSession.user.id !== 'user-guest') {
+      localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(authSession));
+    } else {
+      localStorage.removeItem(STORAGE_PREFIX + 'auth_session');
+    }
   }, [authSession]);
+
+  // Seed Sangamesh's Master Data Vault so the data is never lost, but only accessible when authenticated!
+  useEffect(() => {
+    const vaultKey = 'cat2027_vault_user-sangamesh-vu';
+    if (!localStorage.getItem(vaultKey)) {
+      try {
+        const initialVault = {
+          profile: SANGAMESH_PROFILE,
+          weeklyPlans: initialWeeklyPlans,
+          tasks,
+          topicProgress,
+          mockTests: initialMockTests,
+          mistakes: initialMistakes,
+          resources: initialResources,
+          routines: initialRoutines,
+          stickyNotes,
+          studyNotes: initialStudyNotes,
+          guideSections: initialGuideSections,
+          activities: initialActivities,
+          dailyGoals: initialDailyGoals,
+          aeonHabit: {
+            completedDates: initialAeonCompletedDates,
+            streak: calculateStreak(initialAeonCompletedDates).currentStreak,
+            bestStreak: calculateStreak(initialAeonCompletedDates).bestStreak,
+            totalRead: initialAeonCompletedDates.length
+          }
+        };
+        localStorage.setItem(vaultKey, JSON.stringify(initialVault));
+      } catch (e) {
+        console.error('Error seeding Sangamesh data vault:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'weeklyPlans', JSON.stringify(weeklyPlans));
@@ -584,23 +651,54 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const login = async (emailInput: string, passwordInput: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = emailInput.trim().toLowerCase();
-    const targetEmail = (profile.email || DEFAULT_PROFILE.email || 'sangamesh.vu@gmail.com').toLowerCase();
-    const targetPassword = profile.password || DEFAULT_PROFILE.password || 'Sangamesh.vu@';
+    const found = registeredProfiles.find((p) => p.email?.trim().toLowerCase() === cleanEmail);
 
-    if (cleanEmail === targetEmail && passwordInput === targetPassword) {
+    if (found && found.password === passwordInput) {
       const updatedProfile: UserProfile = {
-        ...profile,
+        ...found,
         lastLoginAt: new Date().toISOString()
       };
+
+      setRegisteredProfiles((prev) =>
+        prev.map((p) => (p.id === found.id ? updatedProfile : p))
+      );
+
+      // If logging into Sangamesh profile or user with vault data, restore their complete dataset
+      const vaultKey = `cat2027_vault_${found.id}`;
+      const savedVault = localStorage.getItem(vaultKey);
+      if (savedVault) {
+        try {
+          const data = JSON.parse(savedVault);
+          if (data.weeklyPlans) setWeeklyPlans(data.weeklyPlans);
+          if (data.tasks) setTasks(data.tasks);
+          if (data.topicProgress) setTopicProgress(data.topicProgress);
+          if (data.mockTests) setMockTests(data.mockTests);
+          if (data.mistakes) setMistakes(data.mistakes);
+          if (data.resources) setResources(data.resources);
+          if (data.routines) setRoutines(data.routines);
+          if (data.stickyNotes) setStickyNotes(data.stickyNotes);
+          if (data.studyNotes) setStudyNotes(data.studyNotes);
+          if (data.guideSections) setGuideSections(data.guideSections);
+          if (data.activities) setActivities(data.activities);
+          if (data.dailyGoals) setDailyGoals(data.dailyGoals);
+          if (data.aeonHabit && data.aeonHabit.completedDates) {
+            setAeonCompletedDates(data.aeonHabit.completedDates);
+          }
+        } catch (err) {
+          console.error('Error loading vault for profile:', err);
+        }
+      }
+
       setProfile(updatedProfile);
       const newSession: AuthSession = {
         user: updatedProfile,
-        token: 'sess_' + Date.now(),
+        token: `sess_${found.id}_${Date.now()}`,
         isAuthenticated: true,
         loginTime: new Date().toISOString()
       };
       setAuthSession(newSession);
-      toast.success(`Welcome back, ${updatedProfile.displayName}! Synchronized to your CAT 2027 profile.`);
+      localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(newSession));
+      toast.success(`🎉 Welcome back, ${updatedProfile.displayName}! Logged into your CAT 2027 profile.`);
       return { success: true };
     } else {
       toast.error('Invalid email or password. Please verify your credentials.');
@@ -608,15 +706,103 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const signup = async (
+    displayName: string,
+    emailInput: string,
+    passwordInput: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (!displayName.trim()) {
+      toast.error('Please enter a display name');
+      return { success: false, error: 'Display name required' };
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return { success: false, error: 'Valid email required' };
+    }
+    if (!passwordInput || passwordInput.length < 4) {
+      toast.error('Password must be at least 4 characters long');
+      return { success: false, error: 'Password too short' };
+    }
+
+    const exists = registeredProfiles.some((p) => p.email?.toLowerCase() === cleanEmail);
+    if (exists) {
+      toast.error('An account with this email already exists. Please sign in instead.');
+      return { success: false, error: 'Account already exists' };
+    }
+
+    const newProfile: UserProfile = {
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      displayName: displayName.trim(),
+      email: cleanEmail,
+      password: passwordInput,
+      avatarUrl: '',
+      catTargetYear: 2027,
+      prepStartDate: '2026-11-17',
+      targetExamDate: '2027-11-28',
+      preferredDailyHours: 3.0,
+      preferredRoutine: 'working_professional_weekday',
+      themePreference: 'dark',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '12h',
+      isAdmin: false,
+      lastLoginAt: new Date().toISOString()
+    };
+
+    setRegisteredProfiles((prev) => [...prev, newProfile]);
+    setProfile(newProfile);
+    const session: AuthSession = {
+      user: newProfile,
+      token: `sess_${newProfile.id}_${Date.now()}`,
+      isAuthenticated: true,
+      loginTime: new Date().toISOString()
+    };
+    setAuthSession(session);
+    localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(session));
+    toast.success(`🎉 Profile created! Welcome, ${newProfile.displayName}!`);
+    return { success: true };
+  };
+
   const logout = () => {
-    const loggedOutSession: AuthSession = {
-      user: profile,
+    if (profile.id && profile.id !== 'user-guest') {
+      try {
+        const currentVault = {
+          profile,
+          weeklyPlans,
+          tasks,
+          topicProgress,
+          mockTests,
+          mistakes,
+          resources,
+          routines,
+          stickyNotes,
+          studyNotes,
+          guideSections,
+          activities,
+          dailyGoals,
+          aeonHabit: {
+            completedDates: aeonCompletedDates,
+            streak: aeonHabit.streak,
+            bestStreak: aeonHabit.bestStreak,
+            totalRead: aeonCompletedDates.length,
+            lastReadDate: aeonHabit.lastReadDate
+          }
+        };
+        localStorage.setItem(`cat2027_vault_${profile.id}`, JSON.stringify(currentVault));
+      } catch (e) {
+        console.error('Error saving profile vault on logout', e);
+      }
+    }
+
+    localStorage.removeItem(STORAGE_PREFIX + 'auth_session');
+    setProfile(GUEST_PROFILE);
+    setAuthSession({
+      user: GUEST_PROFILE,
       token: '',
       isAuthenticated: false,
       loginTime: ''
-    };
-    setAuthSession(loggedOutSession);
-    toast.info('Signed out. Enter your credentials to access your profile.');
+    });
+    toast.info('Signed out. Please sign in to access your profile.');
   };
 
   const syncDataToCloudVault = () => {
@@ -1077,9 +1263,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         profile,
         updateProfile,
+        registeredProfiles,
         authSession,
         isAuthenticated: authSession.isAuthenticated,
         login,
+        signup,
         logout,
         syncDataToCloudVault,
         importDataFromCloudVault,

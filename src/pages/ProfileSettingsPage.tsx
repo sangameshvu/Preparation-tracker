@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppData } from '../context/AppDataContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -21,7 +21,8 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  Upload
+  Upload,
+  LogIn
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -31,11 +32,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { AuthModal } from '../components/auth/AuthModal';
 
 export const ProfileSettingsPage: React.FC = () => {
   const {
     profile,
     updateProfile,
+    isAuthenticated,
     weeklyPlans,
     topics,
     topicProgress,
@@ -50,11 +53,12 @@ export const ProfileSettingsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'data'>('profile');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Form State
-  const [displayName, setDisplayName] = useState(profile.displayName || 'Sangamesh V U');
-  const [email, setEmail] = useState(profile.email || 'sangamesh.vu@gmail.com');
-  const [password, setPassword] = useState(profile.password || 'Sangamesh.vu@');
+  const [displayName, setDisplayName] = useState(profile.displayName || (isAuthenticated ? '' : 'CAT Aspirant'));
+  const [email, setEmail] = useState(profile.email || '');
+  const [password, setPassword] = useState(profile.password || '');
   const [showPassword, setShowPassword] = useState(false);
   const [prepStartDate, setPrepStartDate] = useState(profile.prepStartDate);
   const [targetExamDate, setTargetExamDate] = useState(profile.targetExamDate);
@@ -62,6 +66,16 @@ export const ProfileSettingsPage: React.FC = () => {
   const [targetYear, setTargetYear] = useState(profile.catTargetYear);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    setDisplayName(profile.displayName || (isAuthenticated ? '' : 'CAT Aspirant'));
+    setEmail(profile.email || '');
+    setPassword(profile.password || '');
+    setPrepStartDate(profile.prepStartDate);
+    setTargetExamDate(profile.targetExamDate);
+    setDailyHours(profile.preferredDailyHours);
+    setTargetYear(profile.catTargetYear);
+  }, [profile, isAuthenticated]);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,69 +239,96 @@ export const ProfileSettingsPage: React.FC = () => {
                       <span>Account Credentials & Cloud Profile</span>
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Login on any device using your email and password to access your entire CAT 2027 dataset.
+                      {isAuthenticated
+                        ? 'Login on any device using your email and password to access your CAT 2027 dataset.'
+                        : 'Sign in to access your saved profile (including Sangamesh\'s profile) or register a new account.'}
                     </p>
                   </div>
                   <Badge variant="purple" className="text-[10px] font-mono">
-                    ID: {profile.id || 'user-sangamesh-vu'}
+                    ID: {profile.id || 'user-guest'}
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Account Email ID
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="text-xs rounded-xl pl-8 font-mono"
-                        required
-                      />
+                {!isAuthenticated ? (
+                  <div className="p-4 rounded-2xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                        <User className="h-4 w-4 text-blue-600" />
+                        Viewing as Guest Aspirant
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        You are currently in guest mode. Sign in to load Sangamesh's profile or register a new profile.
+                      </p>
                     </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => setAuthModalOpen(true)}
+                      className="h-8 gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shrink-0 cursor-pointer"
+                    >
+                      <LogIn className="h-3.5 w-3.5" />
+                      Sign In / Register
+                    </Button>
                   </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Account Email ID
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="text-xs rounded-xl pl-8 font-mono"
+                            required
+                          />
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Login Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="text-xs rounded-xl pl-8 pr-8 font-mono"
-                        required
-                      />
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                          Login Password
+                        </label>
+                        <div className="relative">
+                          <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="text-xs rounded-xl pl-8 pr-8 font-mono"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Database Association Status */}
+                    <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between text-purple-900 dark:text-purple-200">
+                      <div className="flex items-center gap-2">
+                        <Database className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span>Database Status: <strong>100% Data Bound to {profile.email}</strong></span>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                        onClick={syncDataToCloudVault}
+                        className="font-bold underline hover:text-purple-500 text-[11px] cursor-pointer"
                       >
-                        {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        Export Vault
                       </button>
                     </div>
-                  </div>
-                </div>
-
-                {/* Database Association Status */}
-                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between text-purple-900 dark:text-purple-200">
-                  <div className="flex items-center gap-2">
-                    <Database className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                    <span>Database Status: <strong>100% Data Bound to sangamesh.vu@gmail.com</strong></span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={syncDataToCloudVault}
-                    className="font-bold underline hover:text-purple-500 text-[11px] cursor-pointer"
-                  >
-                    Export Vault
-                  </button>
-                </div>
+                  </>
+                )}
               </div>
 
               <div className="pt-2 flex justify-end">
@@ -511,6 +552,9 @@ export const ProfileSettingsPage: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Auth Modal for Guest Sign In / Multi-profile Register */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );
 };

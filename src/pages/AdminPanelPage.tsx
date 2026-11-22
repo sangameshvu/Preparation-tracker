@@ -221,7 +221,7 @@ export const AdminPanelPage: React.FC = () => {
         <TabsContent value="resources" className="pt-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold">Manage Free Resources & URLs</CardTitle>
+              <CardTitle className="text-base font-bold">Manage Resources & URLs</CardTitle>
               <CardDescription className="text-xs">
                 Update URLs, names, or phase usage for all 28 curated study resources.
               </CardDescription>

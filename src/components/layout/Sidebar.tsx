@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Utility items in Library popover
   const libraryItems = [
     { name: 'Preparation Guide', path: '/guide', icon: Compass, desc: 'Strategy playbook & reading list' },
-    { name: 'Free Resources', path: '/resources', icon: Sparkles, desc: '28+ curated official CAT materials' },
+    { name: 'Resources', path: '/resources', icon: Sparkles, desc: '28+ curated official CAT materials' },
     { name: 'Daily Routines', path: '/routines', icon: Clock, desc: 'Working professional & student schedules' },
     { name: 'Admin Panel', path: '/admin', icon: ShieldCheck, desc: 'Raw data inspector & JSON backup' }
   ];

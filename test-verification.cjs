@@ -262,27 +262,45 @@ test('Sticky notes in Sticky Board are rendered in uniform square shapes with cu
   assert(stickyContent.includes('overflow-hidden'), 'overflow-hidden boundary missing');
 });
 
-// 23. VERIFY USER PROFILE CREATION & DATABASE ASSOCIATION (SANGAMESH V U)
-test('User profile created for Sangamesh with credentials, complete database association & cross-device sync', () => {
+// 23. VERIFY USER PROFILE PRESERVATION, NON-DEFAULT GUEST MODE, MULTI-PROFILE SUPPORT & EMPTY LOGIN INPUTS
+test('User profile created for Sangamesh is preserved in registry, guest is default, login inputs start blank, and multi-profile signup is supported', () => {
   const appDataContent = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
   assert(appDataContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email credential missing in AppDataContext');
   assert(appDataContent.includes('Sangamesh.vu@'), 'Sangamesh password credential missing in AppDataContext');
   assert(appDataContent.includes('user-sangamesh-vu'), 'Sangamesh user profile ID missing');
-  assert(appDataContent.includes('authSession'), 'authSession state missing');
+  assert(appDataContent.includes('GUEST_PROFILE'), 'GUEST_PROFILE missing');
+  assert(appDataContent.includes('DEFAULT_PROFILE: UserProfile = GUEST_PROFILE'), 'Default profile must be GUEST_PROFILE');
+  assert(appDataContent.includes('registeredProfiles'), 'registeredProfiles state missing');
+  assert(appDataContent.includes('signup = async'), 'signup function missing in AppDataContext');
   assert(appDataContent.includes('syncDataToCloudVault'), 'syncDataToCloudVault method missing');
   assert(appDataContent.includes('importDataFromCloudVault'), 'importDataFromCloudVault method missing');
 
-  // Verify AuthModal exists and handles Sangamesh login
+  // Verify AuthModal exists, starts with blank inputs, and supports signup
   const authModalContent = fs.readFileSync(path.join(__dirname, 'src/components/auth/AuthModal.tsx'), 'utf8');
-  assert(authModalContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email missing from AuthModal');
-  assert(authModalContent.includes('Sangamesh.vu@'), 'Sangamesh password missing from AuthModal');
+  assert(authModalContent.includes("useState('')"), 'Form inputs must start blank in AuthModal');
+  assert(!authModalContent.includes('1-Click Sign In as Sangamesh'), '1-Click auto-login shortcut must be removed');
+  assert(authModalContent.includes('signup'), 'signup must be used in AuthModal');
+  assert(authModalContent.includes('Create a New CAT Profile') || authModalContent.includes('Create Profile'), 'Create profile tab missing in AuthModal');
   assert(authModalContent.includes('syncDataToCloudVault'), 'Vault sync missing from AuthModal');
 
-  // Verify ProfileSettingsPage displays credentials & database association
+  // Verify ProfileSettingsPage handles guest mode and displays credentials when authenticated
   const profilePageContent = fs.readFileSync(path.join(__dirname, 'src/pages/ProfileSettingsPage.tsx'), 'utf8');
-  assert(profilePageContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email missing from ProfileSettingsPage');
-  assert(profilePageContent.includes('Sangamesh.vu@'), 'Sangamesh password missing from ProfileSettingsPage');
-  assert(profilePageContent.includes('Database Bound to sangamesh.vu@gmail.com') || profilePageContent.includes('Data Bound to sangamesh.vu@gmail.com'), 'Database binding missing from ProfileSettingsPage');
+  assert(profilePageContent.includes('Viewing as Guest Aspirant'), 'Guest state missing from ProfileSettingsPage');
+  assert(profilePageContent.includes('Database Status:'), 'Database status missing from ProfileSettingsPage');
+});
+
+// 24. VERIFY RENAMING OF FREE RESOURCES TO RESOURCES
+test('Free Resources is renamed to Resources across Sidebar, TopNav, and Resources Library page', () => {
+  const sidebarContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/Sidebar.tsx'), 'utf8');
+  assert(sidebarContent.includes("name: 'Resources'"), "Sidebar navigation label must be 'Resources'");
+  assert(!sidebarContent.includes("name: 'Free Resources'"), "Sidebar navigation must not be 'Free Resources'");
+
+  const topNavContent = fs.readFileSync(path.join(__dirname, 'src/components/layout/TopNav.tsx'), 'utf8');
+  assert(topNavContent.includes("if (path.startsWith('/resources')) return 'Resources';"), "TopNav title must be 'Resources'");
+
+  const resourcesPageContent = fs.readFileSync(path.join(__dirname, 'src/pages/FreeResourcesPage.tsx'), 'utf8');
+  assert(resourcesPageContent.includes('Resources Library'), "Header title must be 'Resources Library'");
+  assert(resourcesPageContent.includes('Curated directory of hand-picked CAT preparation resources'), 'Subtitle missing');
 });
 
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);

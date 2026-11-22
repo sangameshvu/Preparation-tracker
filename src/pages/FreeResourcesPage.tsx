@@ -277,7 +277,10 @@ export const FreeResourcesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Free Study Resources Library</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Resources Library</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Curated directory of hand-picked CAT preparation resources
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -938,7 +941,7 @@ export const FreeResourcesPage: React.FC = () => {
               <DialogTitle className="text-base font-bold text-foreground">Reset to Default Curated Resources?</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              This will reset your Free Resources library back to the 29 master preparation guide resources in their original canonical order. Any custom additions or edits will be reset.
+              This will reset your Resources library back to the 29 master preparation guide resources in their original canonical order. Any custom additions or edits will be reset.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-2 gap-2">

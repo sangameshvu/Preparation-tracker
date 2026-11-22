@@ -18,7 +18,8 @@ import {
   Calendar,
   Layers,
   FileText,
-  Target
+  Target,
+  UserPlus
 } from 'lucide-react';
 import {
   Dialog,
@@ -44,32 +45,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     profile,
     isAuthenticated,
     login,
+    signup,
     logout,
     syncDataToCloudVault,
     importDataFromCloudVault,
-    stats,
     studyNotes,
     stickyNotes,
-    mockTests,
-    mistakes
+    mockTests
   } = useAppData();
 
   const navigate = useNavigate();
 
-  // Form State
-  const [emailInput, setEmailInput] = useState('sangamesh.vu@gmail.com');
-  const [passwordInput, setPasswordInput] = useState('Sangamesh.vu@');
+  // Mode: 'signin' or 'signup'
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+
+  // Form State: Starts completely blank with NO pre-filled credentials
+  const [displayNameInput, setDisplayNameInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const resetForm = () => {
+    setDisplayNameInput('');
+    setEmailInput('');
+    setPasswordInput('');
+    setShowPassword(false);
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!emailInput.trim()) {
+      toast.error('Please enter your email ID');
+      return;
+    }
+    if (!passwordInput) {
+      toast.error('Please enter your password');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await login(emailInput, passwordInput);
       if (res.success) {
+        resetForm();
         onOpenChange(false);
       }
     } finally {
@@ -77,18 +97,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     }
   };
 
-  const handleQuickLoginAsSangamesh = async () => {
-    setEmailInput('sangamesh.vu@gmail.com');
-    setPasswordInput('Sangamesh.vu@');
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await login('sangamesh.vu@gmail.com', 'Sangamesh.vu@');
+      const res = await signup(displayNameInput, emailInput, passwordInput);
       if (res.success) {
+        resetForm();
         onOpenChange(false);
       }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleLogoutClick = () => {
+    logout();
+    resetForm();
+    setAuthMode('signin');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,19 +135,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     e.target.value = '';
   };
 
+  // Compute initials for display
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg glass-regular border border-border/80 shadow-2xl p-6">
         {isAuthenticated ? (
           /* ========================================================================= */
-          /* 1. AUTHENTICATED PROFILE VIEW (SANGAMESH V U) */
+          /* 1. AUTHENTICATED PROFILE VIEW */
           /* ========================================================================= */
           <div className="space-y-5">
             <DialogHeader className="border-b border-border/60 pb-4">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-extrabold text-xl shadow-md border-2 border-white/20">
-                    SV
+                    {getInitials(profile.displayName)}
                   </div>
                   <span
                     className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background ring-1 ring-emerald-400"
@@ -132,16 +168,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <DialogTitle className="text-lg font-extrabold text-foreground truncate">
-                      {profile.displayName || 'Sangamesh V U'}
+                      {profile.displayName || 'CAT Aspirant'}
                     </DialogTitle>
-                    <Badge variant="purple" className="text-[10px] font-mono gap-1">
-                      <ShieldCheck className="h-3 w-3" />
-                      Master Admin
-                    </Badge>
+                    {profile.isAdmin && (
+                      <Badge variant="purple" className="text-[10px] font-mono gap-1">
+                        <ShieldCheck className="h-3 w-3" />
+                        Admin
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground font-mono flex items-center gap-1.5 mt-0.5">
                     <Mail className="h-3 w-3" />
-                    <span>{profile.email || 'sangamesh.vu@gmail.com'}</span>
+                    <span>{profile.email || 'No email attached'}</span>
                   </p>
                 </div>
               </div>
@@ -160,12 +198,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                All preparation parameters, syllabus progress, 52-week plan, 40 mock test records, mistake logs, study notes, and Sticky Board notes are stored under this profile.
+                All preparation parameters, syllabus progress, 52-week plan, mock test records, mistake logs, study notes, and Sticky Board notes are stored under this profile.
               </p>
               <div className="grid grid-cols-4 gap-2 pt-1 text-center font-mono text-[10px]">
                 <div className="p-1.5 rounded-lg bg-card border border-border/60">
                   <span className="text-muted-foreground block">CAT Target</span>
-                  <span className="font-bold text-foreground">2027</span>
+                  <span className="font-bold text-foreground">{profile.catTargetYear || 2027}</span>
                 </div>
                 <div className="p-1.5 rounded-lg bg-card border border-border/60">
                   <span className="text-muted-foreground block">Mocks</span>
@@ -190,20 +228,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                   Profile Login Credentials
                 </span>
                 <span className="text-[10px] text-muted-foreground font-mono">
-                  ID: {profile.id || 'user-sangamesh-vu'}
+                  ID: {profile.id}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                 <div className="p-2 rounded-lg bg-muted/40 border border-border/50">
                   <span className="text-muted-foreground block text-[10px]">Registered Email:</span>
-                  <span className="font-mono font-semibold text-foreground">{profile.email || 'sangamesh.vu@gmail.com'}</span>
+                  <span className="font-mono font-semibold text-foreground">{profile.email || 'N/A'}</span>
                 </div>
                 <div className="p-2 rounded-lg bg-muted/40 border border-border/50 flex items-center justify-between">
                   <div>
                     <span className="text-muted-foreground block text-[10px]">Login Password:</span>
                     <span className="font-mono font-semibold text-foreground">
-                      {showPassword ? (profile.password || 'Sangamesh.vu@') : '••••••••••••'}
+                      {showPassword ? (profile.password || '••••••••') : '••••••••••••'}
                     </span>
                   </div>
                   <button
@@ -260,7 +298,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={logout}
+                onClick={handleLogoutClick}
                 className="text-red-600 hover:text-red-700 hover:bg-red-500/10 gap-1.5 text-xs cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5" />
@@ -292,94 +330,207 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
           </div>
         ) : (
           /* ========================================================================= */
-          /* 2. SIGN IN / LOGIN VIEW */
+          /* 2. UNAUTHENTICATED: SIGN IN / SIGN UP TABS */
           /* ========================================================================= */
           <div className="space-y-4">
             <DialogHeader className="border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
-                  <LogIn className="h-4 w-4" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
+                    {authMode === 'signin' ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-base font-bold text-foreground">
+                      {authMode === 'signin' ? 'Sign In to Your CAT Profile' : 'Create a New CAT Profile'}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground">
+                      {authMode === 'signin'
+                        ? 'Enter your email ID and password to access your personal profile.'
+                        : 'Register a fresh profile to start your personalized CAT prep.'}
+                    </DialogDescription>
+                  </div>
                 </div>
-                <div>
-                  <DialogTitle className="text-base font-bold text-foreground">
-                    Sign In to Your CAT 2027 Profile
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
-                    Enter your email ID and password to access your database and analytics.
-                  </DialogDescription>
-                </div>
+              </div>
+
+              {/* Tab Selector between Sign In and Sign Up */}
+              <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl mt-3 border border-border/50">
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signin')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    authMode === 'signin'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signup')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    authMode === 'signup'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>Create Profile</span>
+                </button>
               </div>
             </DialogHeader>
 
-            <form onSubmit={handleLoginSubmit} className="space-y-3.5 py-1">
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1">Email ID</label>
-                <div className="relative">
-                  <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    required
-                    placeholder="sangamesh.vu@gmail.com"
-                    className="pl-8 h-9 text-xs"
-                    autoFocus
-                  />
+            {authMode === 'signin' ? (
+              /* --- SIGN IN FORM --- */
+              <form onSubmit={handleLoginSubmit} className="space-y-3.5 py-1">
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">Email ID</label>
+                  <div className="relative">
+                    <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      required
+                      placeholder="e.g. yourname@example.com"
+                      className="pl-8 h-9 text-xs"
+                      autoFocus
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-semibold text-foreground block mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    required
-                    placeholder="Sangamesh.vu@"
-                    className="pl-8 pr-8 h-9 text-xs"
-                  />
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      required
+                      placeholder="Enter your password"
+                      className="pl-8 pr-8 h-9 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[11px] text-muted-foreground leading-relaxed">
+                  🔒 <strong className="text-foreground">Profile Security:</strong> Each profile stores its own topics, weekly plans, notes, and mock tests. Enter your credentials to unlock your profile.
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-9 text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>{isSubmitting ? 'Verifying Profile...' : 'Sign In to Profile'}</span>
+                  </Button>
+                </div>
+
+                <div className="text-center pt-1">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => setAuthMode('signup')}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    Don't have a profile yet? Create one here
                   </button>
                 </div>
-              </div>
-
-              <div className="pt-1">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-9 text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>{isSubmitting ? 'Verifying Profile...' : 'Sign In to Profile'}</span>
-                </Button>
-              </div>
-
-              <div className="relative my-2 text-center">
-                <span className="text-[10px] uppercase font-mono text-muted-foreground bg-background px-2 relative z-10">
-                  Quick Access
-                </span>
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border/60" />
+              </form>
+            ) : (
+              /* --- SIGN UP / CREATE PROFILE FORM --- */
+              <form onSubmit={handleSignupSubmit} className="space-y-3.5 py-1">
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">Your Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      value={displayNameInput}
+                      onChange={(e) => setDisplayNameInput(e.target.value)}
+                      required
+                      placeholder="e.g. Sangamesh V U"
+                      className="pl-8 h-9 text-xs"
+                      autoFocus
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleQuickLoginAsSangamesh}
-                className="w-full h-9 text-xs font-semibold gap-1.5 border-purple-500/30 hover:bg-purple-500/10 text-purple-700 dark:text-purple-300 cursor-pointer"
-              >
-                <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                <span>1-Click Sign In as Sangamesh</span>
-              </Button>
-            </form>
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">Email ID</label>
+                  <div className="relative">
+                    <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      required
+                      placeholder="e.g. sangamesh.vu@gmail.com"
+                      className="pl-8 h-9 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-foreground block mb-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      required
+                      placeholder="Create a password (min 4 characters)"
+                      className="pl-8 pr-8 h-9 text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-muted-foreground leading-relaxed">
+                  ✨ <strong className="text-foreground">Multi-Profile Support:</strong> You can create however many profiles you want. Each profile maintains its own dedicated workspace and data.
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-9 text-xs font-bold gap-1.5 shadow-sm cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>{isSubmitting ? 'Creating Profile...' : 'Create Profile & Sign In'}</span>
+                  </Button>
+                </div>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('signin')}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Already have a profile? Sign In
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
       </DialogContent>

@@ -41,7 +41,7 @@ export const TopNav: React.FC<TopNavProps> = ({
     if (path.startsWith('/insights') || path === '/analytics' || path === '/history') return 'Insights';
     if (path.startsWith('/notes') || path === '/sticky-board') return 'Notes';
     if (path.startsWith('/guide')) return 'Preparation Guide';
-    if (path.startsWith('/resources')) return 'Free Resources';
+    if (path.startsWith('/resources')) return 'Resources';
     if (path.startsWith('/routines')) return 'Daily Routines';
     if (path.startsWith('/ai-coach') || path.startsWith('/coach')) return 'AI Study Coach & Assistant';
     if (path.startsWith('/settings')) return 'Settings';
@@ -146,33 +146,44 @@ export const TopNav: React.FC<TopNavProps> = ({
         </button>
 
         {/* User Profile Avatar / Account Trigger */}
-        <button
-          type="button"
-          onClick={() => setAuthModalOpen(true)}
-          className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-sm hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden shrink-0 cursor-pointer"
-          title={`Profile: ${profile.displayName || 'Sangamesh V U'} (${profile.email || 'sangamesh.vu@gmail.com'}) - Click to manage`}
-        >
-          {profile.avatarUrl ? (
-            <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" />
-          ) : (
-            <span>
-              {profile.displayName
-                ? profile.displayName
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase()
-                : 'SV'}
-            </span>
-          )}
-          {isAuthenticated && (
+        {isAuthenticated ? (
+          <button
+            type="button"
+            onClick={() => setAuthModalOpen(true)}
+            className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-sm hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden shrink-0 cursor-pointer"
+            title={`Profile: ${profile.displayName || 'Sangamesh V U'} (${profile.email || ''}) - Click to manage`}
+          >
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" />
+            ) : (
+              <span>
+                {profile.displayName
+                  ? profile.displayName
+                      .split(' ')
+                      .filter(Boolean)
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : 'SV'}
+              </span>
+            )}
             <span
               className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-background"
-              title="Profile Active"
+              title="Profile Active & Synced"
             />
-          )}
-        </button>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAuthModalOpen(true)}
+            className="inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-full text-xs font-semibold glass-thin hover:bg-blue-500/10 hover:border-blue-500/40 text-blue-600 dark:text-blue-400 transition-all shadow-xs cursor-pointer"
+            title="Sign In or Register Profile"
+          >
+            <User className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Sign In</span>
+          </button>
+        )}
 
         {/* Profile & Account Auth Modal */}
         <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
