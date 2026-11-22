@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Search,
   Plus,
@@ -7,12 +7,14 @@ import {
   Sparkles,
   User,
   Bot,
-  Flame
+  Flame,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../../context/ThemeContext';
 import { useAppData } from '../../context/AppDataContext';
 import { Link, useLocation } from 'react-router-dom';
+import { AuthModal } from '../auth/AuthModal';
 
 interface TopNavProps {
   onOpenCommandPalette: () => void;
@@ -26,8 +28,9 @@ export const TopNav: React.FC<TopNavProps> = ({
   onOpenCoach
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { profile, stats } = useAppData();
+  const { profile, stats, isAuthenticated } = useAppData();
   const location = useLocation();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Dynamic Page Title
   const getPageTitle = () => {
@@ -142,20 +145,37 @@ export const TopNav: React.FC<TopNavProps> = ({
           )}
         </button>
 
-        {/* User Profile Avatar */}
-        <Link
-          to="/settings"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600/10 border border-blue-500/20 text-blue-600 hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden shrink-0"
-          title="Account & Settings"
+        {/* User Profile Avatar / Account Trigger */}
+        <button
+          type="button"
+          onClick={() => setAuthModalOpen(true)}
+          className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-sm hover:ring-2 hover:ring-blue-500/40 transition-all overflow-hidden shrink-0 cursor-pointer"
+          title={`Profile: ${profile.displayName || 'Sangamesh V U'} (${profile.email || 'sangamesh.vu@gmail.com'}) - Click to manage`}
         >
           {profile.avatarUrl ? (
             <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" />
           ) : (
-            <span className="font-bold text-xs">
-              {profile.displayName ? profile.displayName.charAt(0).toUpperCase() : 'C'}
+            <span>
+              {profile.displayName
+                ? profile.displayName
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()
+                : 'SV'}
             </span>
           )}
-        </Link>
+          {isAuthenticated && (
+            <span
+              className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-background"
+              title="Profile Active"
+            />
+          )}
+        </button>
+
+        {/* Profile & Account Auth Modal */}
+        <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       </div>
     </header>
   );

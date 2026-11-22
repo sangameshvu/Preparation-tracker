@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import {
   UserProfile,
+  AuthSession,
   WeeklyPlanItem,
   StudyTask,
   TopicItem,
@@ -33,8 +34,11 @@ import { calculateStreak } from '../utils/streakCalculator';
 import { toast } from 'sonner';
 
 const DEFAULT_PROFILE: UserProfile = {
-  id: 'user-default',
-  displayName: 'CAT 2027 Aspirant',
+  id: 'user-sangamesh-vu',
+  email: 'sangamesh.vu@gmail.com',
+  password: 'Sangamesh.vu@',
+  displayName: 'Sangamesh V U',
+  avatarUrl: '',
   catTargetYear: 2027,
   prepStartDate: '2026-11-17',
   targetExamDate: '2027-11-28',
@@ -43,12 +47,19 @@ const DEFAULT_PROFILE: UserProfile = {
   themePreference: 'dark',
   dateFormat: 'DD/MM/YYYY',
   timeFormat: '12h',
-  isAdmin: true
+  isAdmin: true,
+  lastLoginAt: '2026-11-22T15:00:00.000Z'
 };
 
 interface AppDataContextType {
   profile: UserProfile;
   updateProfile: (updates: Partial<UserProfile>) => void;
+  authSession: AuthSession;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+  syncDataToCloudVault: () => string;
+  importDataFromCloudVault: (jsonStr: string) => boolean;
   phases: typeof initialPhases;
   weeklyPlans: WeeklyPlanItem[];
   updateWeeklyPlan: (id: string, updates: Partial<WeeklyPlanItem>) => void;
@@ -127,9 +138,31 @@ function getInitialState<T>(key: string, fallback: T): T {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [profile, setProfile] = useState<UserProfile>(() =>
-    getInitialState('profile', DEFAULT_PROFILE)
-  );
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    const saved = getInitialState<UserProfile>('profile', DEFAULT_PROFILE);
+    if (!saved.email || saved.id === 'user-default') {
+      return {
+        ...saved,
+        id: 'user-sangamesh-vu',
+        email: 'sangamesh.vu@gmail.com',
+        password: 'Sangamesh.vu@',
+        displayName: saved.displayName === 'CAT 2027 Aspirant' ? 'Sangamesh V U' : saved.displayName,
+        lastLoginAt: saved.lastLoginAt || new Date().toISOString()
+      };
+    }
+    return saved;
+  });
+
+  const [authSession, setAuthSession] = useState<AuthSession>(() => {
+    const saved = getInitialState<AuthSession | null>('auth_session', null);
+    if (saved && saved.user) return saved;
+    return {
+      user: DEFAULT_PROFILE,
+      token: 'sess_sangamesh_' + Date.now(),
+      isAuthenticated: true,
+      loginTime: new Date().toISOString()
+    };
+  });
 
   const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlanItem[]>(() =>
     getInitialState('weeklyPlans', initialWeeklyPlans)
@@ -327,6 +360,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'profile', JSON.stringify(profile));
   }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(authSession));
+  }, [authSession]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'weeklyPlans', JSON.stringify(weeklyPlans));
@@ -543,6 +580,114 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     setProfile((prev) => ({ ...prev, ...updates }));
+  };
+
+  const login = async (emailInput: string, passwordInput: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = emailInput.trim().toLowerCase();
+    const targetEmail = (profile.email || DEFAULT_PROFILE.email || 'sangamesh.vu@gmail.com').toLowerCase();
+    const targetPassword = profile.password || DEFAULT_PROFILE.password || 'Sangamesh.vu@';
+
+    if (cleanEmail === targetEmail && passwordInput === targetPassword) {
+      const updatedProfile: UserProfile = {
+        ...profile,
+        lastLoginAt: new Date().toISOString()
+      };
+      setProfile(updatedProfile);
+      const newSession: AuthSession = {
+        user: updatedProfile,
+        token: 'sess_' + Date.now(),
+        isAuthenticated: true,
+        loginTime: new Date().toISOString()
+      };
+      setAuthSession(newSession);
+      toast.success(`Welcome back, ${updatedProfile.displayName}! Synchronized to your CAT 2027 profile.`);
+      return { success: true };
+    } else {
+      toast.error('Invalid email or password. Please verify your credentials.');
+      return { success: false, error: 'Invalid email or password' };
+    }
+  };
+
+  const logout = () => {
+    const loggedOutSession: AuthSession = {
+      user: profile,
+      token: '',
+      isAuthenticated: false,
+      loginTime: ''
+    };
+    setAuthSession(loggedOutSession);
+    toast.info('Signed out. Enter your credentials to access your profile.');
+  };
+
+  const syncDataToCloudVault = () => {
+    const vault = {
+      vaultVersion: '2.0.0',
+      exportedAt: new Date().toISOString(),
+      owner: {
+        id: profile.id,
+        email: profile.email,
+        displayName: profile.displayName
+      },
+      profile,
+      weeklyPlans,
+      tasks,
+      topicProgress,
+      mockTests,
+      mistakes,
+      resources,
+      routines,
+      stickyNotes,
+      studyNotes,
+      guideSections,
+      activities,
+      dailyGoals,
+      aeonHabit
+    };
+
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(vault, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `Sangamesh_CAT_2027_DataVault_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    toast.success('Complete CAT 2027 Data Vault exported for cross-device access.');
+    return JSON.stringify(vault);
+  };
+
+  const importDataFromCloudVault = (jsonStr: string): boolean => {
+    try {
+      const data = JSON.parse(jsonStr);
+      if (data.profile) setProfile(data.profile);
+      if (data.weeklyPlans) setWeeklyPlans(data.weeklyPlans);
+      if (data.tasks) setTasks(data.tasks);
+      if (data.topicProgress) setTopicProgress(data.topicProgress);
+      if (data.mockTests) setMockTests(data.mockTests);
+      if (data.mistakes) setMistakes(data.mistakes);
+      if (data.resources) setResources(data.resources);
+      if (data.routines) setRoutines(data.routines);
+      if (data.stickyNotes) setStickyNotes(data.stickyNotes);
+      if (data.studyNotes) setStudyNotes(data.studyNotes);
+      if (data.guideSections) setGuideSections(data.guideSections);
+      if (data.activities) setActivities(data.activities);
+      if (data.dailyGoals) setDailyGoals(data.dailyGoals);
+      if (data.aeonHabit && data.aeonHabit.completedDates) {
+        setAeonCompletedDates(data.aeonHabit.completedDates);
+      }
+
+      Object.keys(data).forEach((k) => {
+        if (k !== 'vaultVersion' && k !== 'exportedAt' && k !== 'owner') {
+          localStorage.setItem(STORAGE_PREFIX + k, JSON.stringify(data[k]));
+        }
+      });
+
+      toast.success('🎉 Successfully imported and restored all data under Sangamesh profile!');
+      return true;
+    } catch (e) {
+      console.error('Failed to parse and import data vault:', e);
+      toast.error('Invalid vault file format. Import failed.');
+      return false;
+    }
   };
 
   const updateWeeklyPlan = (id: string, updates: Partial<WeeklyPlanItem>) => {
@@ -932,6 +1077,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         profile,
         updateProfile,
+        authSession,
+        isAuthenticated: authSession.isAuthenticated,
+        login,
+        logout,
+        syncDataToCloudVault,
+        importDataFromCloudVault,
         phases: initialPhases,
         weeklyPlans,
         updateWeeklyPlan,

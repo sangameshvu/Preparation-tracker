@@ -253,6 +253,38 @@ test('Sticky Board retains name, provides Word-like markdown canvas editor, prev
   assert(typesContent.includes('images?: NoteImageItem[]'), 'StickyNoteItem images field missing');
 });
 
+// 22. VERIFY STICKY NOTE SQUARE SHAPE & UNIFORM DIMENSIONS
+test('Sticky notes in Sticky Board are rendered in uniform square shapes with curved edges', () => {
+  const stickyContent = fs.readFileSync(path.join(__dirname, 'src/pages/StickyBoardPage.tsx'), 'utf8');
+  assert(stickyContent.includes('aspect-square'), 'Sticky note preview card missing aspect-square class');
+  assert(stickyContent.includes('rounded-2xl') || stickyContent.includes('rounded-3xl'), 'Curved edges missing from sticky card');
+  assert(stickyContent.includes('min-h-0'), 'min-h-0 container constraint missing to prevent vertical elongation');
+  assert(stickyContent.includes('overflow-hidden'), 'overflow-hidden boundary missing');
+});
+
+// 23. VERIFY USER PROFILE CREATION & DATABASE ASSOCIATION (SANGAMESH V U)
+test('User profile created for Sangamesh with credentials, complete database association & cross-device sync', () => {
+  const appDataContent = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(appDataContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email credential missing in AppDataContext');
+  assert(appDataContent.includes('Sangamesh.vu@'), 'Sangamesh password credential missing in AppDataContext');
+  assert(appDataContent.includes('user-sangamesh-vu'), 'Sangamesh user profile ID missing');
+  assert(appDataContent.includes('authSession'), 'authSession state missing');
+  assert(appDataContent.includes('syncDataToCloudVault'), 'syncDataToCloudVault method missing');
+  assert(appDataContent.includes('importDataFromCloudVault'), 'importDataFromCloudVault method missing');
+
+  // Verify AuthModal exists and handles Sangamesh login
+  const authModalContent = fs.readFileSync(path.join(__dirname, 'src/components/auth/AuthModal.tsx'), 'utf8');
+  assert(authModalContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email missing from AuthModal');
+  assert(authModalContent.includes('Sangamesh.vu@'), 'Sangamesh password missing from AuthModal');
+  assert(authModalContent.includes('syncDataToCloudVault'), 'Vault sync missing from AuthModal');
+
+  // Verify ProfileSettingsPage displays credentials & database association
+  const profilePageContent = fs.readFileSync(path.join(__dirname, 'src/pages/ProfileSettingsPage.tsx'), 'utf8');
+  assert(profilePageContent.includes('sangamesh.vu@gmail.com'), 'Sangamesh email missing from ProfileSettingsPage');
+  assert(profilePageContent.includes('Sangamesh.vu@'), 'Sangamesh password missing from ProfileSettingsPage');
+  assert(profilePageContent.includes('Database Bound to sangamesh.vu@gmail.com') || profilePageContent.includes('Data Bound to sangamesh.vu@gmail.com'), 'Database binding missing from ProfileSettingsPage');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

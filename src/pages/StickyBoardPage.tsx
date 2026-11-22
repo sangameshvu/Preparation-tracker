@@ -661,26 +661,29 @@ export const StickyBoardPage: React.FC = () => {
                 return (
                   <div
                     key={note.id}
-                    className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between hover:scale-[1.01] hover:shadow-lg ${getColorClass(
-                      note.color
-                    )} ${note.isPinned ? 'ring-2 ring-purple-500/40' : ''}`}
+                    className={cn(
+                      'aspect-square w-full rounded-2xl sm:rounded-3xl border transition-all duration-200 flex flex-col justify-between overflow-hidden p-3.5 sm:p-4 hover:scale-[1.01] hover:shadow-lg relative select-none',
+                      getColorClass(note.color),
+                      note.isPinned && 'ring-2 ring-purple-500/40'
+                    )}
                   >
-                    <div>
+                    {/* Top Area: Date, Purpose Badge, Pin Button & Title */}
+                    <div className="shrink-0 space-y-1">
                       {/* Top Bar: Date, Purpose Badge, Pin Button */}
-                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-current/15 gap-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-mono opacity-80 flex items-center gap-1">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-current/15 gap-1">
+                        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                          <span className="text-[10px] font-mono opacity-80 flex items-center gap-1 shrink-0">
                             <Calendar className="h-3 w-3" />
                             {noteDateStr}
                           </span>
-                          <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded border bg-current/10 border-current/20">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded border bg-current/10 border-current/20 truncate max-w-[110px]">
                             {notePurpose}
                           </span>
                         </div>
 
                         <button
                           onClick={() => updateStickyNote(note.id, { isPinned: !note.isPinned })}
-                          className="opacity-75 hover:opacity-100 transition-opacity p-0.5 rounded cursor-pointer"
+                          className="opacity-75 hover:opacity-100 transition-opacity p-0.5 rounded cursor-pointer shrink-0"
                           title={note.isPinned ? 'Unpin note' : 'Pin note to top'}
                         >
                           <Pin className={`h-3.5 w-3.5 ${note.isPinned ? 'fill-current text-purple-600 dark:text-purple-400' : ''}`} />
@@ -690,13 +693,14 @@ export const StickyBoardPage: React.FC = () => {
                       {/* Note Title */}
                       <h3
                         onClick={() => setReadingNote(note)}
-                        className="text-sm font-extrabold leading-snug cursor-pointer hover:underline line-clamp-2 mb-1.5"
+                        className="text-xs sm:text-sm font-extrabold leading-snug cursor-pointer hover:underline line-clamp-1"
+                        title={noteTitle}
                       >
                         {noteTitle}
                       </h3>
 
                       {/* Section & Topic Pills */}
-                      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                      <div className="flex items-center gap-1 flex-wrap">
                         <Badge
                           variant={noteSection === 'Quant' ? 'quant' : noteSection === 'DILR' ? 'dilr' : noteSection === 'VARC' ? 'varc' : 'outline'}
                           className="text-[9px] px-1.5 py-0 font-bold"
@@ -704,75 +708,76 @@ export const StickyBoardPage: React.FC = () => {
                           {noteSection}
                         </Badge>
                         {linkedTopic && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-current/10 truncate max-w-[140px]">
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-current/10 truncate max-w-[110px]">
                             {linkedTopic.topicName}
                           </span>
                         )}
                         {hasImages && (
-                          <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-900 dark:text-blue-100 flex items-center gap-1">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-900 dark:text-blue-100 flex items-center gap-0.5">
                             <ImageIcon className="h-2.5 w-2.5" />
-                            {note.images!.length} scan{note.images!.length > 1 ? 's' : ''}
+                            {note.images!.length}
                           </span>
                         )}
                       </div>
+                    </div>
 
+                    {/* Middle Content Body: Strictly contained inside the square */}
+                    <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar my-1.5 text-xs leading-relaxed font-medium opacity-90 space-y-1 pr-0.5">
                       {/* Attached Thumbnail Preview (if any) */}
                       {hasImages && (
-                        <div className="mb-2">
-                          <div
-                            onClick={() => setLightboxImage(note.images![0].url)}
-                            className="h-24 w-full rounded-lg overflow-hidden border border-current/20 bg-black/10 relative group cursor-pointer"
-                          >
-                            <img
-                              src={note.images![0].url}
-                              alt={note.images![0].name}
-                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-semibold gap-1">
-                              <Maximize2 className="h-3.5 w-3.5" />
-                              <span>Enlarge Scan</span>
-                            </div>
+                        <div
+                          onClick={() => setLightboxImage(note.images![0].url)}
+                          className="h-14 w-full rounded-lg overflow-hidden border border-current/20 bg-black/10 relative group cursor-pointer shrink-0"
+                        >
+                          <img
+                            src={note.images![0].url}
+                            alt={note.images![0].name}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-semibold gap-1">
+                            <Maximize2 className="h-3 w-3" />
+                            <span>Enlarge</span>
                           </div>
                         </div>
                       )}
 
                       {/* Content Preview */}
-                      <div className="text-xs leading-relaxed font-medium line-clamp-4 opacity-90">
+                      <div className="line-clamp-4">
                         <MarkdownRenderer content={note.content} />
                       </div>
                     </div>
 
                     {/* Bottom Action Footer */}
-                    <div className="pt-3 mt-3 border-t border-current/15 flex items-center justify-between text-xs">
+                    <div className="shrink-0 pt-2 border-t border-current/15 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenCanvasForNote(note)}
-                          className="h-7 px-2 text-[11px] font-bold gap-1 bg-current/10 hover:bg-current/20 text-current cursor-pointer"
+                          className="h-6 sm:h-7 px-1.5 sm:px-2 text-[10px] sm:text-[11px] font-bold gap-1 bg-current/10 hover:bg-current/20 text-current cursor-pointer"
                           title="Open full Microsoft Word-like markdown canvas editor"
                         >
                           <FileText className="h-3 w-3" />
-                          <span>Open Canvas</span>
+                          <span>Canvas</span>
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setReadingNote(note)}
-                          className="h-7 w-7 text-current opacity-80 hover:opacity-100 cursor-pointer"
+                          className="h-6 w-6 sm:h-7 sm:w-7 text-current opacity-80 hover:opacity-100 cursor-pointer"
                           title="Read note"
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </div>
 
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5 sm:gap-1">
                         <button
                           onClick={() => handleOpenEditMetadata(note)}
                           className="p-1 hover:bg-current/15 rounded transition-colors opacity-80 hover:opacity-100 cursor-pointer"
                           title="Edit Note Metadata & Color"
                         >
-                          <Edit2 className="h-3.5 w-3.5" />
+                          <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </button>
                         <button
                           onClick={() => {
@@ -784,7 +789,7 @@ export const StickyBoardPage: React.FC = () => {
                           className="p-1 hover:bg-red-500/25 rounded transition-colors opacity-80 hover:opacity-100 text-red-700 dark:text-red-400 cursor-pointer"
                           title="Delete note"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </button>
                       </div>
                     </div>

@@ -19,6 +19,8 @@ export type ConfidenceScore = 1 | 2 | 3 | 4 | 5;
 
 export interface UserProfile {
   id: string;
+  email?: string;
+  password?: string;
   displayName: string;
   avatarUrl?: string;
   catTargetYear: number;
@@ -30,6 +32,14 @@ export interface UserProfile {
   dateFormat: string;
   timeFormat: '12h' | '24h';
   isAdmin: boolean;
+  lastLoginAt?: string;
+}
+
+export interface AuthSession {
+  user: UserProfile;
+  token: string;
+  isAuthenticated: boolean;
+  loginTime: string;
 }
 
 export interface PrepPhase {

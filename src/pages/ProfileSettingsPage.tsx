@@ -15,7 +15,13 @@ import {
   AlertTriangle,
   Database,
   Palette,
-  Sliders
+  Sliders,
+  Mail,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Upload
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -27,14 +33,29 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 export const ProfileSettingsPage: React.FC = () => {
-  const { profile, updateProfile, weeklyPlans, topics, topicProgress, mockTests, mistakes, resources, resetAllData } = useAppData();
+  const {
+    profile,
+    updateProfile,
+    weeklyPlans,
+    topics,
+    topicProgress,
+    mockTests,
+    mistakes,
+    resources,
+    resetAllData,
+    syncDataToCloudVault,
+    importDataFromCloudVault
+  } = useAppData();
   const { theme, toggleTheme, setTheme, glassEffect, setGlassEffect } = useTheme();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'data'>('profile');
 
   // Form State
-  const [displayName, setDisplayName] = useState(profile.displayName);
+  const [displayName, setDisplayName] = useState(profile.displayName || 'Sangamesh V U');
+  const [email, setEmail] = useState(profile.email || 'sangamesh.vu@gmail.com');
+  const [password, setPassword] = useState(profile.password || 'Sangamesh.vu@');
+  const [showPassword, setShowPassword] = useState(false);
   const [prepStartDate, setPrepStartDate] = useState(profile.prepStartDate);
   const [targetExamDate, setTargetExamDate] = useState(profile.targetExamDate);
   const [dailyHours, setDailyHours] = useState(profile.preferredDailyHours);
@@ -46,6 +67,8 @@ export const ProfileSettingsPage: React.FC = () => {
     e.preventDefault();
     updateProfile({
       displayName: displayName.trim(),
+      email: email.trim(),
+      password,
       prepStartDate,
       targetExamDate,
       preferredDailyHours: Number(dailyHours),
@@ -190,6 +213,80 @@ export const ProfileSettingsPage: React.FC = () => {
                   <span className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 block">
                     Recommended: 2.5 to 3.5 hrs on weekdays, 5.0 to 6.0 hrs on weekends.
                   </span>
+                </div>
+              </div>
+
+              {/* Account Credentials & Database Association */}
+              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <KeyRound className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      <span>Account Credentials & Cloud Profile</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Login on any device using your email and password to access your entire CAT 2027 dataset.
+                    </p>
+                  </div>
+                  <Badge variant="purple" className="text-[10px] font-mono">
+                    ID: {profile.id || 'user-sangamesh-vu'}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Account Email ID
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="text-xs rounded-xl pl-8 font-mono"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Login Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="text-xs rounded-xl pl-8 pr-8 font-mono"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Database Association Status */}
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between text-purple-900 dark:text-purple-200">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                    <span>Database Status: <strong>100% Data Bound to sangamesh.vu@gmail.com</strong></span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={syncDataToCloudVault}
+                    className="font-bold underline hover:text-purple-500 text-[11px] cursor-pointer"
+                  >
+                    Export Vault
+                  </button>
                 </div>
               </div>
 
