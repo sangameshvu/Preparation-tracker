@@ -8,8 +8,8 @@ let lastSyncedTime: string | null = null;
 let isSyncing = false;
 
 const API_ENDPOINTS = [
-  '/api/cloud-vault',
-  '/.netlify/functions/cloud-vault'
+  '/.netlify/functions/cloud-vault',
+  '/api/cloud-vault'
 ];
 
 async function callCloudEndpoint(urlPath: string, options: RequestInit = {}): Promise<Response> {
@@ -25,7 +25,12 @@ async function callCloudEndpoint(urlPath: string, options: RequestInit = {}): Pr
           ...(options.headers || {})
         }
       });
-      if (res.ok || res.status === 404) {
+      const contentType = res.headers.get('content-type') || '';
+      // Valid response if it returned JSON (either 200 OK or 404/400 JSON from serverless function)
+      if (contentType.includes('application/json')) {
+        return res;
+      }
+      if (res.ok) {
         return res;
       }
     } catch (err) {
