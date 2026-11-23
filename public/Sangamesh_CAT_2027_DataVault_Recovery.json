@@ -1,0 +1,2709 @@
+{
+  "vaultVersion": "2.1.0-RECOVERY",
+  "exportedAt": "2026-11-23T10:43:19.838Z",
+  "owner": {
+    "id": "user-sangamesh-vu",
+    "email": "sangamesh.vu@gmail.com",
+    "displayName": "Sangamesh V U"
+  },
+  "profile": {
+    "id": "user-sangamesh-vu",
+    "email": "sangamesh.vu@gmail.com",
+    "password": "Sangamesh.vu@",
+    "displayName": "Sangamesh V U",
+    "avatarUrl": "",
+    "catTargetYear": 2027,
+    "prepStartDate": "2026-11-17",
+    "targetExamDate": "2027-11-28",
+    "preferredDailyHours": 3,
+    "preferredRoutine": "working_professional_weekday",
+    "themePreference": "dark",
+    "dateFormat": "DD/MM/YYYY",
+    "timeFormat": "12h",
+    "isAdmin": true,
+    "lastLoginAt": "2026-11-23T10:43:19.841Z"
+  },
+  "aeonHabit": {
+    "completedDates": [
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22",
+      "2026-11-23"
+    ],
+    "streak": 6,
+    "bestStreak": 6,
+    "totalRead": 6,
+    "lastReadDate": "2026-11-23",
+    "isYesterdayDone": true,
+    "isTodayDone": true,
+    "streakAtRisk": false,
+    "previousStreakLength": 6
+  },
+  "dailyGoals": [
+    {
+      "id": "goal-1",
+      "date": "2026-11-17",
+      "title": "Solve 20 Quant Questions on Percentages & Ratios",
+      "section": "Quant",
+      "targetMinutes": 60,
+      "completed": true,
+      "completedAt": "2026-11-17T03:24:29.468Z"
+    },
+    {
+      "id": "goal-2",
+      "date": "2026-11-17",
+      "title": "Read 1 Long Editorial & Summarize in 3 Bullet Points",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-19T17:52:38.505Z"
+    },
+    {
+      "id": "goal-3",
+      "date": "2026-11-17",
+      "title": "Solve 2 Unseen DILR Matrix Arrangement Sets",
+      "section": "DILR",
+      "targetMinutes": 45,
+      "completed": true,
+      "completedAt": "2026-11-19T17:53:18.591Z"
+    },
+    {
+      "id": "goal-aeon-2026-11-18",
+      "date": "2026-11-18",
+      "title": "Aeon Essay: Daily Long-form Reading",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-18T18:00:00.000Z"
+    },
+    {
+      "id": "goal-aeon-2026-11-19-1795429000644",
+      "date": "2026-11-19",
+      "title": "Aeon Essay: Daily Long-form Reading",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-23T10:16:40.644Z"
+    },
+    {
+      "id": "goal-aeon-2026-11-20-1795429002324",
+      "date": "2026-11-20",
+      "title": "Aeon Essay: Daily Long-form Reading",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-23T10:16:42.324Z"
+    },
+    {
+      "id": "goal-1795322789956-g0e7",
+      "title": "Mock Analysis Review",
+      "section": "Quant",
+      "targetMinutes": 45,
+      "completed": false,
+      "date": "2026-11-20"
+    },
+    {
+      "id": "goal-aeon-2026-11-21-1795321989850",
+      "date": "2026-11-21",
+      "title": "Aeon Essay: Daily Long-form Reading",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-22T04:45:44.669Z"
+    },
+    {
+      "id": "goal-1795322745883-5rn7",
+      "title": "Arithmetic Sectional Test",
+      "section": "Quant",
+      "targetMinutes": 45,
+      "completed": false,
+      "date": "2026-11-21"
+    },
+    {
+      "id": "goal-aeon-2026-11-22-1795427804698",
+      "date": "2026-11-22",
+      "title": "Aeon Essay: Daily Long-form Reading",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-23T09:56:44.698Z"
+    },
+    {
+      "id": "goal-default-2026-11-23-0-aeon",
+      "date": "2026-11-23",
+      "title": "VARC: 1 Aeon Essay",
+      "section": "VARC",
+      "targetMinutes": 35,
+      "completed": true,
+      "completedAt": "2026-11-23T10:16:46.370Z"
+    },
+    {
+      "id": "goal-default-2026-11-23-1-roots",
+      "date": "2026-11-23",
+      "title": "VARC: 5 root words",
+      "section": "VARC",
+      "targetMinutes": 15,
+      "completed": true,
+      "completedAt": "2026-11-23T10:17:06.238Z"
+    },
+    {
+      "id": "goal-1795429150331-nofm",
+      "date": "2026-11-23",
+      "title": "VARC: Vocabulary",
+      "section": "VARC",
+      "targetMinutes": 80,
+      "completed": true,
+      "completedAt": "2026-11-23T10:19:14.239Z"
+    },
+    {
+      "id": "goal-1795429177171-qsql",
+      "date": "2026-11-23",
+      "title": "DILR: Arrangements Practice",
+      "section": "DILR",
+      "targetMinutes": 50,
+      "completed": true,
+      "completedAt": "2026-11-23T10:19:39.608Z"
+    }
+  ],
+  "vocabProgress": {
+    "userId": "user-sangamesh-vu",
+    "currentWordLevel": "beginner",
+    "currentRootLevel": "beginner",
+    "totalWordsLearned": 0,
+    "totalRootsLearned": 1,
+    "currentStreak": 1,
+    "longestStreak": 1,
+    "lastActiveDate": "2026-11-23",
+    "wordLevelConsecutiveHighScores": 0,
+    "rootLevelConsecutiveHighScores": 0,
+    "bookmarkedWordIds": [],
+    "bookmarkedRootIds": [],
+    "sessionsHistory": {
+      "2026-11-23": {
+        "sessionDate": "2026-11-23",
+        "wordIds": [
+          "v0139",
+          "v0124",
+          "v0034",
+          "v0055",
+          "v0131"
+        ],
+        "rootIds": [
+          "r001",
+          "r512",
+          "r005",
+          "r031",
+          "r024"
+        ],
+        "wordsCompleted": false,
+        "rootsCompleted": false,
+        "wordReviews": {},
+        "rootReviews": {
+          "r001": {
+            "status": "known",
+            "reviewedAt": "2026-11-23T08:33:31.670Z"
+          }
+        }
+      }
+    },
+    "spacedRepetitionCards": [],
+    "quizScores": []
+  },
+  "activities": [
+    {
+      "date": "2026-11-23",
+      "category": "goal",
+      "title": "Completed Goal: DILR: Arrangements Practice",
+      "details": "Daily target achieved: 50m (DILR).",
+      "section": "DILR",
+      "durationMinutes": 50,
+      "id": "act-1795429179608-30k1",
+      "timestamp": "2026-11-23T10:19:39.608Z"
+    },
+    {
+      "date": "2026-11-23",
+      "category": "goal",
+      "title": "Completed Goal: VARC: Vocabulary",
+      "details": "Daily target achieved: 80m (VARC).",
+      "section": "VARC",
+      "durationMinutes": 80,
+      "id": "act-1795429154239-ixmp",
+      "timestamp": "2026-11-23T10:19:14.239Z"
+    },
+    {
+      "date": "2026-11-23",
+      "category": "goal",
+      "title": "Completed Goal: VARC: 5 root words",
+      "details": "Daily target achieved: 15m (VARC).",
+      "section": "VARC",
+      "durationMinutes": 15,
+      "id": "act-1795429026238-8c4t",
+      "timestamp": "2026-11-23T10:17:06.238Z"
+    },
+    {
+      "date": "2026-11-23",
+      "category": "goal",
+      "title": "Aeon Essay: Today",
+      "details": "Daily target achieved: 35m in VARC (Long-form Reading Stamina).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795429006370-jhbi",
+      "timestamp": "2026-11-23T10:16:46.370Z"
+    },
+    {
+      "date": "2026-11-20",
+      "category": "goal",
+      "title": "Aeon Essay: Nov 20",
+      "details": "Daily target achieved: 35m in VARC (Long-form Reading Stamina).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795429002324-m12q",
+      "timestamp": "2026-11-23T10:16:42.324Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Aeon Essay: Nov 19",
+      "details": "Daily target achieved: 35m in VARC (Long-form Reading Stamina).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795429000643-pcxh",
+      "timestamp": "2026-11-23T10:16:40.643Z"
+    },
+    {
+      "date": "2026-11-22",
+      "category": "goal",
+      "title": "Completed Goal: Yesterday's Aeon Essay (Streak Protected)",
+      "details": "Daily target achieved: 35m in VARC (Long-form Reading Stamina).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795427804697-bmcj",
+      "timestamp": "2026-11-23T09:56:44.697Z"
+    },
+    {
+      "date": "2026-11-21",
+      "category": "goal",
+      "title": "Completed Goal: Aeon Essay: Daily Long-form Reading",
+      "details": "Daily target achieved: 35m (VARC).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795322744668-q4qw",
+      "timestamp": "2026-11-22T04:45:44.668Z"
+    },
+    {
+      "date": "2026-11-21",
+      "category": "goal",
+      "title": "Completed Goal: Yesterday's Aeon Essay (Streak Protected)",
+      "details": "Daily target achieved: 35m in VARC (Long-form Reading Stamina).",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795321989849-te6t",
+      "timestamp": "2026-11-22T04:33:09.849Z"
+    },
+    {
+      "date": "2026-11-20",
+      "category": "goal",
+      "title": "Completed Goal: Daily VARC: Read 1 Aeon Essay & Solve 1 Full RC Set",
+      "details": "Target of 45 minutes achieved.",
+      "section": "VARC",
+      "durationMinutes": 45,
+      "id": "act-1795143819359-lxkt",
+      "timestamp": "2026-11-20T03:03:39.359Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Completed Goal: Solve 2 Unseen DILR Matrix Arrangement Sets",
+      "details": "Target of 45 minutes achieved.",
+      "section": "DILR",
+      "durationMinutes": 45,
+      "id": "act-1795110798591-iu7v",
+      "timestamp": "2026-11-19T17:53:18.591Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Completed Goal: Read 1 Long Editorial & Summarize in 3 Bullet Points",
+      "details": "Target of 35 minutes achieved.",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795110758505-88ad",
+      "timestamp": "2026-11-19T17:52:38.505Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Completed Goal: Read 1 Long Editorial & Summarize in 3 Bullet Points",
+      "details": "Target of 35 minutes achieved.",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795110755526-wu6q",
+      "timestamp": "2026-11-19T17:52:35.526Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Completed Goal: Solve 2 Unseen DILR Matrix Arrangement Sets",
+      "details": "Target of 45 minutes achieved.",
+      "section": "DILR",
+      "durationMinutes": 45,
+      "id": "act-1795110739337-9rw6",
+      "timestamp": "2026-11-19T17:52:19.337Z"
+    },
+    {
+      "date": "2026-11-19",
+      "category": "goal",
+      "title": "Completed Goal: Read 1 Long Editorial & Summarize in 3 Bullet Points",
+      "details": "Target of 35 minutes achieved.",
+      "section": "VARC",
+      "durationMinutes": 35,
+      "id": "act-1795110102414-mu33",
+      "timestamp": "2026-11-19T17:41:42.414Z"
+    }
+  ],
+  "weeklyPlans": [
+    {
+      "id": "week-1",
+      "weekNumber": 1,
+      "startDate": "2026-11-16",
+      "endDate": "2026-11-22",
+      "monthLabel": "Nov 26",
+      "phaseNumber": 1,
+      "quantPlan": "Master Numbers, Factorials: Concepts, theory & 50+ practice problem drills.",
+      "varcPlan": "Vocabulary, Verbal Ability: Daily editorial reading & timed verbal ability drills.",
+      "dilrPlan": "Cubes, Linear & Circular Arrangements: Solve 15+ comprehensive caselets & past year CAT sets.",
+      "testsPlanned": "Attempt 1 previous-year CAT paper (full 2 hrs). Score doesn't matter. Note where you got stuck",
+      "milestoneAdmin": "Pick ONE main resource per section and stop shopping for more",
+      "hoursTarget": "10–12",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-2",
+      "weekNumber": 2,
+      "startDate": "2026-11-23",
+      "endDate": "2026-11-29",
+      "monthLabel": "Nov 26",
+      "phaseNumber": 1,
+      "quantPlan": "Percentages I: % change, base effect, successive % change, % ↔ fraction conversions",
+      "varcPlan": "RC: finding the main idea + author's tone. 1 RC/day",
+      "dilrPlan": "DI: Tables & bar charts. 1 set/day",
+      "testsPlanned": "Topic test: Percentages (20 Qs)",
+      "milestoneAdmin": "",
+      "hoursTarget": "10–12",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-3",
+      "weekNumber": 3,
+      "startDate": "2026-11-30",
+      "endDate": "2026-12-06",
+      "monthLabel": "Nov 26",
+      "phaseNumber": 1,
+      "quantPlan": "Percentages II: price × consumption = expenditure, population growth/depreciation, election & marks problems",
+      "varcPlan": "RC question types: main idea, inference. 1 RC/day + check why wrong options are wrong",
+      "dilrPlan": "DI: Pie charts & line graphs. 1 set/day",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "10–12",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-4",
+      "weekNumber": 4,
+      "startDate": "2026-12-07",
+      "endDate": "2026-12-13",
+      "monthLabel": "Dec 26",
+      "phaseNumber": 1,
+      "quantPlan": "Ratio & Proportion: comparing ratios, componendo-dividendo, direct/inverse variation, partnership",
+      "varcPlan": "RC: specific-detail & vocab-in-context Qs. Learn option elimination: extreme words, out-of-scope, half-right options",
+      "dilrPlan": "DI: Caselets (data given in a paragraph). 1 set/day",
+      "testsPlanned": "Topic test: Ratio & Proportion",
+      "milestoneAdmin": "",
+      "hoursTarget": "10–12",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-5",
+      "weekNumber": 5,
+      "startDate": "2026-12-14",
+      "endDate": "2026-12-20",
+      "monthLabel": "Dec 26",
+      "phaseNumber": 1,
+      "quantPlan": "Mixtures & Alligations: weighted average, alligation rule, replacement / repeated dilution",
+      "varcPlan": "VA theory: Para summary. Learn the approach, do 10 Qs",
+      "dilrPlan": "LR: Linear arrangements",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "10–12",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-6",
+      "weekNumber": 6,
+      "startDate": "2026-12-21",
+      "endDate": "2026-12-27",
+      "monthLabel": "Dec 26",
+      "phaseNumber": 1,
+      "quantPlan": "Averages: basic & weighted, change in average when items are added/removed/replaced",
+      "varcPlan": "VA theory: Para jumbles (TITA). Opening sentence, linkers, mandatory pairs. 10 Qs",
+      "dilrPlan": "LR: Circular arrangements",
+      "testsPlanned": "Topic test: Mixtures + Averages",
+      "milestoneAdmin": "",
+      "hoursTarget": "12–15",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-7",
+      "weekNumber": 7,
+      "startDate": "2026-12-28",
+      "endDate": "2027-01-03",
+      "monthLabel": "Dec 26",
+      "phaseNumber": 1,
+      "quantPlan": "Profit, Loss & Discount: CP/SP/MP, successive discounts, false weights, buy-X-get-Y offers",
+      "varcPlan": "VA theory: Odd sentence out. 10 Qs",
+      "dilrPlan": "LR: Distribution / grouping (matrix sets)",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "12–15",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-8",
+      "weekNumber": 8,
+      "startDate": "2027-01-04",
+      "endDate": "2027-01-10",
+      "monthLabel": "Jan 27",
+      "phaseNumber": 1,
+      "quantPlan": "Simple & Compound Interest: CI–SI difference, instalments, effective annual rate",
+      "varcPlan": "VA theory: Sentence placement / para completion. 10 Qs",
+      "dilrPlan": "LR: Selection & conditional sets",
+      "testsPlanned": "Topic test: P&L + SI/CI",
+      "milestoneAdmin": "",
+      "hoursTarget": "12–15",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-9",
+      "weekNumber": 9,
+      "startDate": "2027-01-11",
+      "endDate": "2027-01-17",
+      "monthLabel": "Jan 27",
+      "phaseNumber": 1,
+      "quantPlan": "Time & Work: LCM/work-unit method, efficiency, pipes & cisterns, wages split",
+      "varcPlan": "RC: long passages (900+ words). Target 7–8 min per passage",
+      "dilrPlan": "LR: Venn diagram sets",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "12–15",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-10",
+      "weekNumber": 10,
+      "startDate": "2027-01-18",
+      "endDate": "2027-01-24",
+      "monthLabel": "Jan 27",
+      "phaseNumber": 2,
+      "quantPlan": "Time, Speed & Distance I: relative speed, average speed, trains, boats & streams",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Economics & business",
+      "dilrPlan": "LR: Games & tournaments (round robin, knockout)",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-11",
+      "weekNumber": 11,
+      "startDate": "2027-01-25",
+      "endDate": "2027-01-31",
+      "monthLabel": "Jan 27",
+      "phaseNumber": 2,
+      "quantPlan": "Time, Speed & Distance II: races, circular tracks, clocks. + Arithmetic PYQs (mixed)",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Philosophy & abstract",
+      "dilrPlan": "LR: Scheduling, calendars & time-based sets",
+      "testsPlanned": "Topic test: Time & Work + TSD",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-12",
+      "weekNumber": 12,
+      "startDate": "2027-02-01",
+      "endDate": "2027-02-07",
+      "monthLabel": "Feb 27",
+      "phaseNumber": 2,
+      "quantPlan": "BUFFER WEEK: finish anything pending in Arithmetic. Re-solve every wrong question so far",
+      "varcPlan": "Catch-up week. Re-read 5 RCs you got wrong and write why",
+      "dilrPlan": "Catch-up week. Redo 4 sets you couldn't crack",
+      "testsPlanned": "Sectional test: Arithmetic-only Quant (40 min) + 1 untimed VARC sectional",
+      "milestoneAdmin": "Life happens. Use this week to catch up, not to rest",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": true
+    },
+    {
+      "id": "week-13",
+      "weekNumber": 13,
+      "startDate": "2027-02-08",
+      "endDate": "2027-02-14",
+      "monthLabel": "Feb 27",
+      "phaseNumber": 2,
+      "quantPlan": "Number System I: divisibility, factors (number, sum, product of factors), HCF/LCM applications",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Science & technology",
+      "dilrPlan": "DI: Mixed graphs (2–3 charts in one set)",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-14",
+      "weekNumber": 14,
+      "startDate": "2027-02-15",
+      "endDate": "2027-02-21",
+      "monthLabel": "Feb 27",
+      "phaseNumber": 2,
+      "quantPlan": "Number System II: remainders (Fermat, Euler, Wilson basics), cyclicity, unit & last-two digits",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: History & sociology",
+      "dilrPlan": "LR: Quant-based reasoning (max/min type sets)",
+      "testsPlanned": "Topic test: Number System I",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-15",
+      "weekNumber": 15,
+      "startDate": "2027-02-22",
+      "endDate": "2027-02-28",
+      "monthLabel": "Feb 27",
+      "phaseNumber": 2,
+      "quantPlan": "Number System III: base systems, factorials, trailing zeros, highest power of a prime in n!",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Art, literature & culture",
+      "dilrPlan": "LR: Binary logic (truth-tellers & liars)",
+      "testsPlanned": "Topic test: Number System II + III",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-16",
+      "weekNumber": 16,
+      "startDate": "2027-03-01",
+      "endDate": "2027-03-07",
+      "monthLabel": "Mar 27",
+      "phaseNumber": 2,
+      "quantPlan": "Algebra I: linear equations, quadratic equations (roots, sum/product, nature of roots)",
+      "varcPlan": "VA advanced: 5-sentence para jumbles. Daily: 2 RCs + 4 PJ",
+      "dilrPlan": "LR: Routes & networks",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-17",
+      "weekNumber": 17,
+      "startDate": "2027-03-08",
+      "endDate": "2027-03-14",
+      "monthLabel": "Mar 27",
+      "phaseNumber": 2,
+      "quantPlan": "Algebra II: inequalities, modulus, wavy-curve method",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Psychology & behaviour",
+      "dilrPlan": "DI: Spider/radar charts & scatter plots",
+      "testsPlanned": "Topic test: Algebra I + II",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-18",
+      "weekNumber": 18,
+      "startDate": "2027-03-15",
+      "endDate": "2027-03-21",
+      "monthLabel": "Mar 27",
+      "phaseNumber": 2,
+      "quantPlan": "Algebra III: functions & graphs (domain/range, transformations, f(f(x)), max/min of functions)",
+      "varcPlan": "VA advanced: Summary + odd-one-out error analysis. Daily: 2 RCs + 4 VA",
+      "dilrPlan": "LR: Ranking / ordering puzzles",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-19",
+      "weekNumber": 19,
+      "startDate": "2027-03-22",
+      "endDate": "2027-03-28",
+      "monthLabel": "Mar 27",
+      "phaseNumber": 2,
+      "quantPlan": "BUFFER WEEK: finish pending Number System & Algebra. Re-solve wrong Qs",
+      "varcPlan": "Catch-up week. VARC sectional (untimed) + review",
+      "dilrPlan": "Catch-up week. Redo 4 tough sets",
+      "testsPlanned": "Sectional test: Quant (Arithmetic + Number System + Algebra so far)",
+      "milestoneAdmin": "Halfway through the syllabus. Check your Topic Tracker",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": true
+    },
+    {
+      "id": "week-20",
+      "weekNumber": 20,
+      "startDate": "2027-03-29",
+      "endDate": "2027-04-04",
+      "monthLabel": "Mar 27",
+      "phaseNumber": 2,
+      "quantPlan": "Algebra IV: logarithms, surds & indices",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Environment & ecology",
+      "dilrPlan": "Set-selection drill: scan 4 sets, pick the best 2 in 3 minutes",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-21",
+      "weekNumber": 21,
+      "startDate": "2027-04-05",
+      "endDate": "2027-04-11",
+      "monthLabel": "Apr 27",
+      "phaseNumber": 2,
+      "quantPlan": "Algebra V: progressions (AP, GP, HP), sum of series, AM-GM inequality",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Economics & business",
+      "dilrPlan": "PYQ sets: CAT 2017–2018",
+      "testsPlanned": "Topic test: Algebra III–V",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-22",
+      "weekNumber": 22,
+      "startDate": "2027-04-12",
+      "endDate": "2027-04-18",
+      "monthLabel": "Apr 27",
+      "phaseNumber": 2,
+      "quantPlan": "Geometry I: lines & angles, triangles (properties, similarity, congruence, centres)",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Philosophy & abstract",
+      "dilrPlan": "PYQ sets: CAT 2019",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-23",
+      "weekNumber": 23,
+      "startDate": "2027-04-19",
+      "endDate": "2027-04-25",
+      "monthLabel": "Apr 27",
+      "phaseNumber": 2,
+      "quantPlan": "Geometry II: triangle areas, Pythagoras & special triangles, polygons & quadrilaterals",
+      "varcPlan": "Daily: 2 RCs + 3 VA Qs. RC genre focus: Science & technology",
+      "dilrPlan": "PYQ sets: CAT 2020",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-24",
+      "weekNumber": 24,
+      "startDate": "2027-04-26",
+      "endDate": "2027-05-02",
+      "monthLabel": "Apr 27",
+      "phaseNumber": 2,
+      "quantPlan": "Geometry III: circles (chords, tangents, cyclic quadrilaterals, alternate segment theorem)",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: History & sociology",
+      "dilrPlan": "PYQ sets: CAT 2021",
+      "testsPlanned": "Topic test: Geometry I–III",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-25",
+      "weekNumber": 25,
+      "startDate": "2027-05-03",
+      "endDate": "2027-05-09",
+      "monthLabel": "May 27",
+      "phaseNumber": 2,
+      "quantPlan": "Geometry IV: mensuration 2D & 3D (cube, cuboid, cylinder, cone, sphere, frustum)",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: Art & culture",
+      "dilrPlan": "PYQ sets: CAT 2022",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-26",
+      "weekNumber": 26,
+      "startDate": "2027-05-10",
+      "endDate": "2027-05-16",
+      "monthLabel": "May 27",
+      "phaseNumber": 2,
+      "quantPlan": "BUFFER WEEK: finish pending Geometry. Re-solve wrong Qs",
+      "varcPlan": "Catch-up week. VARC sectional (40 min, timed)",
+      "dilrPlan": "Catch-up week",
+      "testsPlanned": "Sectional test: Quant (Geometry-heavy)",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": true
+    },
+    {
+      "id": "week-27",
+      "weekNumber": 27,
+      "startDate": "2027-05-17",
+      "endDate": "2027-05-23",
+      "monthLabel": "May 27",
+      "phaseNumber": 2,
+      "quantPlan": "Geometry V: coordinate geometry + basic trigonometry (heights & distances)",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: Psychology",
+      "dilrPlan": "PYQ sets: CAT 2023",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-28",
+      "weekNumber": 28,
+      "startDate": "2027-05-24",
+      "endDate": "2027-05-30",
+      "monthLabel": "May 27",
+      "phaseNumber": 2,
+      "quantPlan": "Modern Maths I: permutations & combinations (counting principle, arrangements, selections, distributions)",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: Economics",
+      "dilrPlan": "PYQ sets: CAT 2024",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-29",
+      "weekNumber": 29,
+      "startDate": "2027-05-31",
+      "endDate": "2027-06-06",
+      "monthLabel": "May 27",
+      "phaseNumber": 2,
+      "quantPlan": "Modern Maths II: probability (basic, conditional, expected value)",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: Science",
+      "dilrPlan": "PYQ sets: CAT 2025",
+      "testsPlanned": "Topic test: P&C + Probability",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-30",
+      "weekNumber": 30,
+      "startDate": "2027-06-07",
+      "endDate": "2027-06-13",
+      "monthLabel": "Jun 27",
+      "phaseNumber": 2,
+      "quantPlan": "Modern Maths III: set theory & Venn (2–3 sets, max/min of overlaps) + mixed Algebra PYQs",
+      "varcPlan": "Daily: 2 RCs (timed) + 3 VA Qs. RC genre focus: mixed",
+      "dilrPlan": "PYQ sets: CAT 2026",
+      "testsPlanned": "",
+      "milestoneAdmin": "",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-31",
+      "weekNumber": 31,
+      "startDate": "2027-06-14",
+      "endDate": "2027-06-20",
+      "monthLabel": "Jun 27",
+      "phaseNumber": 2,
+      "quantPlan": "SYLLABUS CLOSE: full Quant PYQ test. Mark weak topics in the Topic Tracker",
+      "varcPlan": "Full VARC sectional (40 min). List your weakest Q type",
+      "dilrPlan": "Full DILR sectional (40 min). Note which set types you avoid",
+      "testsPlanned": "Mock 0: your baseline full mock (just to see where you stand)",
+      "milestoneAdmin": "Syllabus done. Fill Confidence (1–5) for every topic",
+      "hoursTarget": "15–18",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-32",
+      "weekNumber": 32,
+      "startDate": "2027-06-21",
+      "endDate": "2027-06-27",
+      "monthLabel": "Jun 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Arithmetic I: Percentages, Ratio, Mixtures, Averages. Re-solve all wrong Qs",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA. Two VARC sectionals this week",
+      "dilrPlan": "Daily: 2 sets timed (10–12 min each)",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-33",
+      "weekNumber": 33,
+      "startDate": "2027-06-28",
+      "endDate": "2027-07-04",
+      "monthLabel": "Jun 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Arithmetic II: P&L, SI/CI, Time & Work, TSD",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-34",
+      "weekNumber": 34,
+      "startDate": "2027-07-05",
+      "endDate": "2027-07-11",
+      "monthLabel": "Jul 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Number System (all three parts)",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-35",
+      "weekNumber": 35,
+      "startDate": "2027-07-12",
+      "endDate": "2027-07-18",
+      "monthLabel": "Jul 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Algebra I–III: equations, inequalities, modulus, functions",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "CAT notification expected late July: check iimcat.ac.in",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-36",
+      "weekNumber": 36,
+      "startDate": "2027-07-19",
+      "endDate": "2027-07-25",
+      "monthLabel": "Jul 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Algebra IV–V: logs, indices, progressions",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals + 1 full mock",
+      "milestoneAdmin": "CAT registration expected to open ~1st week of Aug. REGISTER EARLY",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-37",
+      "weekNumber": 37,
+      "startDate": "2027-07-26",
+      "endDate": "2027-08-01",
+      "monthLabel": "Jul 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Geometry I–III: triangles, polygons, circles",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "Make your non-IIM exam list (XAT, NMAT, SNAP, etc.) with deadlines",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-38",
+      "weekNumber": 38,
+      "startDate": "2027-08-02",
+      "endDate": "2027-08-08",
+      "monthLabel": "Aug 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Geometry IV–V: mensuration, coordinate, trigonometry",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals + 1 full mock",
+      "milestoneAdmin": "",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-39",
+      "weekNumber": 39,
+      "startDate": "2027-08-09",
+      "endDate": "2027-08-15",
+      "monthLabel": "Aug 27",
+      "phaseNumber": 3,
+      "quantPlan": "Revise Modern Maths: P&C, probability, set theory",
+      "varcPlan": "Daily: 3 RCs timed + 5 VA",
+      "dilrPlan": "Daily: 2 sets timed",
+      "testsPlanned": "2 sectionals (40 min each)",
+      "milestoneAdmin": "CAT registration deadline expected mid-Sept. Don't wait for it",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-40",
+      "weekNumber": 40,
+      "startDate": "2027-08-16",
+      "endDate": "2027-08-22",
+      "monthLabel": "Aug 27",
+      "phaseNumber": 3,
+      "quantPlan": "Mistake-log week: re-solve EVERY question in your Mistake Log",
+      "varcPlan": "Re-read your VARC mistake patterns. Fix the top 2",
+      "dilrPlan": "Redo every DILR set marked in the Mistake Log",
+      "testsPlanned": "1 full mock + deep analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-41",
+      "weekNumber": 41,
+      "startDate": "2027-08-23",
+      "endDate": "2027-08-29",
+      "monthLabel": "Aug 27",
+      "phaseNumber": 4,
+      "quantPlan": "Weak-topic fix: Arithmetic (from mock analysis + Mistake Log)",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "2 full mocks. Analysis ≥ 3 hrs each",
+      "milestoneAdmin": "Analysis should take longer than the mock",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-42",
+      "weekNumber": 42,
+      "startDate": "2027-08-30",
+      "endDate": "2027-09-05",
+      "monthLabel": "Aug 27",
+      "phaseNumber": 4,
+      "quantPlan": "Weak-topic fix: Algebra",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "2 full mocks + analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-43",
+      "weekNumber": 43,
+      "startDate": "2027-09-06",
+      "endDate": "2027-09-12",
+      "monthLabel": "Sep 27",
+      "phaseNumber": 4,
+      "quantPlan": "Weak-topic fix: Geometry & mensuration",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "2 full mocks + analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-44",
+      "weekNumber": 44,
+      "startDate": "2027-09-13",
+      "endDate": "2027-09-19",
+      "monthLabel": "Sep 27",
+      "phaseNumber": 4,
+      "quantPlan": "Weak-topic fix: Number System + Modern Maths",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "2 full mocks + analysis",
+      "milestoneAdmin": "Review Mock Tracker: is your score trending up? If flat, analyse more, mock less",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-45",
+      "weekNumber": 45,
+      "startDate": "2027-09-20",
+      "endDate": "2027-09-26",
+      "monthLabel": "Sep 27",
+      "phaseNumber": 4,
+      "quantPlan": "Mixed revision: formula sheet + Arithmetic & Algebra PYQs",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "3 full mocks + analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-46",
+      "weekNumber": 46,
+      "startDate": "2027-09-27",
+      "endDate": "2027-10-03",
+      "monthLabel": "Sep 27",
+      "phaseNumber": 4,
+      "quantPlan": "Mixed revision: Geometry & Number System PYQs",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "3 full mocks + analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-47",
+      "weekNumber": 47,
+      "startDate": "2027-10-04",
+      "endDate": "2027-10-10",
+      "monthLabel": "Oct 27",
+      "phaseNumber": 4,
+      "quantPlan": "Mixed revision from Mistake Log (top 20 repeated mistakes)",
+      "varcPlan": "2 RCs + 4 VA daily on non-mock days",
+      "dilrPlan": "2 sets daily on non-mock days",
+      "testsPlanned": "3 full mocks + analysis",
+      "milestoneAdmin": "",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-48",
+      "weekNumber": 48,
+      "startDate": "2027-10-11",
+      "endDate": "2027-10-17",
+      "monthLabel": "Oct 27",
+      "phaseNumber": 4,
+      "quantPlan": "Lock your Quant attempt strategy: which topics you attempt first, which you skip",
+      "varcPlan": "Lock VARC strategy: RC order, how many VA you attempt",
+      "dilrPlan": "Lock DILR strategy: set-selection rule, when to move on",
+      "testsPlanned": "3 full mocks + analysis",
+      "milestoneAdmin": "Admit card expected early Nov. Keep an eye on email",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-49",
+      "weekNumber": 49,
+      "startDate": "2027-10-18",
+      "endDate": "2027-10-24",
+      "monthLabel": "Oct 27",
+      "phaseNumber": 4,
+      "quantPlan": "Mixed PYQs, easy-to-moderate only. Build speed and accuracy",
+      "varcPlan": "2 RCs + 4 VA daily",
+      "dilrPlan": "2 sets daily",
+      "testsPlanned": "3 full mocks + analysis",
+      "milestoneAdmin": "Download admit card. Check centre & slot",
+      "hoursTarget": "20–25",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-50",
+      "weekNumber": 50,
+      "startDate": "2027-10-25",
+      "endDate": "2027-10-31",
+      "monthLabel": "Oct 27",
+      "phaseNumber": 4,
+      "quantPlan": "Formula sheet + Mistake Log, revision only. No new topics",
+      "varcPlan": "Light daily reading + 2 RCs",
+      "dilrPlan": "2 sets daily, focus on set selection",
+      "testsPlanned": "2–3 full mocks, take them at YOUR slot time",
+      "milestoneAdmin": "Shift your sleep cycle to match your exam slot",
+      "hoursTarget": "18–20",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-51",
+      "weekNumber": 51,
+      "startDate": "2027-11-01",
+      "endDate": "2027-11-07",
+      "monthLabel": "Nov 27",
+      "phaseNumber": 4,
+      "quantPlan": "Revision only: formula sheet + top mistakes",
+      "varcPlan": "Light reading + 1–2 RCs daily",
+      "dilrPlan": "1–2 sets daily",
+      "testsPlanned": "2 full mocks max. Last mock ≥ 4 days before exam",
+      "milestoneAdmin": "Visit/plan the route to your exam centre",
+      "hoursTarget": "15",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    },
+    {
+      "id": "week-52",
+      "weekNumber": 52,
+      "startDate": "2027-11-08",
+      "endDate": "2027-11-14",
+      "monthLabel": "Nov 27",
+      "phaseNumber": 5,
+      "quantPlan": "No new learning. Skim formula sheet + Mistake Log only",
+      "varcPlan": "Light reading to stay warm",
+      "dilrPlan": "2–3 easy sets to stay in rhythm",
+      "testsPlanned": "No full mocks. Rest the day before",
+      "milestoneAdmin": "CAT 2027 expected Sun 28 Nov. Pack admit card + photo ID the night before",
+      "hoursTarget": "8–10",
+      "status": "Not started",
+      "myNotes": "",
+      "isBufferWeek": false
+    }
+  ],
+  "topics": [],
+  "topicProgress": {
+    "topic-1": {
+      "topicId": "topic-1",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-2": {
+      "topicId": "topic-2",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-3": {
+      "topicId": "topic-3",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-4": {
+      "topicId": "topic-4",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-5": {
+      "topicId": "topic-5",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-6": {
+      "topicId": "topic-6",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-7": {
+      "topicId": "topic-7",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-8": {
+      "topicId": "topic-8",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-9": {
+      "topicId": "topic-9",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-10": {
+      "topicId": "topic-10",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-11": {
+      "topicId": "topic-11",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-12": {
+      "topicId": "topic-12",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-13": {
+      "topicId": "topic-13",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-14": {
+      "topicId": "topic-14",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-15": {
+      "topicId": "topic-15",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-16": {
+      "topicId": "topic-16",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-17": {
+      "topicId": "topic-17",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-18": {
+      "topicId": "topic-18",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-19": {
+      "topicId": "topic-19",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-20": {
+      "topicId": "topic-20",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-21": {
+      "topicId": "topic-21",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-22": {
+      "topicId": "topic-22",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-23": {
+      "topicId": "topic-23",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-24": {
+      "topicId": "topic-24",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-25": {
+      "topicId": "topic-25",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-26": {
+      "topicId": "topic-26",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-27": {
+      "topicId": "topic-27",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-28": {
+      "topicId": "topic-28",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-29": {
+      "topicId": "topic-29",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-30": {
+      "topicId": "topic-30",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-31": {
+      "topicId": "topic-31",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-32": {
+      "topicId": "topic-32",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-33": {
+      "topicId": "topic-33",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-34": {
+      "topicId": "topic-34",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-35": {
+      "topicId": "topic-35",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-36": {
+      "topicId": "topic-36",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-37": {
+      "topicId": "topic-37",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-38": {
+      "topicId": "topic-38",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-39": {
+      "topicId": "topic-39",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-40": {
+      "topicId": "topic-40",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-41": {
+      "topicId": "topic-41",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-42": {
+      "topicId": "topic-42",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-43": {
+      "topicId": "topic-43",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-44": {
+      "topicId": "topic-44",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-45": {
+      "topicId": "topic-45",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-46": {
+      "topicId": "topic-46",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-47": {
+      "topicId": "topic-47",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-48": {
+      "topicId": "topic-48",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-49": {
+      "topicId": "topic-49",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-50": {
+      "topicId": "topic-50",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-51": {
+      "topicId": "topic-51",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-52": {
+      "topicId": "topic-52",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    },
+    "topic-53": {
+      "topicId": "topic-53",
+      "conceptDone": false,
+      "practiceDone": false,
+      "pyqsDone": false,
+      "confidence": 1,
+      "revision1Done": false,
+      "revision2Done": false,
+      "updatedAt": "2026-11-17T02:30:01.794Z"
+    }
+  },
+  "tasks": [
+    {
+      "title": "DILR: Study Linear & Circular Arrangements",
+      "description": "Linear Arrangements, Circular Arrangements",
+      "section": "DILR",
+      "weeklyPlanId": "week-2",
+      "status": "Review",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-0y4z6pz-1432",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "DILR: Study Cubes",
+      "description": "Focus on LR",
+      "section": "DILR",
+      "weeklyPlanId": "week-2",
+      "status": "Not Started",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-b6gadqr-8715",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "VARC: Study Verbal Ability",
+      "description": "Focus on VA",
+      "section": "VARC",
+      "weeklyPlanId": "week-2",
+      "status": "Not Started",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-qoclkd5-9486",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "VARC: Study Vocabulary",
+      "description": "Focus on VA",
+      "section": "VARC",
+      "weeklyPlanId": "week-2",
+      "status": "Review",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-m72mi1k-7413",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "Quant: Study Factorials",
+      "description": "Focus on Arithmetic",
+      "section": "Quant",
+      "weeklyPlanId": "week-2",
+      "status": "Not Started",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-pzxcyva-8487",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "Quant: Study Numbers",
+      "description": "Focus on Foundations",
+      "section": "Quant",
+      "weeklyPlanId": "week-2",
+      "status": "Review",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": false,
+      "id": "task-1795429059469-y52sfvc-9933",
+      "createdAt": "2026-11-23T10:17:39.469Z"
+    },
+    {
+      "title": "Quant: Study Calculation speed",
+      "description": "Squares to 30, cubes to 15, fraction↔% table, approximation",
+      "section": "Quant",
+      "weeklyPlanId": "week-1",
+      "status": "In Progress",
+      "priority": "Medium",
+      "estimatedMinutes": 60,
+      "actualMinutes": 0,
+      "isTodayFocus": true,
+      "id": "task-1795276426360",
+      "createdAt": "2026-11-21T15:53:46.360Z"
+    }
+  ],
+  "mockTests": [
+    {
+      "id": "mock-1",
+      "mockNumber": 1,
+      "testDate": "2027-09-05",
+      "seriesName": "Example: SIMCAT 1",
+      "varcAttempts": 16,
+      "varcScore": 30,
+      "dilrAttempts": 10,
+      "dilrScore": 21,
+      "qaAttempts": 14,
+      "qaScore": 26,
+      "totalAttempts": 40,
+      "totalScore": 77,
+      "percentile": 82.5,
+      "analysisDone": true,
+      "biggestLesson": "Spent 14 min on one DILR set. Rule: switch sets at 8 min if no progress",
+      "isSample": true
+    },
+    {
+      "id": "mock-2",
+      "mockNumber": 2,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-3",
+      "mockNumber": 3,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-4",
+      "mockNumber": 4,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-5",
+      "mockNumber": 5,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-6",
+      "mockNumber": 6,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-7",
+      "mockNumber": 7,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-8",
+      "mockNumber": 8,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-9",
+      "mockNumber": 9,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-10",
+      "mockNumber": 10,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-11",
+      "mockNumber": 11,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-12",
+      "mockNumber": 12,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-13",
+      "mockNumber": 13,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-14",
+      "mockNumber": 14,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-15",
+      "mockNumber": 15,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-16",
+      "mockNumber": 16,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-17",
+      "mockNumber": 17,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-18",
+      "mockNumber": 18,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-19",
+      "mockNumber": 19,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-20",
+      "mockNumber": 20,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-21",
+      "mockNumber": 21,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-22",
+      "mockNumber": 22,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-23",
+      "mockNumber": 23,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-24",
+      "mockNumber": 24,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-25",
+      "mockNumber": 25,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-26",
+      "mockNumber": 26,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-27",
+      "mockNumber": 27,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-28",
+      "mockNumber": 28,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-29",
+      "mockNumber": 29,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-30",
+      "mockNumber": 30,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-31",
+      "mockNumber": 31,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-32",
+      "mockNumber": 32,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-33",
+      "mockNumber": 33,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-34",
+      "mockNumber": 34,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-35",
+      "mockNumber": 35,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-36",
+      "mockNumber": 36,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-37",
+      "mockNumber": 37,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-38",
+      "mockNumber": 38,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-39",
+      "mockNumber": 39,
+      "analysisDone": false,
+      "isSample": false
+    },
+    {
+      "id": "mock-40",
+      "mockNumber": 40,
+      "analysisDone": false,
+      "isSample": false
+    }
+  ],
+  "mistakes": [
+    {
+      "id": "mistake-1",
+      "date": "2027-09-05",
+      "source": "Example: SIMCAT 1",
+      "section": "Quant",
+      "topic": "Remainders",
+      "questionRef": "Q 18",
+      "mistakeType": "Concept gap",
+      "whatWentWrong": "Didn't know Euler's theorem, tried long division",
+      "ruleForNextTime": "If divisor & base are co-prime, try Euler first",
+      "revisitDate": "2027-09-12",
+      "reSolved": false,
+      "isSample": true
+    }
+  ],
+  "resources": [
+    {
+      "id": "res-1",
+      "section": "Intro",
+      "resourceName": "▶ Watch the full video: How to Crack CAT Without Coaching Using Only Free Resources",
+      "intendedUsage": "Orientation and prep mindset before starting week 1",
+      "url": "https://www.youtube.com/watch?v=PwRfsf0m0NM",
+      "isFavorited": true,
+      "isCompleted": false
+    },
+    {
+      "id": "res-2",
+      "section": "Quant",
+      "category": "Concepts",
+      "resourceName": "iQuanta: Arithmetic playlist",
+      "intendedUsage": "Phases 1–2, learning concepts (weeks 1–31)",
+      "url": "https://www.youtube.com/watch?v=lqWYzkJxjB8&amp;list=PL4YW4OWyzRDRk4VPQoeh8T8D3KJ93oUVG&amp;index=1",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-3",
+      "section": "Quant",
+      "category": "Concepts",
+      "resourceName": "Rodha: Quant playlist",
+      "intendedUsage": "Phases 1–2, learning concepts",
+      "url": "https://www.youtube.com/watch?v=5O6ZnVoqwl4&amp;list=PLG4bwc5fquzgfMh4YFDnv7fttM0RIKiUQ",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-4",
+      "section": "Quant",
+      "category": "Practice",
+      "resourceName": "MBA Pathshala: Arithmetic",
+      "intendedUsage": "Phases 1–2, learning concepts",
+      "url": "https://www.youtube.com/playlist?list=PLLtQdEJkug7sF3btK_VQMe_WziFb78rj_",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-5",
+      "section": "Quant",
+      "category": "Concepts",
+      "resourceName": "MBA Wallah: Quant playlist",
+      "intendedUsage": "Phases 1–2, learning concepts",
+      "url": "https://www.youtube.com/playlist?list=PLlxE9WKuvDj9avhKLnCZaARljwTXywAkV",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-q-pyq",
+      "section": "Quant",
+      "category": "PYQ's",
+      "resourceName": "2IIM: Quant Topic-Wise CAT PYQs (2017–2024)",
+      "intendedUsage": "Solve real CAT questions after completing each Quant topic",
+      "url": "https://online.2iim.com/CAT-question-paper/",
+      "isFavorited": true,
+      "isCompleted": false
+    },
+    {
+      "id": "res-q-mock",
+      "section": "Quant",
+      "category": "Mocks",
+      "resourceName": "Cracku: Free Quant Sectional Speed Mocks",
+      "intendedUsage": "40-min timed Quant section practice with percentiles",
+      "url": "https://cracku.in/cat-mock-test",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-6",
+      "section": "DILR",
+      "category": "Practice",
+      "resourceName": "Elites Grid: LRDI playlist",
+      "intendedUsage": "Phases 1–2, one set type per week",
+      "url": "https://www.youtube.com/playlist?list=PL66qMJTd-VecPbShYM1eJ4uvf_rVaAdG7",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-7",
+      "section": "DILR",
+      "category": "Concepts",
+      "resourceName": "iQuanta: Master LRDI playlist",
+      "intendedUsage": "Phases 1–2, one set type per week",
+      "url": "https://www.youtube.com/watch?v=tu-7QCBvr1A&amp;list=PL4YW4OWyzRDSKP7fL8Bo2c1PV5-Ew0c3N",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-8",
+      "section": "DILR",
+      "category": "Practice",
+      "resourceName": "Rodha: LRDI playlist",
+      "intendedUsage": "Phases 1–2, one set type per week",
+      "url": "https://www.youtube.com/playlist?list=PLG4bwc5fquzhDp8eqRym2Ma1ut10YF0Ea",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-9",
+      "section": "DILR",
+      "category": "Practice",
+      "resourceName": "Aptitude Jab: LRDI playlist",
+      "intendedUsage": "Phases 1–2, one set type per week",
+      "url": "https://www.youtube.com/watch?v=j6YrA1sV6oE&amp;list=PLxht4dVcisIIGMmxx0bTZv9F68dtuD9hY",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-d-pyq",
+      "section": "DILR",
+      "category": "PYQ's",
+      "resourceName": "Bodhee Prep: DILR Previous Year Slot Sets",
+      "intendedUsage": "Full past CAT LRDI sets with detailed matrix walkthroughs",
+      "url": "https://bodheeprep.com/cat-question-paper-previous-years-pdf",
+      "isFavorited": true,
+      "isCompleted": false
+    },
+    {
+      "id": "res-d-mock",
+      "section": "DILR",
+      "category": "Mocks",
+      "resourceName": "iQuanta: Free DILR Sectional Mock Drills",
+      "intendedUsage": "Timed 4-set and 5-set test simulator for speed and set selection",
+      "url": "https://www.iquanta.in/cat-mock-test",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-10",
+      "section": "VARC",
+      "category": "Concepts",
+      "resourceName": "iQuanta: VARC playlist",
+      "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
+      "url": "https://www.youtube.com/playlist?list=PL4YW4OWyzRDSyTSuLOVaJzqCDYVuNF-Pi",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-11",
+      "section": "VARC",
+      "category": "Practice",
+      "resourceName": "Cracku: VARC playlist",
+      "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
+      "url": "https://www.youtube.com/playlist?list=PLSjkMEhzZ_icihE5IwlFH_ETUuzoLs1lh",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-12",
+      "section": "VARC",
+      "category": "Concepts",
+      "resourceName": "Gejo Sir: VARC playlist",
+      "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
+      "url": "https://www.youtube.com/watch?v=id6Ag4sqT8o&amp;list=PLYlgAFSHVfLEru3vzdGAQDIBNm1MQqH45",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-13",
+      "section": "VARC",
+      "category": "Practice",
+      "resourceName": "MBA Pathshala: VARC",
+      "intendedUsage": "Weeks 2–9 (RC & VA theory), then practice",
+      "url": "https://www.youtube.com/playlist?list=PLLtQdEJkug7tFpnRZyWC9n-dXYTZOPnfI",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-v-pyq",
+      "section": "VARC",
+      "category": "PYQ's",
+      "resourceName": "iQuanta: CAT VARC Official PYQs & RC Passages",
+      "intendedUsage": "Real past CAT RC passages and verbal ability question sets",
+      "url": "https://www.iquanta.in/cat-question-papers",
+      "isFavorited": true,
+      "isCompleted": false
+    },
+    {
+      "id": "res-v-mock",
+      "section": "VARC",
+      "category": "Mocks",
+      "resourceName": "Rodha: Free VARC Sectional Timed Mocks",
+      "intendedUsage": "40-min authentic CAT VARC sectional with detailed solution keys",
+      "url": "https://mocks.rodha.co.in/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-14",
+      "section": "Reading",
+      "resourceName": "RC99",
+      "intendedUsage": "Daily reading + RC practice from week 1",
+      "url": "https://docs.google.com/file/d/0BzAGuwgxcqXBZy1yWWtKNjRtS0k/edit?resourcekey=0-3_ETFps19pU8AjwpcGG9Hg",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-15",
+      "section": "Reading",
+      "resourceName": "100 hardest GMAT RCs (GMAT Club)",
+      "intendedUsage": "Phase 2 onwards, once basic RCs feel easy",
+      "url": "https://gmatclub.com/forum/100-hardest-reading-comprehension-passages-questions-424608.html",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-16",
+      "section": "Reading",
+      "resourceName": "Aeon Essays",
+      "intendedUsage": "Daily reading habit from week 1",
+      "url": "https://aeon.co/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-17",
+      "section": "Reading",
+      "resourceName": "2IIM curated reading list",
+      "intendedUsage": "Daily reading habit from week 1",
+      "url": "https://online.2iim.com/cat-exam/blogs/bharaths-curated-reading-list-for-cat-exam-2-2/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-18",
+      "section": "PYQs",
+      "category": "PYQ's",
+      "resourceName": "iQuanta: CAT question papers",
+      "intendedUsage": "Same week you finish each topic + week 1 diagnostic",
+      "url": "https://www.iquanta.in/cat-question-papers",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-19",
+      "section": "PYQs",
+      "category": "PYQ's",
+      "resourceName": "2IIM: CAT PYQ page",
+      "intendedUsage": "Same week you finish each topic",
+      "url": "https://online.2iim.com/CAT-question-paper/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-20",
+      "section": "PYQs",
+      "category": "PYQ's",
+      "resourceName": "Bodhee Prep: PYQ PDFs",
+      "intendedUsage": "DILR PYQ weeks (21–30) + revision",
+      "url": "https://bodheeprep.com/cat-question-paper-previous-years-pdf",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-21",
+      "section": "PYQs",
+      "category": "PYQ's",
+      "resourceName": "Preparoo: PYQs",
+      "intendedUsage": "Topic-wise PYQ practice",
+      "url": "https://mba.preparoo.app/pyqs",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-22",
+      "section": "Mocks",
+      "category": "Mocks",
+      "resourceName": "iQuanta free mocks",
+      "intendedUsage": "Mock 0 (week 31), then Phases 3–4",
+      "url": "https://www.iquanta.in/cat-mock-test",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-23",
+      "section": "Mocks",
+      "category": "Mocks",
+      "resourceName": "Rodha free mocks",
+      "intendedUsage": "Phases 3–4",
+      "url": "https://mocks.rodha.co.in/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-24",
+      "section": "Mocks",
+      "category": "Mocks",
+      "resourceName": "Cracku free mocks",
+      "intendedUsage": "Phases 3–4",
+      "url": "https://cracku.in/cat-mock-test",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-25",
+      "section": "Mocks",
+      "category": "Mocks",
+      "resourceName": "InsideIIM free daily mocks",
+      "intendedUsage": "Short daily practice, any phase",
+      "url": "https://insideiim.com/free-daily-mba-mock-tests-cat-xat-other-mba-exams",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-26",
+      "section": "Community",
+      "resourceName": "r/CATprep (Reddit)",
+      "intendedUsage": "Doubts, motivation, any phase",
+      "url": "https://www.reddit.com/r/CATprep/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-27",
+      "section": "Community",
+      "resourceName": "iQuanta CAT prep app",
+      "intendedUsage": "Doubts + daily practice, any phase",
+      "url": "https://iquanta.io/8RrXQc5nL1b",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-28",
+      "section": "Community",
+      "resourceName": "InsideIIM community",
+      "intendedUsage": "College research + forms, Phase 3 onwards",
+      "url": "https://insideiim.com/",
+      "isFavorited": false,
+      "isCompleted": false
+    },
+    {
+      "id": "res-29",
+      "section": "Community",
+      "resourceName": "Cracku CAT prep groups",
+      "intendedUsage": "Study groups, any phase",
+      "url": "https://cracku.in/cat-preparation-groups/",
+      "isFavorited": false,
+      "isCompleted": false
+    }
+  ],
+  "routines": [
+    {
+      "id": "routine-1",
+      "classification": "working_professional_weekday",
+      "title": "Working Professional: Weekday",
+      "targetHours": 2.5,
+      "timeBlocks": [
+        {
+          "timeRange": "06:30–07:15",
+          "activity": "Reading: 1 article + 1 RC",
+          "section": "VARC"
+        },
+        {
+          "timeRange": "07:15–08:00",
+          "activity": "Quant: concept video / notes",
+          "section": "Quant"
+        },
+        {
+          "timeRange": "Commute",
+          "activity": "Formula sheet / mistake log on phone",
+          "section": "General"
+        },
+        {
+          "timeRange": "Lunch break",
+          "activity": "1 DILR set (or 5 VA Qs)",
+          "section": "DILR"
+        },
+        {
+          "timeRange": "21:30–22:30",
+          "activity": "Quant practice: 15–20 Qs on this week's topic",
+          "section": "Quant"
+        }
+      ]
+    },
+    {
+      "id": "routine-2",
+      "classification": "working_professional_weekend",
+      "title": "Working Professional: Weekend",
+      "targetHours": 6.5,
+      "timeBlocks": [
+        {
+          "timeRange": "08:00–10:00",
+          "activity": "Topic tests / sectional / mock",
+          "section": "General"
+        },
+        {
+          "timeRange": "10:30–12:30",
+          "activity": "Analysis + mistake log",
+          "section": "General"
+        },
+        {
+          "timeRange": "15:00–17:00",
+          "activity": "Pending Quant topic + PYQs",
+          "section": "Quant"
+        },
+        {
+          "timeRange": "17:30–18:30",
+          "activity": "2 DILR sets",
+          "section": "DILR"
+        },
+        {
+          "timeRange": "Evening",
+          "activity": "Plan next week from 'Weekly Plan'",
+          "section": "General"
+        }
+      ]
+    },
+    {
+      "id": "routine-3",
+      "classification": "college_student_weekday",
+      "title": "College Student: Weekday",
+      "targetHours": 3.75,
+      "timeBlocks": [
+        {
+          "timeRange": "06:30–07:30",
+          "activity": "Quant concepts",
+          "section": "Quant"
+        },
+        {
+          "timeRange": "Between classes",
+          "activity": "Reading + 1 RC",
+          "section": "VARC"
+        },
+        {
+          "timeRange": "17:00–18:00",
+          "activity": "2 DILR sets",
+          "section": "DILR"
+        },
+        {
+          "timeRange": "20:00–21:30",
+          "activity": "Quant practice + PYQs",
+          "section": "Quant"
+        },
+        {
+          "timeRange": "21:30–22:00",
+          "activity": "VA practice + update trackers",
+          "section": "VARC"
+        }
+      ]
+    }
+  ],
+  "stickyNotes": [
+    {
+      "id": "note-1",
+      "content": "Remember: 90% in CAT requires accuracy > attempts. Never guess in DILR.",
+      "color": "lavender",
+      "positionX": 30,
+      "positionY": 20,
+      "isPinned": true,
+      "createdAt": "2026-11-17T02:30:01.794Z"
+    },
+    {
+      "id": "note-2",
+      "content": "Formula check: Euler totient theorem applicable when base & divisor are co-prime.",
+      "color": "emerald",
+      "positionX": 280,
+      "positionY": 40,
+      "isPinned": false,
+      "createdAt": "2026-11-17T02:30:01.794Z"
+    },
+    {
+      "title": "Euler Totient & Remainder Matrix",
+      "purpose": "Formula Sheet",
+      "date": "2026-11-22",
+      "section": "Quant",
+      "color": "emerald",
+      "isPinned": true,
+      "content": "### Key Formulas & Shortcut Matrix:\n\n| Concept / Case | Formula / Property | Conditions |\n| :--- | :--- | :--- |\n| Case 1 | Formula 1 | Details |\n| Case 2 | Formula 2 | Details |\n\n> **Mental Rule:** \n\n### Key Formulas & Shortcut Matrix:\n\n| Concept / Case | Formula / Property | Conditions |\n| :--- | :--- | :--- |\n| Case 1 | Formula 1 | Details |\n| Case 2 | Formula 2 | Details |\n\n> **Exam Mental Rule:**",
+      "images": [],
+      "positionX": 176,
+      "positionY": 173,
+      "updatedAt": "2026-11-22T09:22:58.008Z",
+      "id": "note-1795339378008",
+      "createdAt": "2026-11-22T09:22:58.008Z"
+    }
+  ],
+  "studyNotes": [
+    {
+      "id": "note-1",
+      "title": "Fermat & Euler Remainder Theorems: Solved CAT Benchmark Problems",
+      "section": "Quant",
+      "noteType": "QA",
+      "topic": "Remainders",
+      "createdAt": "2026-11-16",
+      "updatedAt": "2026-11-16",
+      "images": [],
+      "isPinned": true,
+      "content": "### Problem Breakdown (Solved Q&A):\n\n#### Question:\nFind the remainder when **3^{2026} + 5^{2027}** is divided by **17**.\n\n---\n\n### Step-by-Step Solution & Method:\n\n#### 1. Part A: Remainder of $3^{2026} \\pmod{17}$\n- Since **17** is prime and $\\gcd(3, 17) = 1$, apply **Fermat's Little Theorem**:\n  $$a^{p-1} \\equiv 1 \\pmod{p} \\implies 3^{16} \\equiv 1 \\pmod{17}$$\n- Divide the exponent 2026 by 16:\n  $$2026 = 16 \\times 126 + 10$$\n- Therefore:\n  $$3^{2026} \\equiv (3^{16})^{126} \\times 3^{10} \\equiv 1 \\times 3^{10} \\pmod{17}$$\n- Evaluating $3^{10} \\pmod{17}$:\n  - $3^3 = 27 \\equiv 10 \\pmod{17}$\n  - $3^6 = 100 \\equiv 15 \\equiv -2 \\pmod{17}$\n  - $3^{10} = 3^6 \\times 3^4 = (-2) \\times 81 \\equiv (-2) \\times 13 = -26 \\equiv 8 \\pmod{17}$\n- **Remainder for Part A = 8**\n\n#### 2. Part B: Remainder of $5^{2027} \\pmod{17}$\n- Again by Fermat's Theorem: $5^{16} \\equiv 1 \\pmod{17}$\n- Divide 2027 by 16: $2027 = 16 \\times 126 + 11$\n- $5^{2027} \\equiv 5^{11} \\pmod{17}$\n  - $5^2 = 25 \\equiv 8 \\pmod{17}$\n  - $5^4 = 64 \\equiv 13 \\equiv -4 \\pmod{17}$\n  - $5^8 \\equiv (-4)^2 = 16 \\equiv -1 \\pmod{17}$\n  - $5^{11} = 5^8 \\times 5^2 \\times 5^1 \\equiv (-1) \\times 8 \\times 5 = -40 \\equiv 11 \\pmod{17}$\n- **Remainder for Part B = 11**\n\n#### Final Combination:\n- Total Remainder = $(8 + 11) \\pmod{17} = 19 \\pmod{17} = \\mathbf{2}$\n\n> **Rule for Exam:** When dividing by a prime $P$, always reduce exponent modulo $(P - 1)$ first. It cuts computation time by 80%."
+    },
+    {
+      "id": "note-2",
+      "title": "Circular & Linear Arrangements: Core Deduction Matrix",
+      "section": "DILR",
+      "noteType": "Notes",
+      "topic": "Circular arrangements",
+      "createdAt": "2026-11-15",
+      "updatedAt": "2026-11-15",
+      "images": [],
+      "isPinned": true,
+      "content": "### Core Rules for Circular Arrangements (DILR):\n\n#### 1. Directional Orientation Matrix:\n| Facing | Left Movement | Right Movement | Opposite Person |\n| :--- | :--- | :--- | :--- |\n| **Facing Center** | Clockwise | Counter-clockwise | At $(N/2)$ positions for even $N$ |\n| **Facing Away** | Counter-clockwise | Clockwise | At $(N/2)$ positions for even $N$ |\n\n#### 2. Four Golden Rules for Set Selection & Solving:\n1. **Never start with negative clues:** Skip \"A does not sit next to B\" initially.\n2. **Anchor the absolute positions first:** Begin with clues that link at least 2 people to fixed reference points (e.g. \"B sits third to the left of C\").\n3. **Dual-Case Branching:** If a clue leads to only 2 configurations, draw both circles immediately rather than trying to hold them in working memory.\n4. **The 8-Minute Cutoff:** If 0 solid deductions are made within 8 minutes of starting a DILR set, abandon and move to the next set immediately."
+    },
+    {
+      "id": "note-3",
+      "title": "Reading Comprehension: Author Tone Identification Quick Reference",
+      "section": "VARC",
+      "noteType": "Quick Ref",
+      "topic": "RC Tone",
+      "createdAt": "2026-11-14",
+      "updatedAt": "2026-11-14",
+      "images": [],
+      "isPinned": false,
+      "content": "### Master Author Tone Reference Card (CAT VARC)\n\n#### 1. Analytical & Objective Tones:\n- **Detached / Objective:** Neutral presentation of facts, data, and contrasting perspectives without emotional words.\n- **Expository / Informative:** Explains how a mechanism, historical event, or scientific phenomenon works.\n\n#### 2. Critical & Skeptical Tones:\n- **Acerbic / Vitriolic:** Harsh, biting criticism with stinging or contemptuous language.\n- **Cynical:** Believes people or institutions act solely out of selfish motives.\n- **Skeptical / Questioning:** Doubts conventional claims and demands stronger evidentiary proof.\n\n#### 3. Praising & Supportive Tones:\n- **Eulogistic / Laudatory:** High praise, admiring contributions or historical figures.\n- **Reverent:** Deep respect, awe, and veneration (common in art and philosophy passages).\n\n#### 4. Cautionary & Prescriptive Tones:\n- **Didactic:** Educational tone intended to instruct morality or proper procedure.\n- **Admonitory / Cautionary:** Warning of grave negative consequences if current trends persist.\n\n> **Elimination Rule:** Extreme tones (*vitriolic, fanatical, ecstatic*) are rarely the correct answer in CAT RC unless the text is extraordinarily biased."
+    }
+  ],
+  "guideSections": [
+    {
+      "id": "guide-1",
+      "sectionKey": "exam_structure",
+      "title": "CAT Examination Structure & Format",
+      "sortOrder": 1,
+      "contentMarkdown": "### CAT Exam Architecture & Timing\n- **Total Duration:** 120 Minutes (2 Hours)\n- **Sections:** 3 Sequential Sections strictly timed at **40 Minutes each** (No section jumping allowed)\n- **Total Questions:** 68 Questions (49 Multiple Choice Questions + 17 Non-MCQ / TITA Questions)\n\n#### Sectional Breakdown:\n| Section Name | What it Tests | Questions | Time Limit | MCQ Count | TITA Count |\n| :--- | :--- | :---: | :---: | :---: | :---: |\n| **VARC** | English comprehension & verbal reasoning | 24 | 40 mins | 21 | 3 |\n| **DILR** | Logical reasoning & data interpretation | 22 | 40 mins | 14 | 6 |\n| **QA** | Mathematics & quantitative aptitude | 22 | 40 mins | 14 | 8 |\n| **Total** | Full Comprehensive Test | **68** | **120 mins** | **49** | **17** |\n\n#### Scoring Scheme:\n- **+3 Marks** for every correct answer.\n- **-1 Mark** for every incorrect Multiple Choice Question (MCQ).\n- **0 Marks (No negative marking)** for incorrect Type-In-The-Answer (TITA) questions."
+    },
+    {
+      "id": "guide-2",
+      "sectionKey": "strategy_90",
+      "title": "Strategy for 90%+: Target Net Score Benchmarks",
+      "sortOrder": 2,
+      "contentMarkdown": "### Blueprint Target Scores for 90th Percentile+\n*(Derived directly from the reference guide as bare-minimum raw score targets)*\n\n- **VARC (Verbal Ability & Reading Comprehension):** **15 – 20** net score\n- **DILR (Data Interpretation & Logical Reasoning):** **10** net score\n- **QA (Quantitative Aptitude):** **5+** net score\n\n> **Note on Strategy:** These raw score targets represent the minimum thresholds outlined in the preparation guide. Consistency across all three sections is required to clear sectional cutoffs at top IIMs and tier-1 business schools."
+    },
+    {
+      "id": "guide-3",
+      "sectionKey": "weekly_schedule",
+      "title": "Optimal Weekly Subject Allocation Schedule",
+      "sortOrder": 3,
+      "contentMarkdown": "### Recommended Daily Subject Distribution:\n| Day | Primary Focus Areas |\n| :--- | :--- |\n| **Monday** | Arithmetic + DILR Problem Sets + Reading Comprehension (RC) |\n| **Tuesday** | Algebra + DILR Problem Sets + Verbal Ability (VA) |\n| **Wednesday** | Arithmetic + DILR Problem Sets + Reading Comprehension (RC) |\n| **Thursday** | Geometry + DILR Problem Sets + Verbal Ability (VA) |\n| **Friday** | Number Systems + DILR Problem Sets + Reading Comprehension (RC) |\n| **Saturday** | Mixed Quant Practice + 40-Minute Sectional Tests |\n| **Sunday** | Full 2-Hour Mock Test + Deep 3-Hour Analysis |"
+    },
+    {
+      "id": "guide-4",
+      "sectionKey": "qa_strategy",
+      "title": "Quantitative Aptitude (QA): Topics & 9-Step Sequence",
+      "sortOrder": 4,
+      "contentMarkdown": "### Concepts to Master:\n- **Arithmetic:** Percentages, profit and loss, ratios, averages, simple and compound interest, mixtures and alligations, partnerships, time and work, speed, distance and time.\n- **Algebra:** Linear equations, quadratic equations, inequalities, functions, logarithms, sequences and progressions.\n- **Number System:** Divisibility, factors, multiples, HCF and LCM, remainders (Fermat, Euler, Wilson), cyclicity.\n- **Geometry & Mensuration:** Triangles, circles, quadrilaterals, polygons, area, perimeter, surface area, volume, coordinate geometry, trigonometry.\n- **Modern Maths:** Permutations and combinations, probability, set theory.\n\n### Recommended 9-Step Learning Sequence:\n1. **Ratio and proportion** (Base of arithmetic)\n2. **Profit and loss**\n3. **Simple and compound interest**\n4. **Mixtures and alligations**\n5. **Time and work**\n6. **Time, speed and distance**\n7. **Number systems**\n8. **Geometry and mensuration**\n9. **Modern mathematics**"
+    },
+    {
+      "id": "guide-5",
+      "sectionKey": "dilr_strategy",
+      "title": "Data Interpretation & Logical Reasoning (DILR)",
+      "sortOrder": 5,
+      "contentMarkdown": "### Data Interpretation Topics:\n- Tables and caselets, Bar graphs, Line graphs, Pie charts, Mixed graphs, Data comparison, Data sufficiency.\n\n### Logical Reasoning Topics:\n- Linear seating arrangements, Circular seating arrangements, Selection and distribution, Scheduling problems, Games and tournaments, Blood relations, Ranking and ordering, Venn diagrams, Routes and networks, Conditional logic and puzzles.\n\n### Recommended Problem-Set Sequence:\n1. Tables and charts\n2. Linear arrangements\n3. Circular arrangements\n4. Scheduling and distribution\n5. Games and tournaments\n6. Mixed and advanced puzzles\n\n> **Key Rule from Guide:** *Don't just learn formulas. DILR is primarily about practising different types of problem sets rather than rote memorization.*"
+    },
+    {
+      "id": "guide-6",
+      "sectionKey": "varc_strategy",
+      "title": "Verbal Ability & Reading Comprehension (VARC)",
+      "sortOrder": 6,
+      "contentMarkdown": "### Reading Comprehension (RC) Skills:\n- Identify the central idea of a passage.\n- Understand the author's perspective and tone.\n- Identify assumptions and underlying arguments.\n- Draw logical inferences (what is implied, not stated).\n- Identify supporting and contradictory statements.\n\n### Verbal Ability (VA) Question Types:\n- Para jumbles (TITA - No negative marking)\n- Para summaries\n- Odd sentence out\n- Sentence placement\n- Paragraph completion\n\n### Daily Preparation Guidelines:\n- Read 1 or 2 long-form articles every day across economics, business, science, psychology, and philosophy.\n- Practise reading without translating every sentence into your native language.\n- Solve 2–3 reading comprehension passages regularly under untimed conditions initially, moving to timed (7–8 min/passage) in Phase 2.\n- Focus on understanding the author's argument rather than memorising vocabulary.\n\n> **Key Principle:** *Comprehension and contextual understanding are more important than memorising thousands of isolated English words.*"
+    }
+  ]
+}

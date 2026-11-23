@@ -696,11 +696,36 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       fetchCloudVault(authSession.user.id, authSession.user.email)
         .then((cloudData) => {
           if (cloudData) {
-            hydrateFromVault(cloudData);
-            setCloudSyncStatus({
-              status: 'synced',
-              lastSyncedAt: cloudData.syncedAt || cloudData.updatedAt || new Date().toISOString()
-            });
+            // Check local vs cloud timestamp or richness before overwriting!
+            const localRaw = localStorage.getItem(`cat2027_vault_${authSession.user.id}`);
+            let shouldHydrate = true;
+            if (localRaw) {
+              try {
+                const localVault = JSON.parse(localRaw);
+                const localTime = new Date(localVault.exportedAt || localVault.updatedAt || 0).getTime();
+                const cloudTime = new Date(cloudData.syncedAt || cloudData.updatedAt || 0).getTime();
+                // If local data is newer than cloud data by more than 5 seconds, don't overwrite! Instead push local to cloud!
+                if (localTime > cloudTime + 5000) {
+                  shouldHydrate = false;
+                  pushCloudVault(authSession.user.id, authSession.user.email || '', localVault).then(() => {
+                    setCloudSyncStatus({
+                      status: 'synced',
+                      lastSyncedAt: new Date().toISOString()
+                    });
+                  });
+                }
+              } catch (e) {
+                console.warn('Error reading local vault timestamp:', e);
+              }
+            }
+
+            if (shouldHydrate) {
+              hydrateFromVault(cloudData);
+              setCloudSyncStatus({
+                status: 'synced',
+                lastSyncedAt: cloudData.syncedAt || cloudData.updatedAt || new Date().toISOString()
+              });
+            }
           } else {
             // First time on cloud: seed cloud with this device's data
             const snapshot = getVaultSnapshot();
@@ -1215,6 +1240,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           localStorage.setItem(STORAGE_PREFIX + k, JSON.stringify(data[k]));
         }
       });
+
+      const targetUserId = data.profile?.id || profile.id || 'user-sangamesh-vu';
+      const targetEmail = data.profile?.email || profile.email || 'sangamesh.vu@gmail.com';
+      localStorage.setItem(`cat2027_vault_${targetUserId}`, JSON.stringify(data));
+      pushCloudVault(targetUserId, targetEmail, data).then((res) => {
+        if (res.success) {
+          setCloudSyncStatus({
+            status: 'synced',
+            lastSyncedAt: new Date().toISOString()
+          });
+        }
+      }).catch(console.error);
 
       toast.success('🎉 Successfully imported and restored all data under Sangamesh profile!');
       return true;

@@ -513,6 +513,53 @@ export const ProfileSettingsPage: React.FC = () => {
             </CardContent>
           </Card>
 
+          {/* Card 2: Restore / Import Data Vault JSON */}
+          <Card className="rounded-3xl border-blue-200/80 dark:border-blue-900/60 shadow-sm bg-blue-50/20 dark:bg-blue-950/10">
+            <CardHeader>
+              <CardTitle className="text-base font-bold flex items-center gap-2 text-blue-900 dark:text-blue-200">
+                <Upload className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>Restore / Upload Data Vault JSON</span>
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-600 dark:text-slate-400">
+                Upload your saved or recovery CAT 2027 Data Vault JSON file to immediately restore your study streaks, daily goals, notes, tasks, and syllabus progress.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <input
+                  type="file"
+                  id="vault-file-input"
+                  accept=".json,application/json"
+                  className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const content = event.target?.result as string;
+                        if (content) {
+                          importDataFromCloudVault(content);
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+              </div>
+              <div className="pt-2 text-xs text-muted-foreground flex flex-wrap items-center gap-2">
+                <span>Direct recovery backup:</span>
+                <a
+                  href="/Sangamesh_CAT_2027_DataVault_Recovery.json"
+                  download="Sangamesh_CAT_2027_DataVault_Recovery.json"
+                  className="font-medium text-blue-600 hover:underline dark:text-blue-400 inline-flex items-center gap-1"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download Recovery Vault (Sangamesh_CAT_2027_DataVault_Recovery.json)</span>
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="rounded-3xl border-rose-200/80 dark:border-rose-950/60 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2 text-rose-700 dark:text-rose-400">
