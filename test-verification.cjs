@@ -344,10 +344,10 @@ test('Study Focus Timer provides full pause/resume controls, Picture-in-Picture 
 });
 
 // 26. VERIFY KANBAN INDEPENDENT TASK MOVING & DEFAULT DAILY GOALS
-test('Kanban tasks move independently with index targeting and unique IDs, and default daily goals (VARC: AONSA & VARC: 5 root words) are present every day', () => {
+test('Kanban tasks move independently with index targeting and unique IDs, and default daily goals (VARC: 1 Aeon Essay & VARC: 5 root words) are present every day', () => {
   const appDataContext = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
   assert(appDataContext.includes('DEFAULT_DAILY_GOALS_LIST'), 'DEFAULT_DAILY_GOALS_LIST missing in AppDataContext');
-  assert(appDataContext.includes('VARC: AONSA'), 'VARC: AONSA default goal missing');
+  assert(appDataContext.includes('VARC: 1 Aeon Essay'), 'VARC: 1 Aeon Essay default goal missing');
   assert(appDataContext.includes('VARC: 5 root words'), 'VARC: 5 root words default goal missing');
   assert(appDataContext.includes('ensureUniqueTaskIds'), 'ensureUniqueTaskIds function missing');
   assert(appDataContext.includes('ensureDefaultGoalsForDate'), 'ensureDefaultGoalsForDate function missing');
@@ -360,7 +360,7 @@ test('Kanban tasks move independently with index targeting and unique IDs, and d
   assert(plannerContent.includes("updateTask(t.id, { status: 'Completed'"), 'Move to Completed missing in Kanban');
 
   const initialActivitiesContent = fs.readFileSync(path.join(__dirname, 'src/data/initialActivities.ts'), 'utf8');
-  assert(initialActivitiesContent.includes('VARC: AONSA'), 'VARC: AONSA missing in initialActivities.ts');
+  assert(initialActivitiesContent.includes('VARC: 1 Aeon Essay'), 'VARC: 1 Aeon Essay missing in initialActivities.ts');
   assert(initialActivitiesContent.includes('VARC: 5 root words'), 'VARC: 5 root words missing in initialActivities.ts');
 });
 

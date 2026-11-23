@@ -165,7 +165,7 @@ export const DEFAULT_DAILY_GOALS_LIST: Array<{
   targetMinutes: number;
 }> = [
   {
-    title: 'VARC: AONSA',
+    title: 'VARC: 1 Aeon Essay',
     section: 'VARC',
     targetMinutes: 35
   },
@@ -190,7 +190,18 @@ export function ensureUniqueTaskIds(items: StudyTask[]): StudyTask[] {
 }
 
 export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: string): DailyGoalItem[] {
-  const existing = goals.filter((g) => g.date === dateStr);
+  // First, migrate any legacy "AONSA" goals to "VARC: 1 Aeon Essay"
+  const migratedGoals = goals.map((g) => {
+    if (g.title.trim().toLowerCase().includes('aonsa')) {
+      return {
+        ...g,
+        title: 'VARC: 1 Aeon Essay'
+      };
+    }
+    return g;
+  });
+
+  const existing = migratedGoals.filter((g) => g.date === dateStr);
   const toAdd: DailyGoalItem[] = [];
 
   DEFAULT_DAILY_GOALS_LIST.forEach((tmpl, i) => {
@@ -209,8 +220,8 @@ export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: strin
     }
   });
 
-  if (toAdd.length === 0) return goals;
-  return [...goals, ...toAdd];
+  if (toAdd.length === 0) return migratedGoals;
+  return [...migratedGoals, ...toAdd];
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -477,6 +488,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
                 setTasks(vaultData.tasks);
               }
             }
+            if (vaultData.dailyGoals && Array.isArray(vaultData.dailyGoals)) {
+              let vaultGoalsChanged = false;
+              vaultData.dailyGoals = vaultData.dailyGoals.map((g: any) => {
+                if (g && typeof g.title === 'string' && g.title.toLowerCase().includes('aonsa')) {
+                  vaultGoalsChanged = true;
+                  return { ...g, title: 'VARC: 1 Aeon Essay' };
+                }
+                return g;
+              });
+              if (vaultGoalsChanged) {
+                localStorage.setItem(key, JSON.stringify(vaultData));
+                if (key === `cat2027_vault_${profile.id}`) {
+                  setDailyGoals(vaultData.dailyGoals);
+                }
+              }
+            }
           }
         }
       }
@@ -485,7 +512,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [profile.id]);
 
-  // Ensure default daily goals ('VARC: AONSA' and 'VARC: 5 root words') exist for today every day
+  // Ensure default daily goals ('VARC: 1 Aeon Essay' and 'VARC: 5 root words') exist for today every day
   useEffect(() => {
     setDailyGoals((prev) => ensureDefaultGoalsForDate(prev, todayDateStr));
   }, [todayDateStr]);

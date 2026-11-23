@@ -61,7 +61,7 @@ export const initialDailyGoals: DailyGoalItem[] = [
   {
     id: 'goal-today-default-1',
     date: today,
-    title: 'VARC: AONSA',
+    title: 'VARC: 1 Aeon Essay',
     section: 'VARC',
     targetMinutes: 35,
     completed: false
