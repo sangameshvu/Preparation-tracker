@@ -364,6 +364,38 @@ test('Kanban tasks move independently with index targeting and unique IDs, and d
   assert(initialActivitiesContent.includes('VARC: 5 root words'), 'VARC: 5 root words missing in initialActivities.ts');
 });
 
+// 27. VERIFY DAILY MBA VOCABULARY LEARNING SYSTEM
+test('Daily MBA Vocabulary Learning System: datasets, flashcards, deterministic daily selection, Practice Page card integration, navigation, and SRS', () => {
+  const wordsJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'src/data/vocabulary/highFrequencyWords.json'), 'utf8'));
+  const rootsJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'src/data/vocabulary/rootWords.json'), 'utf8'));
+  assert(Array.isArray(wordsJson) && wordsJson.length >= 300, `Expected >= 300 words, got ${wordsJson.length}`);
+  assert(Array.isArray(rootsJson) && rootsJson.length >= 70, `Expected >= 70 roots, got ${rootsJson.length}`);
+
+  const vocabService = fs.readFileSync(path.join(__dirname, 'src/services/vocabularyService.ts'), 'utf8');
+  assert(vocabService.includes('getOrCreateDailySession'), 'getOrCreateDailySession missing in service');
+  assert(vocabService.includes('recordCardReview'), 'recordCardReview missing in service');
+  assert(vocabService.includes('getWordOfTheDay'), 'getWordOfTheDay missing in service');
+  assert(vocabService.includes('generateDailyQuiz'), 'generateDailyQuiz missing in service');
+
+  // Verify Practice Page integration below Aeon Essay section
+  const practiceEngine = fs.readFileSync(path.join(__dirname, 'src/components/practice/CATPracticeEngine.tsx'), 'utf8');
+  assert(practiceEngine.includes('Daily MBA Vocabulary Learning'), 'Daily MBA Vocabulary Learning card missing in PracticeEngine');
+  assert(practiceEngine.includes("navigate('/vocabulary?mode=roots')"), 'Practice Root Words navigation missing');
+  assert(practiceEngine.includes("navigate('/vocabulary?mode=words')"), 'Practice High-Frequency Words navigation missing');
+
+  // Verify routing & navigation
+  const appRoutes = fs.readFileSync(path.join(__dirname, 'src/App.tsx'), 'utf8');
+  assert(appRoutes.includes('path="vocabulary"'), '/vocabulary route missing in App.tsx');
+  const sidebar = fs.readFileSync(path.join(__dirname, 'src/components/layout/Sidebar.tsx'), 'utf8');
+  assert(sidebar.includes("name: 'Vocabulary'"), 'Vocabulary missing in Sidebar primaryNav');
+
+  // Verify Flashcard and Quiz
+  const flashcard = fs.readFileSync(path.join(__dirname, 'src/components/vocabulary/VocabFlashcard.tsx'), 'utf8');
+  assert(flashcard.includes('I Know This'), 'I Know This control missing in flashcard');
+  assert(flashcard.includes('Need Revision'), 'Need Revision control missing in flashcard');
+  assert(flashcard.includes('rotateY'), '3D flip animation missing in flashcard');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

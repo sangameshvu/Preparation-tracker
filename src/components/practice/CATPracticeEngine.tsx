@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Play,
   RotateCcw,
@@ -32,6 +33,7 @@ import {
 import { useAppData } from '../../context/AppDataContext';
 import { MistakeCategory, SectionType } from '../../types';
 import { getRecentHabitDays } from '../../utils/streakCalculator';
+import { loadUserVocabProgress, getOrCreateDailySession, getTodayDateStr } from '../../services/vocabularyService';
 import { toast } from 'sonner';
 
 interface CATPracticeEngineProps {
@@ -39,13 +41,23 @@ interface CATPracticeEngineProps {
 }
 
 export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchToMistakes }) => {
+  const navigate = useNavigate();
   const {
+    profile,
     addMistake,
     aeonHabit,
     toggleAeonDate,
     markYesterdayAeonDone,
     markTodayAeonDone
   } = useAppData();
+
+  // Daily Vocabulary Status
+  const vocabTodayStr = getTodayDateStr();
+  const vocabProgress = useMemo(() => loadUserVocabProgress(profile?.id || 'guest'), [profile?.id]);
+  const { session: vocabSession } = useMemo(() => getOrCreateDailySession(vocabTodayStr, vocabProgress), [vocabTodayStr, vocabProgress]);
+  const vocabWordsReviewed = Object.keys(vocabSession.wordReviews || {}).length;
+  const vocabRootsReviewed = Object.keys(vocabSession.rootReviews || {}).length;
+  const totalVocabReviewed = vocabWordsReviewed + vocabRootsReviewed;
 
   // Mode & Configuration State
   const [section, setSection] = useState<'Quant' | 'DILR' | 'VARC'>('Quant');
@@ -714,6 +726,120 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
                 </a>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* DEDICATED CARD FOR DAILY MBA VOCABULARY LEARNING */}
+        <div className="rounded-3xl border border-blue-200/90 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/50 p-6 shadow-sm dark:border-blue-900/40 dark:from-blue-950/20 dark:via-[#121826] dark:to-indigo-950/20 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-700 dark:bg-blue-500/25 dark:text-blue-300 font-bold shrink-0 mt-0.5">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Daily MBA Vocabulary Learning
+                  </h3>
+                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    CAT · XAT · GRE
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  10 Learning Cards Daily: 5 High-Frequency Words + 5 Root Words with 3D flashcards and spaced repetition.
+                </p>
+              </div>
+            </div>
+
+            {/* Streak & Completion Badges */}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
+                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>{vocabProgress.currentStreak} Day Streak</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-xl border border-blue-300/80 bg-blue-100/60 px-3 py-1.5 text-xs font-bold text-blue-900 dark:border-blue-800/80 dark:bg-blue-950/50 dark:text-blue-200 shadow-2xs">
+                <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>{totalVocabReviewed}/10 Today</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Prompt & Selection Options: Root Words vs High-Frequency Words */}
+          <div className="space-y-2">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Select What You Want to Practice Today:
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {/* Option 1: Practice Root Words */}
+              <button
+                type="button"
+                onClick={() => navigate('/vocabulary?mode=roots')}
+                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-indigo-200/90 dark:border-indigo-900/60 bg-white/90 dark:bg-slate-900/80 hover:border-indigo-500 dark:hover:border-indigo-600 hover:shadow-md transition-all text-left cursor-pointer"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2 text-sm font-extrabold text-indigo-700 dark:text-indigo-400">
+                      <Layers className="h-4 w-4" />
+                      Practice Root Words
+                    </span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                      {vocabRootsReviewed}/5 Done
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Decode Latin & Greek root words, etymological origins, and multi-word family trees.
+                  </p>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                  <span>Start Root Words (5/day)</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </button>
+
+              {/* Option 2: Practice High-Frequency Words */}
+              <button
+                type="button"
+                onClick={() => navigate('/vocabulary?mode=words')}
+                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-blue-200/90 dark:border-blue-900/60 bg-white/90 dark:bg-slate-900/80 hover:border-blue-500 dark:hover:border-blue-600 hover:shadow-md transition-all text-left cursor-pointer"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex items-center gap-2 text-sm font-extrabold text-blue-700 dark:text-blue-400">
+                      <BookOpen className="h-4 w-4" />
+                      Practice High-Frequency Words
+                    </span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                      {vocabWordsReviewed}/5 Done
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Master exam-curated words with definitions, contextual sentences, synonyms, and antonyms.
+                  </p>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                  <span>Start High-Frequency Words (5/day)</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Hub Navigation & Level Summary */}
+          <div className="pt-2 border-t border-blue-200/60 dark:border-blue-900/40 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-slate-500 dark:text-slate-400">
+              Current Levels: <strong className="text-slate-800 dark:text-slate-200 capitalize">Words ({vocabProgress.currentWordLevel})</strong> · <strong className="text-slate-800 dark:text-slate-200 capitalize">Roots ({vocabProgress.currentRootLevel})</strong>
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate('/vocabulary')}
+              className="text-blue-600 dark:text-blue-400 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Open Full Daily Vocabulary Center & SRS</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
 

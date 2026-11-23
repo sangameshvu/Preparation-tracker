@@ -146,6 +146,27 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenCoach })
                 </button>
               </div>
 
+              {/* Daily Vocabulary */}
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                  Daily Vocabulary & Roots
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoreDrawerOpen(false);
+                    navigate('/vocabulary');
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 hover:bg-blue-100/50 transition-colors text-left"
+                >
+                  <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <span className="text-sm font-semibold text-foreground block">Daily Vocabulary</span>
+                    <span className="text-xs text-muted-foreground">5 High-Frequency Words + 5 Roots (10/day)</span>
+                  </div>
+                </button>
+              </div>
+
               {/* Insights */}
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">

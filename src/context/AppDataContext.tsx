@@ -32,6 +32,7 @@ import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake
 import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from '../data/initialActivities';
 import { addDays, subDays, differenceInCalendarDays, parseISO, format, startOfWeek, differenceInCalendarWeeks } from 'date-fns';
 import { calculateStreak } from '../utils/streakCalculator';
+import { loadUserVocabProgress, saveUserVocabProgress } from '../services/vocabularyService';
 import { toast } from 'sonner';
 
 export const SANGAMESH_PROFILE: UserProfile = {
@@ -826,6 +827,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           if (data.aeonHabit && data.aeonHabit.completedDates) {
             setAeonCompletedDates(data.aeonHabit.completedDates);
           }
+          if (data.vocabProgress) {
+            saveUserVocabProgress(data.vocabProgress);
+          }
         } catch (err) {
           console.error('Error loading vault for profile:', err);
         }
@@ -928,7 +932,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
             bestStreak: aeonHabit.bestStreak,
             totalRead: aeonCompletedDates.length,
             lastReadDate: aeonHabit.lastReadDate
-          }
+          },
+          vocabProgress: loadUserVocabProgress(profile.id)
         };
         localStorage.setItem(`cat2027_vault_${profile.id}`, JSON.stringify(currentVault));
       } catch (e) {
@@ -969,7 +974,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       guideSections,
       activities,
       dailyGoals,
-      aeonHabit
+      aeonHabit,
+      vocabProgress: loadUserVocabProgress(profile.id)
     };
 
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(vault, null, 2));
@@ -1004,6 +1010,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (data.dailyGoals) setDailyGoals(data.dailyGoals);
       if (data.aeonHabit && data.aeonHabit.completedDates) {
         setAeonCompletedDates(data.aeonHabit.completedDates);
+      }
+      if (data.vocabProgress) {
+        saveUserVocabProgress(data.vocabProgress);
       }
 
       Object.keys(data).forEach((k) => {

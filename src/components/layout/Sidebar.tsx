@@ -61,6 +61,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeVariant: stats.overdueMistakesCount > 0 ? ('rose' as const) : undefined
     },
     {
+      name: 'Vocabulary',
+      path: '/vocabulary',
+      icon: BookOpen,
+      badge: '10/day',
+      badgeVariant: undefined
+    },
+    {
       name: 'Insights',
       path: '/insights',
       icon: BarChart3,

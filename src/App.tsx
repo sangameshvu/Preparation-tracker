@@ -13,6 +13,7 @@ import { PlanPage } from './pages/PlanPage';
 import { PracticePage } from './pages/PracticePage';
 import { InsightsPage } from './pages/InsightsPage';
 import { NotesContainerPage } from './pages/NotesContainerPage';
+import { VocabularyPage } from './pages/VocabularyPage';
 
 // Sub-Pages & Utilities
 import { WeeklyPlannerPage } from './pages/WeeklyPlannerPage';
@@ -44,6 +45,8 @@ export const App: React.FC = () => {
                   {/* Canonical Hub Routes */}
                   <Route path="plan" element={<PlanPage />} />
                   <Route path="practice" element={<PracticePage />} />
+                  <Route path="vocabulary" element={<VocabularyPage />} />
+                  <Route path="vocab" element={<Navigate to="/vocabulary" replace />} />
                   <Route path="insights" element={<InsightsPage />} />
                   <Route path="notes" element={<NotesContainerPage />} />
 
