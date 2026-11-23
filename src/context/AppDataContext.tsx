@@ -898,7 +898,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const addTask = (task: Omit<StudyTask, 'id' | 'createdAt'>) => {
     const newTask: StudyTask = {
       ...task,
-      id: `task-${Date.now()}`,
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       createdAt: new Date().toISOString()
     };
     setTasks((prev) => [newTask, ...prev]);

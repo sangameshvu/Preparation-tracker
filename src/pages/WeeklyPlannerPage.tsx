@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { format, parseISO, addDays, isSameDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
@@ -10,6 +10,8 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Clock,
   AlertCircle,
@@ -120,6 +122,10 @@ export const WeeklyPlannerPage: React.FC = () => {
   const [kanbanTaskTitle, setKanbanTaskTitle] = useState('');
   const [kanbanTaskSection, setKanbanTaskSection] = useState<SectionType>('Quant');
   const [kanbanTaskMinutes, setKanbanTaskMinutes] = useState(60);
+  const [kanbanWeekFilter, setKanbanWeekFilter] = useState<'current' | 'all'>('current');
+
+  // Collapsible Assigned Topics State (Default Collapsed as requested)
+  const [isAssignedTopicsCollapsed, setIsAssignedTopicsCollapsed] = useState(true);
 
   // Topic Edit/Add Modal State (accessible from Weekly Planner)
   const [editingTopic, setEditingTopic] = useState<TopicItem | null>(null);
@@ -237,9 +243,15 @@ export const WeeklyPlannerPage: React.FC = () => {
     setEditingTask(null);
   };
 
-  const handleDeleteTask = () => {
+  const handleDeleteTask = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!editingTask) return;
+    const taskTitle = editingTask.title;
     deleteTask(editingTask.id);
+    toast.success(`Task "${taskTitle}" deleted`);
     setEditingTask(null);
   };
 
@@ -316,35 +328,113 @@ export const WeeklyPlannerPage: React.FC = () => {
     setIsAddTopicOpen(false);
   };
 
+  // Auto-seed assigned syllabus topics into 'Not Started' for the active week if not already present
+  useEffect(() => {
+    if (!selectedPlan || assignedTopics.length === 0) return;
+
+    // Filter topics that don't have a matching task in this week yet
+    const missingTopics = assignedTopics.filter((topic) => {
+      const topicLower = topic.topicName.trim().toLowerCase();
+      return !tasks.some(
+        (t) =>
+          t.weeklyPlanId === selectedPlan.id &&
+          (t.title.toLowerCase().includes(topicLower) ||
+           t.title.toLowerCase() === `${topic.section}: study ${topic.topicName}`.toLowerCase())
+      );
+    });
+
+    if (missingTopics.length > 0) {
+      missingTopics.forEach((topic) => {
+        addTask({
+          title: `${topic.section}: Study ${topic.topicName}`,
+          description: topic.subtopics || `Focus on ${topic.area}`,
+          section: topic.section,
+          weeklyPlanId: selectedPlan.id,
+          status: 'Not Started',
+          priority: 'Medium',
+          estimatedMinutes: 60,
+          actualMinutes: 0,
+          isTodayFocus: false
+        });
+      });
+    }
+  }, [selectedPlan?.id, assignedTopics.length]);
+
+  // Clean up duplicate tasks for the selected week if any exist
+  useEffect(() => {
+    if (!selectedPlan) return;
+    const seen = new Set<string>();
+    const dupes: string[] = [];
+    tasks.forEach((t) => {
+      if (t.weeklyPlanId === selectedPlan.id) {
+        const key = `${t.title.trim().toLowerCase()}__${t.status}`;
+        if (seen.has(key)) {
+          dupes.push(t.id);
+        } else {
+          seen.add(key);
+        }
+      }
+    });
+    if (dupes.length > 0) {
+      dupes.forEach((id) => deleteTask(id));
+    }
+  }, [selectedPlan?.id, tasks.length]);
+
   // Quick 1-click helpers from assigned topics to tasks / daily goals
   const handleAddTopicAsTask = (topic: TopicItem) => {
+    const topicLower = topic.topicName.trim().toLowerCase();
+    const exists = weekTasks.some(
+      (t) =>
+        t.title.toLowerCase().includes(topicLower) ||
+        t.title.toLowerCase() === `${topic.section}: study ${topic.topicName}`.toLowerCase()
+    );
+    if (exists) {
+      toast.info(`"${topic.topicName}" is already in your tasks for this week.`);
+      return;
+    }
     addTask({
       title: `${topic.section}: Study ${topic.topicName}`,
       description: topic.subtopics || `Focus on ${topic.area}`,
       section: topic.section,
       weeklyPlanId: selectedPlan.id,
-      status: 'In Progress',
+      status: 'Not Started',
       priority: 'Medium',
       estimatedMinutes: 60,
       actualMinutes: 0,
-      isTodayFocus: true
+      isTodayFocus: false
     });
+    toast.success(`Added "${topic.topicName}" to Not Started`);
   };
 
   const handleAddAllAssignedTopicsAsTasks = () => {
+    let count = 0;
     assignedTopics.forEach((t) => {
-      addTask({
-        title: `${t.section}: Study ${t.topicName}`,
-        description: t.subtopics || `Focus on ${t.area}`,
-        section: t.section,
-        weeklyPlanId: selectedPlan.id,
-        status: 'In Progress',
-        priority: 'Medium',
-        estimatedMinutes: 60,
-        actualMinutes: 0,
-        isTodayFocus: true
-      });
+      const topicLower = t.topicName.trim().toLowerCase();
+      const exists = weekTasks.some(
+        (task) =>
+          task.title.toLowerCase().includes(topicLower) ||
+          task.title.toLowerCase() === `${t.section}: study ${t.topicName}`.toLowerCase()
+      );
+      if (!exists) {
+        addTask({
+          title: `${t.section}: Study ${t.topicName}`,
+          description: t.subtopics || `Focus on ${t.area}`,
+          section: t.section,
+          weeklyPlanId: selectedPlan.id,
+          status: 'Not Started',
+          priority: 'Medium',
+          estimatedMinutes: 60,
+          actualMinutes: 0,
+          isTodayFocus: false
+        });
+        count++;
+      }
     });
+    if (count > 0) {
+      toast.success(`Added ${count} topics to Not Started for Week ${selectedPlan.weekNumber}`);
+    } else {
+      toast.info('All assigned topics are already in this week\'s tasks');
+    }
   };
 
   const handleAddTopicAsDailyGoal = (topic: TopicItem) => {
@@ -523,9 +613,6 @@ export const WeeklyPlannerPage: React.FC = () => {
               Phase {selectedPlan.phaseNumber}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Full editing access: customize week strategies, syllabus distribution, tasks, and today's goals.
-          </p>
         </div>
 
         {/* View Switcher Tabs */}
@@ -991,11 +1078,31 @@ export const WeeklyPlannerPage: React.FC = () => {
             </RadixTooltip>
           </div>
 
-          {/* 4. DYNAMIC ASSIGNED SYLLABUS TOPICS CARD (User Request) */}
+          {/* 4. DYNAMIC ASSIGNED SYLLABUS TOPICS CARD (User Request: Collapsible, default collapsed) */}
           <Card className="rounded-2xl border border-border/80 shadow-xs overflow-hidden">
-            <CardHeader className="pb-3 border-b border-border/60 bg-slate-50/50 dark:bg-slate-900/40">
+            <CardHeader
+              className="pb-3 border-b border-border/60 bg-slate-50/50 dark:bg-slate-900/40 cursor-pointer select-none"
+              onClick={() => setIsAssignedTopicsCollapsed(!isAssignedTopicsCollapsed)}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
+                    title={isAssignedTopicsCollapsed ? 'Expand Assigned Topics' : 'Collapse Assigned Topics'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsAssignedTopicsCollapsed(!isAssignedTopicsCollapsed);
+                    }}
+                  >
+                    {isAssignedTopicsCollapsed ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4" />
+                    )}
+                  </Button>
                   <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   <CardTitle className="text-sm font-bold text-foreground">
                     Assigned Syllabus Topics for Week {selectedPlan.weekNumber} ({assignedTopics.length})
@@ -1005,7 +1112,10 @@ export const WeeklyPlannerPage: React.FC = () => {
                   </Badge>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div
+                  className="flex items-center gap-2 flex-wrap"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {assignedTopics.length > 0 && (
                     <Button
                       size="sm"
@@ -1027,7 +1137,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                     className="h-7 text-xs font-semibold gap-1"
                   >
                     <Plus className="h-3 w-3" />
-                    <span>+ Add Topic to this Week</span>
+                    <span>Add Topic to this Week</span>
                   </Button>
                   <Button
                     size="sm"
@@ -1044,102 +1154,104 @@ export const WeeklyPlannerPage: React.FC = () => {
                 These topics are automatically assigned to this week based on each topic's weekly distribution. You can edit any topic or reassign its week below.
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4 space-y-2.5">
-              {assignedTopics.length === 0 ? (
-                <div className="text-center py-6 border border-dashed rounded-xl space-y-2">
-                  <p className="text-xs font-semibold text-foreground">
-                    No syllabus topics specifically assigned to Week {selectedPlan.weekNumber}
-                  </p>
-                  <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                    {selectedPlan.isBufferWeek
-                      ? 'This is a designated Buffer / Catch-up week. Use it to consolidate mistake problems and review past topics.'
-                      : 'You can assign topics to this week by adding a new topic or editing the weekly distribution of existing topics.'}
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setNewTopicPlanWeek(String(selectedPlan.weekNumber));
-                      setIsAddTopicOpen(true);
-                    }}
-                    className="h-7 text-xs font-semibold mt-1"
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Assign a Topic to Week {selectedPlan.weekNumber}
-                  </Button>
-                </div>
-              ) : (
-                assignedTopics.map((topic) => {
-                  const tp = topicProgress[topic.id];
-                  const chipClass =
-                    topic.section === 'Quant'
-                      ? 'chip-quant'
-                      : topic.section === 'DILR'
-                      ? 'chip-dilr'
-                      : 'chip-varc';
-
-                  return (
-                    <div
-                      key={topic.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border border-border/80 bg-card hover:border-slate-300 dark:hover:border-slate-700 transition-colors gap-3"
+            {!isAssignedTopicsCollapsed && (
+              <CardContent className="pt-4 space-y-2.5">
+                {assignedTopics.length === 0 ? (
+                  <div className="text-center py-6 border border-dashed rounded-xl space-y-2">
+                    <p className="text-xs font-semibold text-foreground">
+                      No syllabus topics specifically assigned to Week {selectedPlan.weekNumber}
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                      {selectedPlan.isBufferWeek
+                        ? 'This is a designated Buffer / Catch-up week. Use it to consolidate mistake problems and review past topics.'
+                        : 'You can assign topics to this week by adding a new topic or editing the weekly distribution of existing topics.'}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setNewTopicPlanWeek(String(selectedPlan.weekNumber));
+                        setIsAddTopicOpen(true);
+                      }}
+                      className="h-7 text-xs font-semibold mt-1"
                     >
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipClass}`}>
-                          {topic.section}
-                        </span>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-xs text-foreground truncate">{topic.topicName}</span>
-                            <span className="text-[10px] text-muted-foreground font-medium">({topic.area})</span>
-                            <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.2 rounded">
-                              W{topic.planWeek}
-                            </span>
+                      <Plus className="h-3 w-3 mr-1" />
+                      Assign a Topic to Week {selectedPlan.weekNumber}
+                    </Button>
+                  </div>
+                ) : (
+                  assignedTopics.map((topic) => {
+                    const tp = topicProgress[topic.id];
+                    const chipClass =
+                      topic.section === 'Quant'
+                        ? 'chip-quant'
+                        : topic.section === 'DILR'
+                        ? 'chip-dilr'
+                        : 'chip-varc';
+
+                    return (
+                      <div
+                        key={topic.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border border-border/80 bg-card hover:border-slate-300 dark:hover:border-slate-700 transition-colors gap-3"
+                      >
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${chipClass}`}>
+                            {topic.section}
+                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-xs text-foreground truncate">{topic.topicName}</span>
+                              <span className="text-[10px] text-muted-foreground font-medium">({topic.area})</span>
+                              <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.2 rounded">
+                                W{topic.planWeek}
+                              </span>
+                            </div>
+                            {topic.subtopics && (
+                              <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                                {topic.subtopics}
+                              </p>
+                            )}
                           </div>
-                          {topic.subtopics && (
-                            <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
-                              {topic.subtopics}
-                            </p>
-                          )}
+                        </div>
+
+                        {/* Quick 1-Click Action Buttons */}
+                        <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAddTopicAsTask(topic)}
+                            className="h-7 text-[11px] font-semibold gap-1 text-slate-700 dark:text-slate-300"
+                            title="Add as sprint task for this week"
+                          >
+                            <Plus className="h-3 w-3" />
+                            <span>Week Task</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAddTopicAsDailyGoal(topic)}
+                            className="h-7 text-[11px] font-semibold gap-1 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800"
+                            title="Add as today's daily goal"
+                          >
+                            <Flame className="h-3 w-3 text-amber-500" />
+                            <span>Today's Goal</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenEditTopic(topic)}
+                            className="h-7 w-7 text-muted-foreground hover:text-blue-600"
+                            title="Edit Topic & Weekly Distribution"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Quick 1-Click Action Buttons */}
-                      <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddTopicAsTask(topic)}
-                          className="h-7 text-[11px] font-semibold gap-1 text-slate-700 dark:text-slate-300"
-                          title="Add as sprint task for this week"
-                        >
-                          <Plus className="h-3 w-3" />
-                          <span>+ Week Task</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddTopicAsDailyGoal(topic)}
-                          className="h-7 text-[11px] font-semibold gap-1 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800"
-                          title="Add as today's daily goal"
-                        >
-                          <Flame className="h-3 w-3 text-amber-500" />
-                          <span>+ Today's Goal</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenEditTopic(topic)}
-                          className="h-7 w-7 text-muted-foreground hover:text-blue-600"
-                          title="Edit Topic & Weekly Distribution"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
+                    );
+                  })
+                )}
+              </CardContent>
+            )}
           </Card>
 
           {/* 5. Sprint Tasks for This Week */}
@@ -1335,6 +1447,11 @@ export const WeeklyPlannerPage: React.FC = () => {
                           Today
                         </span>
                       )}
+                      {isCustomized && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30" title="Customized schedule for this day">
+                          Custom
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <Button
@@ -1346,34 +1463,11 @@ export const WeeklyPlannerPage: React.FC = () => {
                       >
                         <Edit2 className="h-3 w-3" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-muted-foreground hover:text-emerald-600 rounded-md cursor-pointer"
-                        onClick={() => handleOpenAddDayTask(idx)}
-                        title={`Add task for ${day}`}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
                     </div>
                   </div>
 
                   <div className="space-y-2 flex-1 flex flex-col justify-between">
                     <div className="space-y-2">
-                      {/* Badges */}
-                      <div className="flex flex-wrap items-center gap-1 mb-1">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                          {idx < 5 ? 'Daily VARC' : 'Consolidation'}
-                        </span>
-                        <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', allocation.badgeClass)}>
-                          {allocation.badgeLabel}
-                        </span>
-                        {isCustomized && (
-                          <span className="text-[9px] font-bold px-1 py-0.2 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30" title="Customized schedule for this day">
-                            Custom
-                          </span>
-                        )}
-                      </div>
 
                       {/* Clickable Allocation Tile */}
                       <div
@@ -1432,58 +1526,236 @@ export const WeeklyPlannerPage: React.FC = () => {
 
       {/* VIEW 3: KANBAN BOARD with Add Task & Edit Task */}
       {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {(['Not Started', 'In Progress', 'Review', 'Completed'] as TaskStatus[]).map((col) => {
-            const colTasks = tasks.filter((t) => t.status === col);
-            return (
-              <div key={col} className="flex flex-col rounded-2xl glass-regular p-3 shadow-xs">
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-foreground">{col}</span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full glass-thin text-muted-foreground">
-                      {colTasks.length}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-blue-600"
-                    onClick={() => {
-                      setKanbanTargetStatus(col);
-                      setIsKanbanAddOpen(true);
-                    }}
-                    title={`Add new task to ${col}`}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <div className="space-y-2 flex-1">
-                  {colTasks.length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground text-center py-6 italic">No tasks</p>
-                  ) : (
-                    colTasks.map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => handleOpenEditTask(t)}
-                        className="p-2.5 rounded-xl glass-subtier text-xs space-y-1.5 shadow-2xs border border-white/40 dark:border-white/10 hover:border-blue-400 cursor-pointer transition-all group"
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <p className="font-medium text-foreground group-hover:text-blue-600 transition-colors">
-                            {t.title}
-                          </p>
-                          <Edit2 className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0 mt-0.5" />
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                          <span className="text-blue-600 font-semibold">{t.section}</span>
-                          <span>{t.estimatedMinutes}m</span>
-                        </div>
-                      </div>
-                    ))
+        <div className="space-y-4">
+          <div className="p-3.5 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="font-bold text-foreground">
+                Sprint Kanban Board
+              </span>
+              <Badge variant="blue" className="text-xs font-mono">
+                {kanbanWeekFilter === 'current'
+                  ? `Week ${selectedPlan.weekNumber} (${weekTasks.length} tasks)`
+                  : `All Weeks (${tasks.length} tasks)`}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground font-medium">Show:</span>
+              <div className="inline-flex rounded-lg p-0.5 bg-slate-200/60 dark:bg-slate-800/60">
+                <button
+                  type="button"
+                  onClick={() => setKanbanWeekFilter('current')}
+                  className={cn(
+                    'px-2.5 py-1 text-xs rounded-md transition-all cursor-pointer font-medium',
+                    kanbanWeekFilter === 'current'
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
-                </div>
+                >
+                  Week {selectedPlan.weekNumber} Only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setKanbanWeekFilter('all')}
+                  className={cn(
+                    'px-2.5 py-1 text-xs rounded-md transition-all cursor-pointer font-medium',
+                    kanbanWeekFilter === 'all'
+                      ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 font-bold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  All 52 Weeks
+                </button>
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {(['Not Started', 'In Progress', 'Review', 'Completed'] as TaskStatus[]).map((col) => {
+              const activeTaskList = kanbanWeekFilter === 'current' ? weekTasks : tasks;
+              const colTasks = activeTaskList.filter((t) => t.status === col);
+              return (
+                <div key={col} className="flex flex-col rounded-2xl glass-regular p-3 shadow-xs">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/60">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-foreground">{col}</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full glass-thin text-muted-foreground">
+                        {colTasks.length}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-blue-600 cursor-pointer"
+                      onClick={() => {
+                        setKanbanTargetStatus(col);
+                        setIsKanbanAddOpen(true);
+                      }}
+                      title={`Add new task to ${col}`}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2 flex-1">
+                    {colTasks.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground text-center py-6 italic">No tasks</p>
+                    ) : (
+                      colTasks.map((t) => (
+                        <div
+                          key={t.id}
+                          className="p-2.5 rounded-xl glass-subtier text-xs space-y-2 shadow-2xs border border-white/40 dark:border-white/10 hover:border-blue-400 transition-all group"
+                        >
+                          <div className="flex items-start justify-between gap-1">
+                            <p
+                              onClick={() => handleOpenEditTask(t)}
+                              className="font-medium text-foreground group-hover:text-blue-600 transition-colors cursor-pointer flex-1 leading-snug"
+                              title="Click to edit task"
+                            >
+                              {t.title}
+                            </p>
+                            <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-muted-foreground hover:text-blue-600 cursor-pointer"
+                                onClick={() => handleOpenEditTask(t)}
+                                title="Edit task"
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-muted-foreground hover:text-red-600 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteTask(t.id);
+                                  toast.success(`Deleted "${t.title}"`);
+                                }}
+                                title="Delete task"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span className="text-blue-600 dark:text-blue-400 font-semibold">{t.section}</span>
+                            <span className="font-mono">{t.estimatedMinutes}m</span>
+                          </div>
+
+                          {/* Quick Move Action Buttons */}
+                          <div className="flex items-center justify-end gap-1 pt-1.5 border-t border-border/40">
+                            {col === 'Not Started' && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateTask(t.id, { status: 'In Progress' });
+                                  toast.success(`"${t.title}" moved to In Progress`);
+                                }}
+                                className="h-5 text-[10px] px-1.5 font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 rounded cursor-pointer gap-0.5"
+                                title="Move to In Progress"
+                              >
+                                <span>Start</span>
+                                <ArrowRight className="h-2.5 w-2.5" />
+                              </Button>
+                            )}
+                            {col === 'In Progress' && (
+                              <>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateTask(t.id, { status: 'Not Started' });
+                                    toast.info(`"${t.title}" moved back to Not Started`);
+                                  }}
+                                  className="h-5 text-[10px] px-1.5 text-muted-foreground hover:bg-slate-500/10 rounded cursor-pointer"
+                                  title="Move back to Not Started"
+                                >
+                                  <span>← Back</span>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateTask(t.id, { status: 'Review' });
+                                    toast.success(`"${t.title}" moved to Review`);
+                                  }}
+                                  className="h-5 text-[10px] px-1.5 font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 rounded cursor-pointer gap-0.5"
+                                  title="Move to Review"
+                                >
+                                  <span>Review</span>
+                                  <ArrowRight className="h-2.5 w-2.5" />
+                                </Button>
+                              </>
+                            )}
+                            {col === 'Review' && (
+                              <>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateTask(t.id, { status: 'In Progress' });
+                                    toast.info(`"${t.title}" returned to In Progress`);
+                                  }}
+                                  className="h-5 text-[10px] px-1.5 text-muted-foreground hover:bg-slate-500/10 rounded cursor-pointer"
+                                  title="Return to In Progress"
+                                >
+                                  <span>← Work</span>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateTask(t.id, { status: 'Completed', completedAt: new Date().toISOString() });
+                                    toast.success(`"${t.title}" completed! 🎉`);
+                                  }}
+                                  className="h-5 text-[10px] px-1.5 font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded cursor-pointer gap-0.5"
+                                  title="Mark Completed"
+                                >
+                                  <span>Done</span>
+                                  <Check className="h-2.5 w-2.5" />
+                                </Button>
+                              </>
+                            )}
+                            {col === 'Completed' && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateTask(t.id, { status: 'In Progress', completedAt: undefined });
+                                  toast.info(`"${t.title}" reopened`);
+                                }}
+                                className="h-5 text-[10px] px-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded cursor-pointer gap-0.5"
+                                title="Reopen task"
+                              >
+                                <RotateCcw className="h-2.5 w-2.5" />
+                                <span>Reopen</span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
