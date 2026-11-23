@@ -354,9 +354,9 @@ test('Kanban tasks move independently with index targeting and unique IDs, and d
   assert(appDataContext.includes('targetIndex'), 'targetIndex targeting in updateTask/deleteTask missing');
 
   const plannerContent = fs.readFileSync(path.join(__dirname, 'src/pages/WeeklyPlannerPage.tsx'), 'utf8');
-  assert(plannerContent.includes("updateTask(t.id, { status: 'Not Started' })"), 'Move to Not Started missing in Kanban');
-  assert(plannerContent.includes("updateTask(t.id, { status: 'In Progress' })"), 'Move to In Progress missing in Kanban');
-  assert(plannerContent.includes("updateTask(t.id, { status: 'Review' })"), 'Move to Review missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'Not Started' }, t.title)"), 'Move to Not Started missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'In Progress' }, t.title)"), 'Move to In Progress missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'Review' }, t.title)"), 'Move to Review missing in Kanban');
   assert(plannerContent.includes("updateTask(t.id, { status: 'Completed'"), 'Move to Completed missing in Kanban');
 
   const initialActivitiesContent = fs.readFileSync(path.join(__dirname, 'src/data/initialActivities.ts'), 'utf8');

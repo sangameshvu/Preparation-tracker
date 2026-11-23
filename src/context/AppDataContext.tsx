@@ -87,8 +87,8 @@ interface AppDataContextType {
   updateWeeklyPlan: (id: string, updates: Partial<WeeklyPlanItem>) => void;
   tasks: StudyTask[];
   addTask: (task: Omit<StudyTask, 'id' | 'createdAt'>) => void;
-  updateTask: (id: string, updates: Partial<StudyTask>) => void;
-  deleteTask: (id: string) => void;
+  updateTask: (id: string, updates: Partial<StudyTask>, matchTitle?: string) => void;
+  deleteTask: (id: string, matchTitle?: string) => void;
   topics: TopicItem[];
   updateTopic: (id: string, updates: Partial<TopicItem>) => void;
   addTopic: (topic: Omit<TopicItem, 'id'>) => void;
@@ -177,15 +177,15 @@ export const DEFAULT_DAILY_GOALS_LIST: Array<{
 ];
 
 export function ensureUniqueTaskIds(items: StudyTask[]): StudyTask[] {
+  if (!Array.isArray(items)) return [];
   const seen = new Set<string>();
   return items.map((task, idx) => {
-    if (!task.id || seen.has(task.id)) {
-      const uniqueId = `task-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 9)}`;
-      seen.add(uniqueId);
-      return { ...task, id: uniqueId };
-    }
-    seen.add(task.id);
-    return task;
+    const isInvalidOrDuplicate = !task.id || typeof task.id !== 'string' || seen.has(task.id);
+    const uniqueId = isInvalidOrDuplicate
+      ? `task-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 9)}`
+      : task.id;
+    seen.add(uniqueId);
+    return { ...task, id: uniqueId };
   });
 }
 
@@ -449,22 +449,41 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return dailyGoals.filter((g) => g.date === todayDateStr);
   }, [dailyGoals, todayDateStr]);
 
-  // Migrate and repair any duplicate task IDs in storage immediately
+  // Migrate and repair any duplicate task IDs in storage and all user vaults immediately
   useEffect(() => {
-    setTasks((prev) => {
-      const seen = new Set<string>();
-      let hasDuplicates = false;
-      for (const t of prev) {
-        if (!t.id || seen.has(t.id)) {
-          hasDuplicates = true;
-          break;
+    try {
+      // 1. Sanitize 'cat2027_tasks'
+      const rawTasksStr = localStorage.getItem(STORAGE_PREFIX + 'tasks');
+      if (rawTasksStr) {
+        const parsed = JSON.parse(rawTasksStr);
+        if (Array.isArray(parsed)) {
+          const cleaned = ensureUniqueTaskIds(parsed);
+          localStorage.setItem(STORAGE_PREFIX + 'tasks', JSON.stringify(cleaned));
+          setTasks(cleaned);
         }
-        seen.add(t.id);
       }
-      if (!hasDuplicates) return prev;
-      return ensureUniqueTaskIds(prev);
-    });
-  }, []);
+
+      // 2. Sanitize all user vaults in localStorage (including Sangamesh's vault)
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('cat2027_vault_')) {
+          const rawVault = localStorage.getItem(key);
+          if (rawVault) {
+            const vaultData = JSON.parse(rawVault);
+            if (vaultData.tasks && Array.isArray(vaultData.tasks)) {
+              vaultData.tasks = ensureUniqueTaskIds(vaultData.tasks);
+              localStorage.setItem(key, JSON.stringify(vaultData));
+              if (key === `cat2027_vault_${profile.id}`) {
+                setTasks(vaultData.tasks);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error repairing task IDs in storage and vaults:', e);
+    }
+  }, [profile.id]);
 
   // Ensure default daily goals ('VARC: AONSA' and 'VARC: 5 root words') exist for today every day
   useEffect(() => {
@@ -760,7 +779,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         try {
           const data = JSON.parse(savedVault);
           if (data.weeklyPlans) setWeeklyPlans(data.weeklyPlans);
-          if (data.tasks) setTasks(data.tasks);
+          if (data.tasks) {
+            const cleanTasks = ensureUniqueTaskIds(data.tasks);
+            setTasks(cleanTasks);
+            data.tasks = cleanTasks;
+            localStorage.setItem(vaultKey, JSON.stringify(data));
+            localStorage.setItem(STORAGE_PREFIX + 'tasks', JSON.stringify(cleanTasks));
+          }
           if (data.topicProgress) setTopicProgress(data.topicProgress);
           if (data.mockTests) setMockTests(data.mockTests);
           if (data.mistakes) setMistakes(data.mistakes);
@@ -936,7 +961,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       const data = JSON.parse(jsonStr);
       if (data.profile) setProfile(data.profile);
       if (data.weeklyPlans) setWeeklyPlans(data.weeklyPlans);
-      if (data.tasks) setTasks(data.tasks);
+      if (data.tasks) {
+        const clean = ensureUniqueTaskIds(data.tasks);
+        setTasks(clean);
+      }
       if (data.topicProgress) setTopicProgress(data.topicProgress);
       if (data.mockTests) setMockTests(data.mockTests);
       if (data.mistakes) setMistakes(data.mistakes);
@@ -981,19 +1009,89 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setTasks((prev) => [newTask, ...prev]);
   };
 
-  const updateTask = (id: string, updates: Partial<StudyTask>) => {
+  const updateTask = (id: string, updates: Partial<StudyTask>, matchTitle?: string) => {
     setTasks((prev) => {
-      const targetIndex = prev.findIndex((t) => t.id === id);
+      // 1. Locate strictly the single target index
+      let targetIndex = -1;
+      if (matchTitle) {
+        targetIndex = prev.findIndex((t) => t.id === id && t.title === matchTitle);
+        if (targetIndex === -1) {
+          targetIndex = prev.findIndex((t) => t.title === matchTitle);
+        }
+      }
+      if (targetIndex === -1) {
+        targetIndex = prev.findIndex((t) => t.id === id);
+      }
       if (targetIndex === -1) return prev;
-      return prev.map((t, idx) => (idx === targetIndex ? { ...t, ...updates } : t));
+
+      // 2. Build the updated task with a guaranteed distinct ID
+      const target = prev[targetIndex];
+      const hasIdConflict = prev.some((other, oIdx) => oIdx !== targetIndex && other.id === target.id);
+      const guaranteedId = (!target.id || hasIdConflict)
+        ? `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        : target.id;
+
+      const updatedTask: StudyTask = {
+        ...target,
+        ...updates,
+        id: guaranteedId
+      };
+
+      // 3. Return a new array with ONLY targetIndex modified
+      const nextTasks = prev.map((t, idx) => (idx === targetIndex ? updatedTask : t));
+
+      // Persist to storage immediately
+      try {
+        localStorage.setItem(STORAGE_PREFIX + 'tasks', JSON.stringify(nextTasks));
+        if (profile.id && profile.id !== 'default') {
+          const vaultKey = `cat2027_vault_${profile.id}`;
+          const raw = localStorage.getItem(vaultKey);
+          if (raw) {
+            const vData = JSON.parse(raw);
+            vData.tasks = nextTasks;
+            localStorage.setItem(vaultKey, JSON.stringify(vData));
+          }
+        }
+      } catch (err) {
+        console.error('Error saving updated task to storage', err);
+      }
+
+      return nextTasks;
     });
   };
 
-  const deleteTask = (id: string) => {
+  const deleteTask = (id: string, matchTitle?: string) => {
     setTasks((prev) => {
-      const targetIndex = prev.findIndex((t) => t.id === id);
+      let targetIndex = -1;
+      if (matchTitle) {
+        targetIndex = prev.findIndex((t) => t.id === id && t.title === matchTitle);
+        if (targetIndex === -1) {
+          targetIndex = prev.findIndex((t) => t.title === matchTitle);
+        }
+      }
+      if (targetIndex === -1) {
+        targetIndex = prev.findIndex((t) => t.id === id);
+      }
       if (targetIndex === -1) return prev;
-      return prev.filter((_, idx) => idx !== targetIndex);
+
+      const nextTasks = prev.filter((_, idx) => idx !== targetIndex);
+
+      try {
+        localStorage.setItem(STORAGE_PREFIX + 'tasks', JSON.stringify(nextTasks));
+        if (profile.id && profile.id !== 'default') {
+          const vaultKey = `cat2027_vault_${profile.id}`;
+          const raw = localStorage.getItem(vaultKey);
+          if (raw) {
+            const vData = JSON.parse(raw);
+            vData.tasks = nextTasks;
+            localStorage.setItem(vaultKey, JSON.stringify(vData));
+          }
+        }
+      } catch (err) {
+        console.error('Error saving deleted tasks to storage', err);
+      }
+
+      return nextTasks;
     });
   };
 

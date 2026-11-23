@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { format, parseISO, addDays, isSameDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
@@ -239,7 +239,7 @@ export const WeeklyPlannerPage: React.FC = () => {
       status: editTaskStatus,
       isTodayFocus: editTaskIsTodayFocus,
       completedAt: editTaskStatus === 'Completed' ? new Date().toISOString() : undefined
-    });
+    }, editingTask.title);
     setEditingTask(null);
   };
 
@@ -250,7 +250,7 @@ export const WeeklyPlannerPage: React.FC = () => {
     }
     if (!editingTask) return;
     const taskTitle = editingTask.title;
-    deleteTask(editingTask.id);
+    deleteTask(editingTask.id, editingTask.title);
     toast.success(`Task "${taskTitle}" deleted`);
     setEditingTask(null);
   };
@@ -328,23 +328,26 @@ export const WeeklyPlannerPage: React.FC = () => {
     setIsAddTopicOpen(false);
   };
 
-  // Auto-seed assigned syllabus topics into 'Not Started' for the active week if not already present
+  // Controlled one-time seeding of assigned syllabus topics into 'Not Started' for the active week if week has 0 tasks
+  const seededWeeksRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!selectedPlan || assignedTopics.length === 0) return;
+    if (seededWeeksRef.current.has(selectedPlan.id)) return;
+    seededWeeksRef.current.add(selectedPlan.id);
 
-    // Filter topics that don't have a matching task in this week yet
-    const missingTopics = assignedTopics.filter((topic) => {
+    // Only seed if this week has ZERO tasks matching the assigned topics
+    const existingTitles = weekTasks.map((t) => t.title.toLowerCase());
+    const missing = assignedTopics.filter((topic) => {
       const topicLower = topic.topicName.trim().toLowerCase();
-      return !tasks.some(
-        (t) =>
-          t.weeklyPlanId === selectedPlan.id &&
-          (t.title.toLowerCase().includes(topicLower) ||
-           t.title.toLowerCase() === `${topic.section}: study ${topic.topicName}`.toLowerCase())
+      return !existingTitles.some(
+        (title) =>
+          title.includes(topicLower) ||
+          title === `${topic.section}: study ${topic.topicName}`.toLowerCase()
       );
     });
 
-    if (missingTopics.length > 0) {
-      missingTopics.forEach((topic) => {
+    if (missing.length > 0 && weekTasks.length === 0) {
+      missing.forEach((topic) => {
         addTask({
           title: `${topic.section}: Study ${topic.topicName}`,
           description: topic.subtopics || `Focus on ${topic.area}`,
@@ -358,27 +361,7 @@ export const WeeklyPlannerPage: React.FC = () => {
         });
       });
     }
-  }, [selectedPlan?.id, assignedTopics.length]);
-
-  // Clean up duplicate tasks for the selected week if any exist
-  useEffect(() => {
-    if (!selectedPlan) return;
-    const seen = new Set<string>();
-    const dupes: string[] = [];
-    tasks.forEach((t) => {
-      if (t.weeklyPlanId === selectedPlan.id) {
-        const key = `${t.title.trim().toLowerCase()}__${t.status}`;
-        if (seen.has(key)) {
-          dupes.push(t.id);
-        } else {
-          seen.add(key);
-        }
-      }
-    });
-    if (dupes.length > 0) {
-      dupes.forEach((id) => deleteTask(id));
-    }
-  }, [selectedPlan?.id, tasks.length]);
+  }, [selectedPlan?.id]);
 
   // Quick 1-click helpers from assigned topics to tasks / daily goals
   const handleAddTopicAsTask = (topic: TopicItem) => {
@@ -1301,7 +1284,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                 ) : (
                   weekTasks.map((task) => (
                     <div
-                      key={task.id}
+                      key={`${task.id || 'task'}_${task.title}`}
                       className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-300 transition-colors"
                     >
                       <div className="flex items-center gap-3">
@@ -1311,7 +1294,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                             updateTask(task.id, {
                               status: checked ? 'Completed' : 'In Progress',
                               completedAt: checked ? new Date().toISOString() : undefined,
-                            })
+                            }, task.title)
                           }
                           className="h-4 w-4 rounded"
                         />
@@ -1347,7 +1330,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                         </Button>
                         <Select
                           value={task.status}
-                          onValueChange={(val: TaskStatus) => updateTask(task.id, { status: val })}
+                          onValueChange={(val: TaskStatus) => updateTask(task.id, { status: val }, task.title)}
                         >
                           <SelectTrigger className="h-7 text-[11px] w-[110px] rounded-md">
                             <SelectValue />
@@ -1601,7 +1584,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                     ) : (
                       colTasks.map((t) => (
                         <div
-                          key={t.id}
+                          key={`${t.id || 'task'}_${t.title}`}
                           className="p-2.5 rounded-xl glass-subtier text-xs space-y-2 shadow-2xs border border-white/40 dark:border-white/10 hover:border-blue-400 transition-all group"
                         >
                           <div className="flex items-start justify-between gap-1">
@@ -1630,7 +1613,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                 className="h-5 w-5 text-muted-foreground hover:text-red-600 cursor-pointer"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteTask(t.id);
+                                  deleteTask(t.id, t.title);
                                   toast.success(`Deleted "${t.title}"`);
                                 }}
                                 title="Delete task"
@@ -1655,7 +1638,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  updateTask(t.id, { status: 'In Progress' });
+                                  updateTask(t.id, { status: 'In Progress' }, t.title);
                                   toast.success(`"${t.title}" moved to In Progress`);
                                 }}
                                 className="h-5 text-[10px] px-1.5 font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 rounded cursor-pointer gap-0.5"
@@ -1674,7 +1657,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    updateTask(t.id, { status: 'Not Started' });
+                                    updateTask(t.id, { status: 'Not Started' }, t.title);
                                     toast.info(`"${t.title}" moved back to Not Started`);
                                   }}
                                   className="h-5 text-[10px] px-1.5 text-muted-foreground hover:bg-slate-500/10 rounded cursor-pointer"
@@ -1689,7 +1672,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    updateTask(t.id, { status: 'Review' });
+                                    updateTask(t.id, { status: 'Review' }, t.title);
                                     toast.success(`"${t.title}" moved to Review`);
                                   }}
                                   className="h-5 text-[10px] px-1.5 font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 rounded cursor-pointer gap-0.5"
@@ -1709,7 +1692,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    updateTask(t.id, { status: 'In Progress' });
+                                    updateTask(t.id, { status: 'In Progress' }, t.title);
                                     toast.info(`"${t.title}" returned to In Progress`);
                                   }}
                                   className="h-5 text-[10px] px-1.5 text-muted-foreground hover:bg-slate-500/10 rounded cursor-pointer"
@@ -1724,7 +1707,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    updateTask(t.id, { status: 'Completed', completedAt: new Date().toISOString() });
+                                    updateTask(t.id, { status: 'Completed', completedAt: new Date().toISOString() }, t.title);
                                     toast.success(`"${t.title}" completed! 🎉`);
                                   }}
                                   className="h-5 text-[10px] px-1.5 font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded cursor-pointer gap-0.5"
@@ -1743,7 +1726,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  updateTask(t.id, { status: 'In Progress', completedAt: undefined });
+                                  updateTask(t.id, { status: 'In Progress', completedAt: undefined }, t.title);
                                   toast.info(`"${t.title}" reopened`);
                                 }}
                                 className="h-5 text-[10px] px-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded cursor-pointer gap-0.5"
