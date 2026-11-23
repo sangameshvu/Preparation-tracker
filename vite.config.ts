@@ -21,6 +21,7 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           charts: ['recharts'],
           icons: ['lucide-react'],
+          dates: ['date-fns'],
         },
       },
     },

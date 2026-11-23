@@ -32,7 +32,7 @@ import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake
 import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from '../data/initialActivities';
 import { addDays, subDays, differenceInCalendarDays, parseISO, format, startOfWeek, differenceInCalendarWeeks } from 'date-fns';
 import { calculateStreak } from '../utils/streakCalculator';
-import { loadUserVocabProgress, saveUserVocabProgress } from '../services/vocabularyService';
+import { loadUserVocabProgress, saveUserVocabProgress } from '../services/vocabStorage';
 import { fetchCloudVault, pushCloudVault, queueCloudSync } from '../services/cloudSyncService';
 import { toast } from 'sonner';
 
@@ -583,6 +583,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       },
       profile,
       weeklyPlans,
+      topics,
       tasks,
       topicProgress,
       mockTests,
@@ -606,6 +607,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [
     profile,
     weeklyPlans,
+    topics,
     tasks,
     topicProgress,
     mockTests,
@@ -626,6 +628,10 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       if (data.profile) setProfile(data.profile);
       if (data.weeklyPlans && Array.isArray(data.weeklyPlans)) setWeeklyPlans(data.weeklyPlans);
+      if (data.topics && Array.isArray(data.topics)) {
+        setTopics(data.topics);
+        localStorage.setItem(STORAGE_PREFIX + 'topics', JSON.stringify(data.topics));
+      }
       if (data.tasks && Array.isArray(data.tasks)) {
         const clean = ensureUniqueTaskIds(data.tasks);
         setTasks(clean);
@@ -751,6 +757,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [
     tasks,
     weeklyPlans,
+    topics,
     topicProgress,
     mockTests,
     mistakes,
@@ -1001,6 +1008,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         try {
           const data = JSON.parse(savedVault);
           if (data.weeklyPlans) setWeeklyPlans(data.weeklyPlans);
+          if (data.topics && Array.isArray(data.topics)) setTopics(data.topics);
           if (data.tasks) {
             const cleanTasks = ensureUniqueTaskIds(data.tasks);
             setTasks(cleanTasks);
@@ -1263,9 +1271,25 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const updateWeeklyPlan = (id: string, updates: Partial<WeeklyPlanItem>) => {
-    setWeeklyPlans((prev) =>
-      prev.map((plan) => (plan.id === id ? { ...plan, ...updates } : plan))
-    );
+    setWeeklyPlans((prev) => {
+      const next = prev.map((plan) => (plan.id === id ? { ...plan, ...updates } : plan));
+      localStorage.setItem(STORAGE_PREFIX + 'weeklyPlans', JSON.stringify(next));
+      if (profile.id && profile.id !== 'user-guest') {
+        const vaultKey = `cat2027_vault_${profile.id}`;
+        const raw = localStorage.getItem(vaultKey);
+        if (raw) {
+          try {
+            const vaultData = JSON.parse(raw);
+            vaultData.weeklyPlans = next;
+            vaultData.updatedAt = new Date().toISOString();
+            localStorage.setItem(vaultKey, JSON.stringify(vaultData));
+          } catch (e) {
+            console.error('Error updating vault weeklyPlans:', e);
+          }
+        }
+      }
+      return next;
+    });
   };
 
   const addTask = (task: Omit<StudyTask, 'id' | 'createdAt'>) => {
@@ -1364,9 +1388,25 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const updateTopic = (id: string, updates: Partial<TopicItem>) => {
-    setTopics((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
+    setTopics((prev) => {
+      const next = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
+      localStorage.setItem(STORAGE_PREFIX + 'topics', JSON.stringify(next));
+      if (profile.id && profile.id !== 'user-guest') {
+        const vaultKey = `cat2027_vault_${profile.id}`;
+        const raw = localStorage.getItem(vaultKey);
+        if (raw) {
+          try {
+            const vaultData = JSON.parse(raw);
+            vaultData.topics = next;
+            vaultData.updatedAt = new Date().toISOString();
+            localStorage.setItem(vaultKey, JSON.stringify(vaultData));
+          } catch (e) {
+            console.error('Error updating vault topics:', e);
+          }
+        }
+      }
+      return next;
+    });
   };
 
   const addTopic = (topic: Omit<TopicItem, 'id'>) => {
