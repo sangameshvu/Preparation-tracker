@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, parseISO, addDays, isSameDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import { getDailyScheduleFocus, isTopicInWeek } from '../utils/studySchedule';
@@ -26,7 +26,8 @@ import {
   BookOpen,
   Layers,
   ArrowUpRight,
-  CheckSquare
+  CheckSquare,
+  RotateCcw
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -44,8 +45,10 @@ import {
   SectionType,
   StudyTask,
   WeeklyPlanItem,
-  TopicItem
+  TopicItem,
+  DayScheduleAllocation
 } from '../types';
+import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 
 export const WeeklyPlannerPage: React.FC = () => {
@@ -132,6 +135,21 @@ export const WeeklyPlannerPage: React.FC = () => {
   const [newTopicArea, setNewTopicArea] = useState('Arithmetic');
   const [newTopicSubtopics, setNewTopicSubtopics] = useState('');
   const [newTopicPlanWeek, setNewTopicPlanWeek] = useState(String(selectedWeekNum));
+
+  // 7-Day Grid Editing State
+  const [editingDayIdx, setEditingDayIdx] = useState<number | null>(null);
+  const [editDayTitle, setEditDayTitle] = useState('');
+  const [editDayBadgeLabel, setEditDayBadgeLabel] = useState('');
+  const [editDayBadgeClass, setEditDayBadgeClass] = useState('');
+  const [editDayDescription, setEditDayDescription] = useState('');
+  const [editDayTargetHours, setEditDayTargetHours] = useState('');
+  const [editDayNotes, setEditDayNotes] = useState('');
+
+  // 7-Day Grid Add Task State
+  const [addDayTaskIdx, setAddDayTaskIdx] = useState<number | null>(null);
+  const [addDayTaskTitle, setAddDayTaskTitle] = useState('');
+  const [addDayTaskSection, setAddDayTaskSection] = useState<SectionType>('Quant');
+  const [addDayTaskMinutes, setAddDayTaskMinutes] = useState(45);
 
   const selectedPlan = weeklyPlans.find((w) => w.weekNumber === selectedWeekNum) || weeklyPlans[0];
   const weekTasks = tasks.filter(
@@ -365,13 +383,27 @@ export const WeeklyPlannerPage: React.FC = () => {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const isOddWeek = selectedPlan.weekNumber % 2 !== 0;
 
-  const getDailyAllocation = (idx: number) => {
+  const PRESET_DAY_BADGES = [
+    { label: 'Quant', class: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20' },
+    { label: 'DI Sets', class: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20' },
+    { label: 'VARC Drills', class: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20' },
+    { label: 'Revision', class: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20' },
+    { label: 'Mock & Review', class: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20' },
+    { label: 'Buffer / Rest', class: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20' }
+  ];
+
+  const getDailyAllocation = (idx: number): DayScheduleAllocation => {
+    // Check if customized by user for this specific week
+    if (selectedPlan.dailyGrid && selectedPlan.dailyGrid[idx]) {
+      return selectedPlan.dailyGrid[idx]!;
+    }
     if (idx === 5) {
       return {
         badgeLabel: 'Revision',
         badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
         title: 'Weekly Revision (Part 1)',
-        description: 'Revise all topics, notes & formulas covered this week.'
+        description: 'Revise all topics, notes & formulas covered this week.',
+        targetHours: '3.0'
       };
     }
     if (idx === 6) {
@@ -379,7 +411,8 @@ export const WeeklyPlannerPage: React.FC = () => {
         badgeLabel: 'Review',
         badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
         title: 'Weekly Revision (Part 2)',
-        description: 'Audit Mistake Log, clear errors & weekly recap.'
+        description: 'Audit Mistake Log, clear errors & weekly recap.',
+        targetHours: '3.0'
       };
     }
     const isDiDay = isOddWeek ? idx % 2 !== 0 : idx % 2 === 0;
@@ -388,16 +421,95 @@ export const WeeklyPlannerPage: React.FC = () => {
         badgeLabel: 'DI Sets',
         badgeClass: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20',
         title: 'VARC + DI',
-        description: 'Daily RC/editorial + 2 Data Interpretation caselets.'
+        description: 'Daily RC/editorial + 2 Data Interpretation caselets.',
+        targetHours: '2.5'
       };
     } else {
       return {
         badgeLabel: 'Quant',
         badgeClass: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
         title: 'VARC + QA',
-        description: 'Daily RC/VA drills + Quant concept theory & drills.'
+        description: 'Daily RC/VA drills + Quant concept theory & drills.',
+        targetHours: '2.5'
       };
     }
+  };
+
+  const handleOpenEditDay = (idx: number) => {
+    const currentAlloc = getDailyAllocation(idx);
+    setEditingDayIdx(idx);
+    setEditDayTitle(currentAlloc.title);
+    setEditDayBadgeLabel(currentAlloc.badgeLabel);
+    setEditDayBadgeClass(currentAlloc.badgeClass || 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20');
+    setEditDayDescription(currentAlloc.description);
+    setEditDayTargetHours(currentAlloc.targetHours || (idx >= 5 ? '3.0' : '2.5'));
+    setEditDayNotes(currentAlloc.notes || '');
+  };
+
+  const handleSaveDaySchedule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingDayIdx === null) return;
+    const currentGrid = selectedPlan.dailyGrid || {};
+    const updatedGrid = {
+      ...currentGrid,
+      [editingDayIdx]: {
+        title: editDayTitle.trim() || 'Custom Focus',
+        description: editDayDescription.trim(),
+        badgeLabel: editDayBadgeLabel.trim() || 'Focus',
+        badgeClass: editDayBadgeClass || 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
+        targetHours: editDayTargetHours.trim() || '2.5',
+        notes: editDayNotes.trim()
+      }
+    };
+    updateWeeklyPlan(selectedPlan.id, { dailyGrid: updatedGrid });
+    toast.success(`Updated ${daysOfWeek[editingDayIdx]} schedule for Week ${selectedPlan.weekNumber}!`);
+    setEditingDayIdx(null);
+  };
+
+  const handleResetDaySchedule = (idx: number) => {
+    if (!selectedPlan.dailyGrid || !selectedPlan.dailyGrid[idx]) return;
+    const updatedGrid = { ...selectedPlan.dailyGrid };
+    delete updatedGrid[idx];
+    updateWeeklyPlan(selectedPlan.id, { dailyGrid: updatedGrid });
+    toast.info(`Reset ${daysOfWeek[idx]} back to standard schedule.`);
+    setEditingDayIdx(null);
+  };
+
+  const handleOpenAddDayTask = (idx: number) => {
+    const currentAlloc = getDailyAllocation(idx);
+    setAddDayTaskIdx(idx);
+    setAddDayTaskTitle('');
+    if (currentAlloc.badgeLabel.toLowerCase().includes('di')) {
+      setAddDayTaskSection('DILR');
+    } else if (currentAlloc.badgeLabel.toLowerCase().includes('varc') || currentAlloc.badgeLabel.toLowerCase().includes('rc')) {
+      setAddDayTaskSection('VARC');
+    } else if (currentAlloc.badgeLabel.toLowerCase().includes('quant') || currentAlloc.badgeLabel.toLowerCase().includes('qa')) {
+      setAddDayTaskSection('Quant');
+    } else {
+      setAddDayTaskSection('General');
+    }
+    setAddDayTaskMinutes(45);
+  };
+
+  const handleSaveDayTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (addDayTaskIdx === null || !addDayTaskTitle.trim()) return;
+    const dayDate = addDays(parseISO(selectedPlan.startDate || '2026-11-16'), addDayTaskIdx);
+    addTask({
+      title: addDayTaskTitle.trim(),
+      section: addDayTaskSection,
+      estimatedMinutes: addDayTaskMinutes,
+      actualMinutes: 0,
+      priority: 'Medium',
+      status: 'Not Started',
+      weeklyPlanId: selectedPlan.id,
+      dayIndex: addDayTaskIdx,
+      deadline: format(dayDate, 'yyyy-MM-dd'),
+      isTodayFocus: isSameDay(dayDate, new Date())
+    });
+    toast.success(`Task added to ${daysOfWeek[addDayTaskIdx]}!`);
+    setAddDayTaskIdx(null);
+    setAddDayTaskTitle('');
   };
 
   return (
@@ -1154,11 +1266,11 @@ export const WeeklyPlannerPage: React.FC = () => {
         </div>
       )}
 
-      {/* VIEW 2: 7-DAY CALENDAR GRID */}
+      {/* VIEW 2: 7-DAY CALENDAR GRID (MONDAY TO SUNDAY WITH EDIT ACCESS) */}
       {viewMode === 'calendar' && (
         <div className="space-y-4">
           <div className="p-3.5 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="font-bold text-foreground">
                 Week {selectedPlan.weekNumber} Alternating Schedule:
               </span>
@@ -1167,8 +1279,17 @@ export const WeeklyPlannerPage: React.FC = () => {
                   ? 'Cycle A (Mon/Wed/Fri QA • Tue/Thu DI)'
                   : 'Cycle B (Mon/Wed/Fri DI • Tue/Thu QA)'}
               </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleOpenEditDay(0)}
+                className="h-7 px-2.5 text-xs font-semibold gap-1.5 rounded-lg border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer shadow-xs"
+              >
+                <Edit2 className="h-3 w-3" />
+                <span>Edit 7-Day Grid</span>
+              </Button>
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono flex-wrap">
               <span className="font-bold text-amber-600 dark:text-amber-400">Daily VARC</span>
               <span>•</span>
               <span className="font-bold text-purple-600 dark:text-purple-400">Sat & Sun Revision</span>
@@ -1180,40 +1301,127 @@ export const WeeklyPlannerPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
             {daysOfWeek.map((day, idx) => {
               const allocation = getDailyAllocation(idx);
-              const dayTasks = weekTasks.filter((_, i) => i % 7 === idx);
+              const isCustomized = Boolean(selectedPlan.dailyGrid && selectedPlan.dailyGrid[idx]);
+              const dayDate = addDays(parseISO(selectedPlan.startDate || '2026-11-16'), idx);
+              const dayDateStr = format(dayDate, 'MMM d');
+              const isToday = isSameDay(dayDate, new Date());
+
+              const dayTasks = weekTasks.filter((t, i) => {
+                if (t.dayIndex !== undefined && t.dayIndex !== null) {
+                  return t.dayIndex === idx;
+                }
+                if (t.deadline && selectedPlan.startDate) {
+                  const targetDateStr = format(dayDate, 'yyyy-MM-dd');
+                  if (t.deadline === targetDateStr) return true;
+                }
+                return i % 7 === idx;
+              });
 
               return (
-                <div key={day} className="flex flex-col rounded-2xl glass-card p-3 shadow-xs min-h-[220px]">
+                <div
+                  key={day}
+                  className={cn(
+                    'flex flex-col rounded-2xl glass-card p-3 shadow-xs min-h-[250px] transition-all relative group',
+                    isToday ? 'ring-2 ring-blue-500/70 bg-blue-50/20 dark:bg-blue-950/20' : ''
+                  )}
+                >
+                  {/* Day Header */}
                   <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50">
-                    <span className="text-xs font-bold text-foreground">{day.slice(0, 3)}</span>
-                    <span className="text-[11px] font-mono text-muted-foreground">Day {idx + 1}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-foreground">{day.slice(0, 3)}</span>
+                      <span className="text-[11px] font-mono text-muted-foreground">{dayDateStr}</span>
+                      {isToday && (
+                        <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-blue-600 text-white animate-pulse">
+                          Today
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-blue-600 rounded-md cursor-pointer"
+                        onClick={() => handleOpenEditDay(idx)}
+                        title={`Edit ${day} schedule`}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-emerald-600 rounded-md cursor-pointer"
+                        onClick={() => handleOpenAddDayTask(idx)}
+                        title={`Add task for ${day}`}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-1 mb-1">
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                        {idx < 5 ? 'Daily VARC' : 'Consolidation'}
-                      </span>
-                      <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', allocation.badgeClass)}>
-                        {allocation.badgeLabel}
-                      </span>
-                    </div>
-
-                    <div className="p-2 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/40 text-[11px] leading-tight space-y-1">
-                      <p className="font-bold text-foreground">{allocation.title}</p>
-                      <p className="text-[10px] text-muted-foreground leading-normal">{allocation.description}</p>
-                    </div>
-
-                    {dayTasks.map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => handleOpenEditTask(t)}
-                        className="p-1.5 rounded-lg bg-muted/60 hover:bg-muted text-[10px] text-foreground font-medium truncate cursor-pointer transition-colors"
-                        title={`${t.title} (Click to edit)`}
-                      >
-                        ✓ {t.title}
+                  <div className="space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-1 mb-1">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                          {idx < 5 ? 'Daily VARC' : 'Consolidation'}
+                        </span>
+                        <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md border', allocation.badgeClass)}>
+                          {allocation.badgeLabel}
+                        </span>
+                        {isCustomized && (
+                          <span className="text-[9px] font-bold px-1 py-0.2 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30" title="Customized schedule for this day">
+                            Custom
+                          </span>
+                        )}
                       </div>
-                    ))}
+
+                      {/* Clickable Allocation Tile */}
+                      <div
+                        onClick={() => handleOpenEditDay(idx)}
+                        className="p-2 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/40 hover:border-blue-400 dark:hover:border-blue-500 text-[11px] leading-tight space-y-1 cursor-pointer transition-all group/card relative"
+                        title="Click to edit day schedule"
+                      >
+                        <div className="flex items-start justify-between gap-1">
+                          <p className="font-bold text-foreground group-hover/card:text-blue-600 transition-colors">
+                            {allocation.title}
+                          </p>
+                          <Edit2 className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/card:opacity-100 shrink-0 mt-0.5" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-normal line-clamp-3">
+                          {allocation.description}
+                        </p>
+                        {allocation.targetHours && (
+                          <p className="text-[9px] font-mono text-blue-600 dark:text-blue-400 pt-0.5">
+                            Target: {allocation.targetHours} hrs
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Day Tasks */}
+                      <div className="space-y-1 pt-1">
+                        {dayTasks.map((t) => (
+                          <div
+                            key={t.id}
+                            onClick={() => handleOpenEditTask(t)}
+                            className="p-1.5 rounded-lg bg-muted/60 hover:bg-muted text-[10px] text-foreground font-medium truncate cursor-pointer transition-colors flex items-center justify-between gap-1"
+                            title={`${t.title} (Click to edit)`}
+                          >
+                            <span className="truncate">✓ {t.title}</span>
+                            <span className="text-[9px] text-muted-foreground font-mono shrink-0">{t.estimatedMinutes}m</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Quick + Add Day Task Button at bottom of card */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddDayTask(idx)}
+                      className="w-full mt-2 py-1 px-2 rounded-lg text-[10px] font-semibold text-muted-foreground hover:text-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 border border-dashed border-border/70 flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>Add Day Task</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -1836,6 +2044,238 @@ export const WeeklyPlannerPage: React.FC = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL 6: EDIT 7-DAY GRID DAY SCHEDULE */}
+      <Dialog open={editingDayIdx !== null} onOpenChange={(open) => !open && setEditingDayIdx(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
+              <CalendarIcon className="h-4 w-4 text-blue-600" />
+              <span>
+                Edit {editingDayIdx !== null ? daysOfWeek[editingDayIdx] : ''} Schedule
+              </span>
+              <span className="text-xs font-mono font-normal text-muted-foreground">
+                (Week {selectedPlan.weekNumber})
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {editingDayIdx !== null && (
+            <form onSubmit={handleSaveDaySchedule} className="space-y-4 pt-2">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/50 text-xs">
+                <span className="font-semibold text-foreground">
+                  {daysOfWeek[editingDayIdx]}, {format(addDays(parseISO(selectedPlan.startDate || '2026-11-16'), editingDayIdx), 'MMM d, yyyy')}
+                </span>
+                <span className="text-[11px] font-mono text-muted-foreground">
+                  Day {editingDayIdx + 1} of 7
+                </span>
+              </div>
+
+              {/* Quick Preset Badges */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Focus Category Preset</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {PRESET_DAY_BADGES.map((b) => (
+                    <button
+                      key={b.label}
+                      type="button"
+                      onClick={() => {
+                        setEditDayBadgeLabel(b.label);
+                        setEditDayBadgeClass(b.class);
+                      }}
+                      className={cn(
+                        'text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer',
+                        b.class,
+                        editDayBadgeLabel === b.label ? 'ring-2 ring-blue-500 font-bold scale-105' : 'opacity-80 hover:opacity-100'
+                      )}
+                    >
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Title & Badge Label */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Focus Title *</label>
+                  <Input
+                    required
+                    value={editDayTitle}
+                    onChange={(e) => setEditDayTitle(e.target.value)}
+                    placeholder="e.g. VARC + QA"
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Badge Label *</label>
+                  <Input
+                    required
+                    value={editDayBadgeLabel}
+                    onChange={(e) => setEditDayBadgeLabel(e.target.value)}
+                    placeholder="e.g. Quant"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground">Planned Activities / Description</label>
+                <textarea
+                  rows={3}
+                  value={editDayDescription}
+                  onChange={(e) => setEditDayDescription(e.target.value)}
+                  placeholder="Detail the topics, practice drills, and reading goals for this day..."
+                  className="w-full text-xs rounded-xl border border-input bg-background p-2.5 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+
+              {/* Target Hours & Notes */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Target Hours</label>
+                  <Input
+                    value={editDayTargetHours}
+                    onChange={(e) => setEditDayTargetHours(e.target.value)}
+                    placeholder="e.g. 2.5 hrs"
+                    className="text-xs font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Optional Notes</label>
+                  <Input
+                    value={editDayNotes}
+                    onChange={(e) => setEditDayNotes(e.target.value)}
+                    placeholder="e.g. Evening study block"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                {selectedPlan.dailyGrid && selectedPlan.dailyGrid[editingDayIdx] ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleResetDaySchedule(editingDayIdx)}
+                    className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1.5 cursor-pointer"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Reset to Standard</span>
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingDayIdx(null)}
+                    className="text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs cursor-pointer"
+                  >
+                    Save Day Schedule
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL 7: ADD TASK FOR SPECIFIC DAY IN 7-DAY GRID */}
+      <Dialog open={addDayTaskIdx !== null} onOpenChange={(open) => !open && setAddDayTaskIdx(null)}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
+              <Plus className="h-4 w-4 text-emerald-600" />
+              <span>
+                Add Task for {addDayTaskIdx !== null ? daysOfWeek[addDayTaskIdx] : ''}
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+
+          {addDayTaskIdx !== null && (
+            <form onSubmit={handleSaveDayTask} className="space-y-4 pt-2">
+              <div className="p-2.5 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/50 text-xs">
+                <span className="font-semibold text-foreground">
+                  Week {selectedPlan.weekNumber} • {daysOfWeek[addDayTaskIdx]}, {format(addDays(parseISO(selectedPlan.startDate || '2026-11-16'), addDayTaskIdx), 'MMM d')}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground">Task Title *</label>
+                <Input
+                  required
+                  autoFocus
+                  value={addDayTaskTitle}
+                  onChange={(e) => setAddDayTaskTitle(e.target.value)}
+                  placeholder="e.g. Solve 10 Percentages Drill Qs"
+                  className="text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Section</label>
+                  <Select value={addDayTaskSection} onValueChange={(v) => setAddDayTaskSection(v as SectionType)}>
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Quant">Quant (QA)</SelectItem>
+                      <SelectItem value="DILR">DILR</SelectItem>
+                      <SelectItem value="VARC">VARC</SelectItem>
+                      <SelectItem value="General">General / Mock</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Est. Minutes</label>
+                  <Input
+                    type="number"
+                    min={5}
+                    max={360}
+                    step={5}
+                    value={addDayTaskMinutes}
+                    onChange={(e) => setAddDayTaskMinutes(parseInt(e.target.value, 10) || 30)}
+                    className="text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAddDayTaskIdx(null)}
+                  className="text-xs cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs cursor-pointer"
+                >
+                  Add Task
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

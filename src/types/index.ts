@@ -52,6 +52,15 @@ export interface PrepPhase {
   hoursMax: number;
 }
 
+export interface DayScheduleAllocation {
+  title: string;
+  description: string;
+  badgeLabel: string;
+  badgeClass?: string;
+  targetHours?: string;
+  notes?: string;
+}
+
 export interface WeeklyPlanItem {
   id: string;
   weekNumber: number;
@@ -69,6 +78,7 @@ export interface WeeklyPlanItem {
   myNotes?: string;
   actualHoursLogged?: number;
   isBufferWeek: boolean;
+  dailyGrid?: Record<number, DayScheduleAllocation>;
 }
 
 export interface StudyTask {
@@ -87,6 +97,7 @@ export interface StudyTask {
   notes?: string;
   completedAt?: string;
   createdAt: string;
+  dayIndex?: number; // 0 = Mon, 1 = Tue, ..., 6 = Sun
 }
 
 export interface TopicItem {

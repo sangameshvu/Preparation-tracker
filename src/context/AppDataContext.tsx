@@ -29,7 +29,7 @@ import { initialGuideSections } from '../data/guideSections';
 import { initialStudyNotes } from '../data/initialNotes';
 import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake';
 import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from '../data/initialActivities';
-import { addDays, subDays, differenceInCalendarDays, parseISO, format } from 'date-fns';
+import { addDays, subDays, differenceInCalendarDays, parseISO, format, startOfWeek, differenceInCalendarWeeks } from 'date-fns';
 import { calculateStreak } from '../utils/streakCalculator';
 import { toast } from 'sonner';
 
@@ -40,7 +40,7 @@ export const SANGAMESH_PROFILE: UserProfile = {
   displayName: 'Sangamesh V U',
   avatarUrl: '',
   catTargetYear: 2027,
-  prepStartDate: '2026-11-17',
+  prepStartDate: '2026-11-16',
   targetExamDate: '2027-11-28',
   preferredDailyHours: 3.0,
   preferredRoutine: 'working_professional_weekday',
@@ -58,7 +58,7 @@ export const GUEST_PROFILE: UserProfile = {
   password: '',
   avatarUrl: '',
   catTargetYear: 2027,
-  prepStartDate: '2026-11-17',
+  prepStartDate: '2026-11-16',
   targetExamDate: '2027-11-28',
   preferredDailyHours: 3.0,
   preferredRoutine: 'working_professional_weekday',
@@ -190,9 +190,21 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return GUEST_PROFILE;
   });
 
-  const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlanItem[]>(() =>
-    getInitialState('weeklyPlans', initialWeeklyPlans)
-  );
+  const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlanItem[]>(() => {
+    const saved = getInitialState('weeklyPlans', initialWeeklyPlans);
+    const baseDate = parseISO('2026-11-16');
+    const baseMonday = startOfWeek(baseDate, { weekStartsOn: 1 });
+    return saved.map((week) => {
+      const wStart = addDays(baseMonday, (week.weekNumber - 1) * 7);
+      const wEnd = addDays(wStart, 6);
+      return {
+        ...week,
+        startDate: format(wStart, 'yyyy-MM-dd'),
+        endDate: format(wEnd, 'yyyy-MM-dd'),
+        monthLabel: format(wStart, 'MMM yy')
+      };
+    });
+  });
 
   const [tasks, setTasks] = useState<StudyTask[]>(() =>
     getInitialState('tasks', [
@@ -484,10 +496,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     localStorage.setItem(STORAGE_PREFIX + 'dailyGoals', JSON.stringify(dailyGoals));
   }, [dailyGoals]);
 
-  // Recalculate 52-week dates when prepStartDate changes
+  // Recalculate 52-week dates when prepStartDate changes (always normalized to Monday -> Sunday)
   useEffect(() => {
     try {
-      const baseStart = parseISO(profile.prepStartDate);
+      const parsedStart = parseISO(profile.prepStartDate || '2026-11-16');
+      const baseStart = startOfWeek(parsedStart, { weekStartsOn: 1 });
       setWeeklyPlans((prev) =>
         prev.map((week) => {
           const wStart = addDays(baseStart, (week.weekNumber - 1) * 7);
@@ -738,7 +751,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       password: passwordInput,
       avatarUrl: '',
       catTargetYear: 2027,
-      prepStartDate: '2026-11-17',
+      prepStartDate: '2026-11-16',
       targetExamDate: '2027-11-28',
       preferredDailyHours: 3.0,
       preferredRoutine: 'working_professional_weekday',
@@ -1168,11 +1181,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const stats: DashboardStats = useMemo(() => {
     const today = new Date();
     const examDate = parseISO(profile.targetExamDate);
-    const startDate = parseISO(profile.prepStartDate);
+    const startDate = parseISO(profile.prepStartDate || '2026-11-16');
     const daysRemaining = Math.max(0, differenceInCalendarDays(examDate, today));
 
-    const daysFromStart = differenceInCalendarDays(today, startDate);
-    const rawWeek = Math.floor(daysFromStart / 7) + 1;
+    // The week strictly starts from Monday and goes till Sunday; next Monday starts next week.
+    const normalizedStartMonday = startOfWeek(startDate, { weekStartsOn: 1 });
+    const todayMonday = startOfWeek(today, { weekStartsOn: 1 });
+    const diffWeeks = differenceInCalendarWeeks(todayMonday, normalizedStartMonday, { weekStartsOn: 1 });
+    const rawWeek = diffWeeks + 1;
     const currentWeek = Math.min(52, Math.max(1, rawWeek));
 
     // Phase determination
