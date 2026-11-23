@@ -1653,6 +1653,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   updateTask(t.id, { status: 'In Progress' });
                                   toast.success(`"${t.title}" moved to In Progress`);
@@ -1671,6 +1672,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     updateTask(t.id, { status: 'Not Started' });
                                     toast.info(`"${t.title}" moved back to Not Started`);
@@ -1685,6 +1687,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     updateTask(t.id, { status: 'Review' });
                                     toast.success(`"${t.title}" moved to Review`);
@@ -1704,6 +1707,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     updateTask(t.id, { status: 'In Progress' });
                                     toast.info(`"${t.title}" returned to In Progress`);
@@ -1718,6 +1722,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                   size="sm"
                                   variant="ghost"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     updateTask(t.id, { status: 'Completed', completedAt: new Date().toISOString() });
                                     toast.success(`"${t.title}" completed! 🎉`);
@@ -1736,6 +1741,7 @@ export const WeeklyPlannerPage: React.FC = () => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   updateTask(t.id, { status: 'In Progress', completedAt: undefined });
                                   toast.info(`"${t.title}" reopened`);

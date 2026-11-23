@@ -18,7 +18,8 @@ import {
   ConfidenceScore,
   StudyActivityItem,
   DailyGoalItem,
-  AeonHabitState
+  AeonHabitState,
+  SectionType
 } from '../types';
 import { initialPhases } from '../data/phases';
 import { initialTopics } from '../data/topics';
@@ -158,6 +159,60 @@ function getInitialState<T>(key: string, fallback: T): T {
   return fallback;
 }
 
+export const DEFAULT_DAILY_GOALS_LIST: Array<{
+  title: string;
+  section: SectionType;
+  targetMinutes: number;
+}> = [
+  {
+    title: 'VARC: AONSA',
+    section: 'VARC',
+    targetMinutes: 35
+  },
+  {
+    title: 'VARC: 5 root words',
+    section: 'VARC',
+    targetMinutes: 15
+  }
+];
+
+export function ensureUniqueTaskIds(items: StudyTask[]): StudyTask[] {
+  const seen = new Set<string>();
+  return items.map((task, idx) => {
+    if (!task.id || seen.has(task.id)) {
+      const uniqueId = `task-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 9)}`;
+      seen.add(uniqueId);
+      return { ...task, id: uniqueId };
+    }
+    seen.add(task.id);
+    return task;
+  });
+}
+
+export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: string): DailyGoalItem[] {
+  const existing = goals.filter((g) => g.date === dateStr);
+  const toAdd: DailyGoalItem[] = [];
+
+  DEFAULT_DAILY_GOALS_LIST.forEach((tmpl, i) => {
+    const alreadyExists = existing.some(
+      (g) => g.title.trim().toLowerCase() === tmpl.title.trim().toLowerCase()
+    );
+    if (!alreadyExists) {
+      toAdd.push({
+        id: `goal-default-${dateStr}-${i}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        date: dateStr,
+        title: tmpl.title,
+        section: tmpl.section,
+        targetMinutes: tmpl.targetMinutes,
+        completed: false
+      });
+    }
+  });
+
+  if (toAdd.length === 0) return goals;
+  return [...goals, ...toAdd];
+}
+
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Profiles Registry: stores all registered user profiles (seeded with Sangamesh's profile)
   const [registeredProfiles, setRegisteredProfiles] = useState<UserProfile[]>(() => {
@@ -206,8 +261,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     });
   });
 
-  const [tasks, setTasks] = useState<StudyTask[]>(() =>
-    getInitialState('tasks', [
+  const [tasks, setTasks] = useState<StudyTask[]>(() => {
+    const raw = getInitialState<StudyTask[]>('tasks', [
       {
         id: 'task-1',
         title: 'Diagnostic Week: Fractions & Shortcuts',
@@ -242,8 +297,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         isTodayFocus: true,
         createdAt: new Date().toISOString()
       }
-    ])
-  );
+    ]);
+    return ensureUniqueTaskIds(raw);
+  });
 
   const [topics, setTopics] = useState<TopicItem[]>(() =>
     getInitialState('topics', initialTopics)
@@ -323,10 +379,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [dailyGoals, setDailyGoals] = useState<DailyGoalItem[]>(() => {
     const saved = getInitialState<DailyGoalItem[]>('dailyGoals', initialDailyGoals);
-    if (!saved || saved.length === 0) {
-      return initialDailyGoals;
-    }
-    return saved;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const base = !saved || saved.length === 0 ? initialDailyGoals : saved;
+    return ensureDefaultGoalsForDate(base, today);
   });
 
   // Aeon Daily Reading Habit State with retroactive completion & streak protection
@@ -393,6 +448,28 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const todayGoals = useMemo(() => {
     return dailyGoals.filter((g) => g.date === todayDateStr);
   }, [dailyGoals, todayDateStr]);
+
+  // Migrate and repair any duplicate task IDs in storage immediately
+  useEffect(() => {
+    setTasks((prev) => {
+      const seen = new Set<string>();
+      let hasDuplicates = false;
+      for (const t of prev) {
+        if (!t.id || seen.has(t.id)) {
+          hasDuplicates = true;
+          break;
+        }
+        seen.add(t.id);
+      }
+      if (!hasDuplicates) return prev;
+      return ensureUniqueTaskIds(prev);
+    });
+  }, []);
+
+  // Ensure default daily goals ('VARC: AONSA' and 'VARC: 5 root words') exist for today every day
+  useEffect(() => {
+    setDailyGoals((prev) => ensureDefaultGoalsForDate(prev, todayDateStr));
+  }, [todayDateStr]);
 
   // Sync to local storage on change
   useEffect(() => {
@@ -898,20 +975,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const addTask = (task: Omit<StudyTask, 'id' | 'createdAt'>) => {
     const newTask: StudyTask = {
       ...task,
-      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${Math.floor(Math.random() * 10000)}`,
       createdAt: new Date().toISOString()
     };
     setTasks((prev) => [newTask, ...prev]);
   };
 
   const updateTask = (id: string, updates: Partial<StudyTask>) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
+    setTasks((prev) => {
+      const targetIndex = prev.findIndex((t) => t.id === id);
+      if (targetIndex === -1) return prev;
+      return prev.map((t, idx) => (idx === targetIndex ? { ...t, ...updates } : t));
+    });
   };
 
   const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setTasks((prev) => {
+      const targetIndex = prev.findIndex((t) => t.id === id);
+      if (targetIndex === -1) return prev;
+      return prev.filter((_, idx) => idx !== targetIndex);
+    });
   };
 
   const updateTopic = (id: string, updates: Partial<TopicItem>) => {

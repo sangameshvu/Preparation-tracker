@@ -343,6 +343,27 @@ test('Study Focus Timer provides full pause/resume controls, Picture-in-Picture 
   assert(topNavContent.includes('openTimerModal'), 'openTimerModal trigger missing in TopNav');
 });
 
+// 26. VERIFY KANBAN INDEPENDENT TASK MOVING & DEFAULT DAILY GOALS
+test('Kanban tasks move independently with index targeting and unique IDs, and default daily goals (VARC: AONSA & VARC: 5 root words) are present every day', () => {
+  const appDataContext = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(appDataContext.includes('DEFAULT_DAILY_GOALS_LIST'), 'DEFAULT_DAILY_GOALS_LIST missing in AppDataContext');
+  assert(appDataContext.includes('VARC: AONSA'), 'VARC: AONSA default goal missing');
+  assert(appDataContext.includes('VARC: 5 root words'), 'VARC: 5 root words default goal missing');
+  assert(appDataContext.includes('ensureUniqueTaskIds'), 'ensureUniqueTaskIds function missing');
+  assert(appDataContext.includes('ensureDefaultGoalsForDate'), 'ensureDefaultGoalsForDate function missing');
+  assert(appDataContext.includes('targetIndex'), 'targetIndex targeting in updateTask/deleteTask missing');
+
+  const plannerContent = fs.readFileSync(path.join(__dirname, 'src/pages/WeeklyPlannerPage.tsx'), 'utf8');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'Not Started' })"), 'Move to Not Started missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'In Progress' })"), 'Move to In Progress missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'Review' })"), 'Move to Review missing in Kanban');
+  assert(plannerContent.includes("updateTask(t.id, { status: 'Completed'"), 'Move to Completed missing in Kanban');
+
+  const initialActivitiesContent = fs.readFileSync(path.join(__dirname, 'src/data/initialActivities.ts'), 'utf8');
+  assert(initialActivitiesContent.includes('VARC: AONSA'), 'VARC: AONSA missing in initialActivities.ts');
+  assert(initialActivitiesContent.includes('VARC: 5 root words'), 'VARC: 5 root words missing in initialActivities.ts');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

@@ -1,5 +1,6 @@
 import { StudyActivityItem, DailyGoalItem } from '../types';
 
+const today = new Date().toISOString().split('T')[0];
 const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0];
 const threeDaysAgo = new Date(Date.now() - 259200000).toISOString().split('T')[0];
@@ -57,6 +58,22 @@ export const initialActivities: StudyActivityItem[] = [
 ];
 
 export const initialDailyGoals: DailyGoalItem[] = [
+  {
+    id: 'goal-today-default-1',
+    date: today,
+    title: 'VARC: AONSA',
+    section: 'VARC',
+    targetMinutes: 35,
+    completed: false
+  },
+  {
+    id: 'goal-today-default-2',
+    date: today,
+    title: 'VARC: 5 root words',
+    section: 'VARC',
+    targetMinutes: 15,
+    completed: false
+  },
   {
     id: 'goal-seed-1',
     date: yesterday,
