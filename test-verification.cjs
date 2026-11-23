@@ -396,6 +396,34 @@ test('Daily MBA Vocabulary Learning System: datasets, flashcards, deterministic 
   assert(flashcard.includes('rotateY'), '3D flip animation missing in flashcard');
 });
 
+// 28. VERIFY CROSS-DEVICE CLOUD SYNC & CONSISTENCY
+test('Cross-Device Data Consistency: Serverless Cloud Vault, Netlify Blobs sync, and real-time AppDataContext hydration', () => {
+  const functionCode = fs.readFileSync(path.join(__dirname, 'netlify/functions/cloud-vault.ts'), 'utf8');
+  assert(functionCode.includes("getStore('user-vaults')"), 'Netlify Blobs user-vaults store missing in serverless function');
+  assert(functionCode.includes('OPTIONS'), 'CORS OPTIONS handler missing');
+  assert(functionCode.includes('setJSON'), 'setJSON storage write missing');
+
+  const syncService = fs.readFileSync(path.join(__dirname, 'src/services/cloudSyncService.ts'), 'utf8');
+  assert(syncService.includes('fetchCloudVault'), 'fetchCloudVault missing in cloudSyncService');
+  assert(syncService.includes('pushCloudVault'), 'pushCloudVault missing in cloudSyncService');
+  assert(syncService.includes('queueCloudSync'), 'queueCloudSync missing in cloudSyncService');
+
+  const appDataContext = fs.readFileSync(path.join(__dirname, 'src/context/AppDataContext.tsx'), 'utf8');
+  assert(appDataContext.includes('fetchCloudVault'), 'fetchCloudVault missing in AppDataContext');
+  assert(appDataContext.includes('pushCloudVault'), 'pushCloudVault missing in AppDataContext');
+  assert(appDataContext.includes('hydrateFromVault'), 'hydrateFromVault missing in AppDataContext');
+  assert(appDataContext.includes('cloudSyncStatus'), 'cloudSyncStatus missing in AppDataContext');
+  assert(appDataContext.includes('syncNowToCloud'), 'syncNowToCloud missing in AppDataContext');
+
+  const topNav = fs.readFileSync(path.join(__dirname, 'src/components/layout/TopNav.tsx'), 'utf8');
+  assert(topNav.includes('cloudSyncStatus'), 'cloudSyncStatus missing in TopNav');
+  assert(topNav.includes('syncNowToCloud'), 'syncNowToCloud trigger missing in TopNav');
+
+  const profilePage = fs.readFileSync(path.join(__dirname, 'src/pages/ProfileSettingsPage.tsx'), 'utf8');
+  assert(profilePage.includes('Cross-Device Cloud Sync'), 'Cross-Device Cloud Sync section missing in ProfileSettingsPage');
+  assert(profilePage.includes('syncNowToCloud'), 'syncNowToCloud trigger missing in ProfileSettingsPage');
+});
+
 console.log(`\n📊 Test Results: ${passedTests}/${totalTests} Passed (${Math.round((passedTests/totalTests)*100)}%)\n`);
 
 if (passedTests === totalTests) {

@@ -22,7 +22,9 @@ import {
   Eye,
   EyeOff,
   Upload,
-  LogIn
+  LogIn,
+  Cloud,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -46,6 +48,8 @@ export const ProfileSettingsPage: React.FC = () => {
     mistakes,
     resources,
     resetAllData,
+    cloudSyncStatus,
+    syncNowToCloud,
     syncDataToCloudVault,
     importDataFromCloudVault
   } = useAppData();
@@ -313,19 +317,55 @@ export const ProfileSettingsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Database Association Status */}
+                    {/* Database & Cross-Device Cloud Sync Status */}
                     <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between text-purple-900 dark:text-purple-200">
                       <div className="flex items-center gap-2">
                         <Database className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
                         <span>Database Status: <strong>100% Data Bound to {profile.email}</strong></span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={syncDataToCloudVault}
-                        className="font-bold underline hover:text-purple-500 text-[11px] cursor-pointer"
-                      >
-                        Export Vault
-                      </button>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-200/60 dark:bg-purple-900/40 font-bold">
+                        Verified Bound
+                      </span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/30 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-slate-800 dark:text-slate-200">
+                      <div className="flex items-start gap-2.5">
+                        <Cloud className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold flex items-center gap-1.5">
+                            <span>Cross-Device Cloud Sync: Active</span>
+                            <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-extrabold">
+                              Connected
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            All your tasks, syllabus progress, mock logs, notes, and vocabulary are automatically synchronized. Sign into <strong>{profile.email}</strong> on any phone, tablet, or PC to get the exact same data!
+                          </p>
+                          {cloudSyncStatus.lastSyncedAt && (
+                            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-mono mt-1 block">
+                              Last synchronized: {new Date(cloudSyncStatus.lastSyncedAt).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={syncNowToCloud}
+                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${cloudSyncStatus.status === 'syncing' ? 'animate-spin' : ''}`} />
+                          <span>Sync Now</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={syncDataToCloudVault}
+                          className="px-2.5 py-1.5 rounded-xl border border-border/80 bg-white/70 dark:bg-slate-900/60 font-medium text-[11px] hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                          Export
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}

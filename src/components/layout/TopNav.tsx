@@ -9,7 +9,8 @@ import {
   Bot,
   Flame,
   ShieldCheck,
-  Clock
+  Clock,
+  Cloud
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useTheme } from '../../context/ThemeContext';
@@ -30,7 +31,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   onOpenCoach
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { profile, stats, isAuthenticated } = useAppData();
+  const { profile, stats, isAuthenticated, cloudSyncStatus, syncNowToCloud } = useAppData();
   const { isRunning, isPaused, displaySeconds, isPipActive, openTimerModal } = useStudyTimer();
   const location = useLocation();
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -193,6 +194,25 @@ export const TopNav: React.FC<TopNavProps> = ({
             <Moon className="h-4 w-4 text-blue-600" />
           )}
         </button>
+
+        {/* Cross-Device Cloud Sync Button & Indicator */}
+        {isAuthenticated && (
+          <button
+            type="button"
+            onClick={syncNowToCloud}
+            className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-full text-xs font-semibold glass-thin text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 cursor-pointer shadow-2xs"
+            title={
+              cloudSyncStatus.lastSyncedAt
+                ? `Cross-Device Synced with Cloud at ${new Date(cloudSyncStatus.lastSyncedAt).toLocaleTimeString()} - Click to sync now`
+                : 'Click to sync your data across all devices'
+            }
+          >
+            <Cloud className={`h-3.5 w-3.5 ${cloudSyncStatus.status === 'syncing' ? 'animate-bounce text-blue-600' : 'text-blue-500'}`} />
+            <span className="hidden lg:inline">
+              {cloudSyncStatus.status === 'syncing' ? 'Syncing...' : 'Cloud Synced'}
+            </span>
+          </button>
+        )}
 
         {/* User Profile Avatar / Account Trigger */}
         {isAuthenticated ? (

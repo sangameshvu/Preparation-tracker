@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import {
   UserProfile,
   AuthSession,
@@ -33,6 +33,7 @@ import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from 
 import { addDays, subDays, differenceInCalendarDays, parseISO, format, startOfWeek, differenceInCalendarWeeks } from 'date-fns';
 import { calculateStreak } from '../utils/streakCalculator';
 import { loadUserVocabProgress, saveUserVocabProgress } from '../services/vocabularyService';
+import { fetchCloudVault, pushCloudVault, queueCloudSync } from '../services/cloudSyncService';
 import { toast } from 'sonner';
 
 export const SANGAMESH_PROFILE: UserProfile = {
@@ -81,6 +82,8 @@ interface AppDataContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (displayName: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  cloudSyncStatus: { status: 'idle' | 'syncing' | 'synced' | 'error'; lastSyncedAt: string | null };
+  syncNowToCloud: () => Promise<boolean>;
   syncDataToCloudVault: () => string;
   importDataFromCloudVault: (jsonStr: string) => boolean;
   phases: typeof initialPhases;
@@ -568,6 +571,172 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, []);
 
+  // Cross-Device Vault Snapshot & Hydration
+  const getVaultSnapshot = useCallback(() => {
+    return {
+      vaultVersion: '2.0.0',
+      exportedAt: new Date().toISOString(),
+      owner: {
+        id: profile.id,
+        email: profile.email,
+        displayName: profile.displayName
+      },
+      profile,
+      weeklyPlans,
+      tasks,
+      topicProgress,
+      mockTests,
+      mistakes,
+      resources,
+      routines,
+      stickyNotes,
+      studyNotes,
+      guideSections,
+      activities,
+      dailyGoals,
+      aeonHabit: {
+        completedDates: aeonCompletedDates,
+        streak: aeonHabit.streak,
+        bestStreak: aeonHabit.bestStreak,
+        totalRead: aeonCompletedDates.length,
+        lastReadDate: aeonHabit.lastReadDate
+      },
+      vocabProgress: loadUserVocabProgress(profile.id)
+    };
+  }, [
+    profile,
+    weeklyPlans,
+    tasks,
+    topicProgress,
+    mockTests,
+    mistakes,
+    resources,
+    routines,
+    stickyNotes,
+    studyNotes,
+    guideSections,
+    activities,
+    dailyGoals,
+    aeonCompletedDates,
+    aeonHabit
+  ]);
+
+  const hydrateFromVault = useCallback((data: any) => {
+    if (!data) return;
+    try {
+      if (data.profile) setProfile(data.profile);
+      if (data.weeklyPlans && Array.isArray(data.weeklyPlans)) setWeeklyPlans(data.weeklyPlans);
+      if (data.tasks && Array.isArray(data.tasks)) {
+        const clean = ensureUniqueTaskIds(data.tasks);
+        setTasks(clean);
+        localStorage.setItem(STORAGE_PREFIX + 'tasks', JSON.stringify(clean));
+      }
+      if (data.topicProgress) setTopicProgress(data.topicProgress);
+      if (data.mockTests && Array.isArray(data.mockTests)) setMockTests(data.mockTests);
+      if (data.mistakes && Array.isArray(data.mistakes)) setMistakes(data.mistakes);
+      if (data.resources && Array.isArray(data.resources)) setResources(data.resources);
+      if (data.routines && Array.isArray(data.routines)) setRoutines(data.routines);
+      if (data.stickyNotes && Array.isArray(data.stickyNotes)) setStickyNotes(data.stickyNotes);
+      if (data.studyNotes && Array.isArray(data.studyNotes)) setStudyNotes(data.studyNotes);
+      if (data.guideSections && Array.isArray(data.guideSections)) setGuideSections(data.guideSections);
+      if (data.activities && Array.isArray(data.activities)) setActivities(data.activities);
+      if (data.dailyGoals && Array.isArray(data.dailyGoals)) setDailyGoals(data.dailyGoals);
+      if (data.aeonHabit && data.aeonHabit.completedDates) {
+        setAeonCompletedDates(data.aeonHabit.completedDates);
+      }
+      if (data.vocabProgress) {
+        saveUserVocabProgress(data.vocabProgress);
+      }
+      if (data.profile?.id) {
+        localStorage.setItem(`cat2027_vault_${data.profile.id}`, JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error('Error hydrating from vault:', e);
+    }
+  }, []);
+
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<{
+    status: 'idle' | 'syncing' | 'synced' | 'error';
+    lastSyncedAt: string | null;
+  }>({
+    status: 'idle',
+    lastSyncedAt: null
+  });
+
+  const syncNowToCloud = async (): Promise<boolean> => {
+    if (!profile || profile.id === 'user-guest') {
+      toast.info('Sign in to sync your profile across all devices.');
+      return false;
+    }
+    setCloudSyncStatus((prev) => ({ ...prev, status: 'syncing' }));
+    try {
+      const snapshot = getVaultSnapshot();
+      const res = await pushCloudVault(profile.id, profile.email || '', snapshot);
+      if (res.success) {
+        setCloudSyncStatus({
+          status: 'synced',
+          lastSyncedAt: res.savedAt || new Date().toISOString()
+        });
+        toast.success('☁️ Profile and all study data synced to cloud! Accessible on any device.');
+        return true;
+      } else {
+        setCloudSyncStatus((prev) => ({ ...prev, status: 'error' }));
+        toast.error(`Cloud sync notice: ${res.error || 'Network unreachable'}`);
+        return false;
+      }
+    } catch (e) {
+      setCloudSyncStatus((prev) => ({ ...prev, status: 'error' }));
+      return false;
+    }
+  };
+
+  // Cross-device auto sync: on mount or login, pull latest cloud vault
+  useEffect(() => {
+    if (authSession.isAuthenticated && authSession.user.id !== 'user-guest') {
+      fetchCloudVault(authSession.user.id, authSession.user.email)
+        .then((cloudData) => {
+          if (cloudData) {
+            hydrateFromVault(cloudData);
+            setCloudSyncStatus({
+              status: 'synced',
+              lastSyncedAt: cloudData.syncedAt || cloudData.updatedAt || new Date().toISOString()
+            });
+          } else {
+            // First time on cloud: seed cloud with this device's data
+            const snapshot = getVaultSnapshot();
+            pushCloudVault(authSession.user.id, authSession.user.email || '', snapshot).then((res) => {
+              if (res.success) {
+                setCloudSyncStatus({
+                  status: 'synced',
+                  lastSyncedAt: res.savedAt || new Date().toISOString()
+                });
+              }
+            });
+          }
+        })
+        .catch((e) => console.warn('Could not fetch cloud vault on mount:', e));
+    }
+  }, [authSession.isAuthenticated, authSession.user.id]);
+
+  // Continuous background auto-sync to cloud on user state changes
+  useEffect(() => {
+    if (authSession.isAuthenticated && profile.id !== 'user-guest') {
+      queueCloudSync(profile.id, profile.email || '', getVaultSnapshot);
+    }
+  }, [
+    tasks,
+    weeklyPlans,
+    topicProgress,
+    mockTests,
+    mistakes,
+    stickyNotes,
+    studyNotes,
+    dailyGoals,
+    aeonCompletedDates,
+    activities,
+    profile
+  ]);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_PREFIX + 'weeklyPlans', JSON.stringify(weeklyPlans));
   }, [weeklyPlans]);
@@ -845,6 +1014,32 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       setAuthSession(newSession);
       localStorage.setItem(STORAGE_PREFIX + 'auth_session', JSON.stringify(newSession));
       toast.success(`🎉 Welcome back, ${updatedProfile.displayName}! Logged into your CAT 2027 profile.`);
+
+      // Immediately pull latest cloud vault to ensure cross-device consistency!
+      fetchCloudVault(found.id, found.email).then((cloudData) => {
+        if (cloudData) {
+          hydrateFromVault(cloudData);
+          setCloudSyncStatus({
+            status: 'synced',
+            lastSyncedAt: cloudData.syncedAt || cloudData.updatedAt || new Date().toISOString()
+          });
+          toast.success('☁️ Cross-device sync: loaded your latest cloud data!');
+        } else {
+          // Push local vault to cloud so this device's data becomes available on other devices!
+          const localVault = savedVault ? JSON.parse(savedVault) : getVaultSnapshot();
+          if (localVault) {
+            pushCloudVault(found.id, found.email || '', localVault).then((res) => {
+              if (res.success) {
+                setCloudSyncStatus({
+                  status: 'synced',
+                  lastSyncedAt: res.savedAt || new Date().toISOString()
+                });
+              }
+            });
+          }
+        }
+      }).catch((err) => console.warn('Could not fetch cloud vault on login:', err));
+
       return { success: true };
     } else {
       toast.error('Invalid email or password. Please verify your credentials.');
@@ -1502,6 +1697,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         login,
         signup,
         logout,
+        cloudSyncStatus,
+        syncNowToCloud,
         syncDataToCloudVault,
         importDataFromCloudVault,
         phases: initialPhases,
