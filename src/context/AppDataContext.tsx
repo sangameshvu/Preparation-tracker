@@ -646,7 +646,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (data.studyNotes && Array.isArray(data.studyNotes)) setStudyNotes(data.studyNotes);
       if (data.guideSections && Array.isArray(data.guideSections)) setGuideSections(data.guideSections);
       if (data.activities && Array.isArray(data.activities)) setActivities(data.activities);
-      if (data.dailyGoals && Array.isArray(data.dailyGoals)) setDailyGoals(data.dailyGoals);
+      if (data.dailyGoals && Array.isArray(data.dailyGoals)) {
+        setDailyGoals(ensureDefaultGoalsForDate(data.dailyGoals, todayDateStr));
+      }
       if (data.aeonHabit && data.aeonHabit.completedDates) {
         setAeonCompletedDates(data.aeonHabit.completedDates);
       }
@@ -1025,7 +1027,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           if (data.studyNotes) setStudyNotes(data.studyNotes);
           if (data.guideSections) setGuideSections(data.guideSections);
           if (data.activities) setActivities(data.activities);
-          if (data.dailyGoals) setDailyGoals(data.dailyGoals);
+          if (data.dailyGoals && Array.isArray(data.dailyGoals)) {
+            setDailyGoals(ensureDefaultGoalsForDate(data.dailyGoals, todayDateStr));
+          }
           if (data.aeonHabit && data.aeonHabit.completedDates) {
             setAeonCompletedDates(data.aeonHabit.completedDates);
           }
@@ -1235,7 +1239,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (data.studyNotes) setStudyNotes(data.studyNotes);
       if (data.guideSections) setGuideSections(data.guideSections);
       if (data.activities) setActivities(data.activities);
-      if (data.dailyGoals) setDailyGoals(data.dailyGoals);
+      if (data.dailyGoals && Array.isArray(data.dailyGoals)) {
+        setDailyGoals(ensureDefaultGoalsForDate(data.dailyGoals, todayDateStr));
+      }
       if (data.aeonHabit && data.aeonHabit.completedDates) {
         setAeonCompletedDates(data.aeonHabit.completedDates);
       }
