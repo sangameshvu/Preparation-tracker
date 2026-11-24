@@ -73,6 +73,7 @@ export const WeeklyPlannerPage: React.FC = () => {
     addMultipleDailyGoals,
     toggleDailyGoal,
     deleteDailyGoal,
+    syncDayGridGoals,
     aeonHabit,
     markYesterdayAeonDone
   } = useAppData();
@@ -151,6 +152,13 @@ export const WeeklyPlannerPage: React.FC = () => {
   const [editDayDescription, setEditDayDescription] = useState('');
   const [editDayTargetHours, setEditDayTargetHours] = useState('');
   const [editDayNotes, setEditDayNotes] = useState('');
+  // 3 separate sections in each day of 7-day grid
+  const [editDayQuantTopic, setEditDayQuantTopic] = useState('');
+  const [editDayQuantMinutes, setEditDayQuantMinutes] = useState(45);
+  const [editDayDilrTopic, setEditDayDilrTopic] = useState('');
+  const [editDayDilrMinutes, setEditDayDilrMinutes] = useState(45);
+  const [editDayVarcTopic, setEditDayVarcTopic] = useState('');
+  const [editDayVarcMinutes, setEditDayVarcMinutes] = useState(35);
 
   // 7-Day Grid Add Task State
   const [addDayTaskIdx, setAddDayTaskIdx] = useState<number | null>(null);
@@ -458,12 +466,12 @@ export const WeeklyPlannerPage: React.FC = () => {
   const isOddWeek = selectedPlan.weekNumber % 2 !== 0;
 
   const PRESET_DAY_BADGES = [
-    { label: 'Quant', class: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20' },
-    { label: 'DI Sets', class: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20' },
-    { label: 'VARC Drills', class: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20' },
+    { label: 'All 3 (QA+DILR+VARC)', class: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20' },
+    { label: 'Quant Focus', class: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20' },
+    { label: 'DILR Focus', class: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20' },
+    { label: 'VARC Focus', class: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20' },
     { label: 'Revision', class: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20' },
-    { label: 'Mock & Review', class: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20' },
-    { label: 'Buffer / Rest', class: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20' }
+    { label: 'Mock & Review', class: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20' }
   ];
 
   const getDailyAllocation = (idx: number): DayScheduleAllocation => {
@@ -475,38 +483,46 @@ export const WeeklyPlannerPage: React.FC = () => {
       return {
         badgeLabel: 'Revision',
         badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
-        title: 'Weekly Revision (Part 1)',
-        description: 'Revise all topics, notes & formulas covered this week.',
-        targetHours: '3.0'
+        title: 'Weekly Revision (All Sections)',
+        description: 'Revise all topics, notes & formulas covered this week across QA, DILR & VARC.',
+        targetHours: '3.0',
+        quantTopic: 'QA Weekly Topic & Formula Consolidation',
+        quantTargetMinutes: 60,
+        dilrTopic: 'DILR Re-solve Weak & Unfinished Sets',
+        dilrTargetMinutes: 45,
+        varcTopic: 'VARC Reading Notes & Speed Drill Review',
+        varcTargetMinutes: 40
       };
     }
     if (idx === 6) {
       return {
-        badgeLabel: 'Review',
-        badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
-        title: 'Weekly Revision (Part 2)',
-        description: 'Audit Mistake Log, clear errors & weekly recap.',
-        targetHours: '3.0'
+        badgeLabel: 'Mock & Review',
+        badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+        title: 'Sectional Mock & Mistake Analysis',
+        description: 'Timed sectional or full mock test, followed by thorough mistake log analysis.',
+        targetHours: '3.0',
+        quantTopic: 'Quant Mistake Log Audit & Re-solve',
+        quantTargetMinutes: 45,
+        dilrTopic: 'DILR Timed Sectional Drill & Analysis',
+        dilrTargetMinutes: 45,
+        varcTopic: 'VARC Mock Passage Review & Analysis',
+        varcTargetMinutes: 45
       };
     }
-    const isDiDay = isOddWeek ? idx % 2 !== 0 : idx % 2 === 0;
-    if (isDiDay) {
-      return {
-        badgeLabel: 'DI Sets',
-        badgeClass: 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20',
-        title: 'VARC + DI',
-        description: 'Daily RC/editorial + 2 Data Interpretation caselets.',
-        targetHours: '2.5'
-      };
-    } else {
-      return {
-        badgeLabel: 'Quant',
-        badgeClass: 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
-        title: 'VARC + QA',
-        description: 'Daily RC/VA drills + Quant concept theory & drills.',
-        targetHours: '2.5'
-      };
-    }
+    // Weekdays (Monday to Friday): Covering all three (VARC, Quants, and DILR) on the same day!
+    return {
+      badgeLabel: 'All 3 (QA+DILR+VARC)',
+      badgeClass: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
+      title: 'All 3: QA + DILR + VARC',
+      description: 'Daily tri-section coverage: Quantitative Aptitude drills, DILR reasoning sets, and VARC comprehension.',
+      targetHours: '3.0',
+      quantTopic: selectedPlan.quantPlan ? selectedPlan.quantPlan.slice(0, 45) : 'Arithmetic & Core Quant Drills',
+      quantTargetMinutes: 45,
+      dilrTopic: selectedPlan.dilrPlan ? selectedPlan.dilrPlan.slice(0, 45) : 'Logic Reasoning & Caselet Sets',
+      dilrTargetMinutes: 45,
+      varcTopic: selectedPlan.varcPlan ? selectedPlan.varcPlan.slice(0, 45) : 'Reading Comprehension (2 Passages)',
+      varcTargetMinutes: 35
+    };
   };
 
   const handleOpenEditDay = (idx: number) => {
@@ -514,35 +530,55 @@ export const WeeklyPlannerPage: React.FC = () => {
     setEditingDayIdx(idx);
     setEditDayTitle(currentAlloc.title);
     setEditDayBadgeLabel(currentAlloc.badgeLabel);
-    setEditDayBadgeClass(currentAlloc.badgeClass || 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20');
+    setEditDayBadgeClass(currentAlloc.badgeClass || 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20');
     setEditDayDescription(currentAlloc.description);
-    setEditDayTargetHours(currentAlloc.targetHours || (idx >= 5 ? '3.0' : '2.5'));
+    setEditDayTargetHours(currentAlloc.targetHours || '3.0');
     setEditDayNotes(currentAlloc.notes || '');
+    setEditDayQuantTopic(currentAlloc.quantTopic || '');
+    setEditDayQuantMinutes(currentAlloc.quantTargetMinutes || 45);
+    setEditDayDilrTopic(currentAlloc.dilrTopic || '');
+    setEditDayDilrMinutes(currentAlloc.dilrTargetMinutes || 45);
+    setEditDayVarcTopic(currentAlloc.varcTopic || '');
+    setEditDayVarcMinutes(currentAlloc.varcTargetMinutes || 35);
   };
 
   const handleSaveDaySchedule = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingDayIdx === null) return;
     const currentGrid = selectedPlan.dailyGrid || {};
+    const updatedAlloc: DayScheduleAllocation = {
+      title: editDayTitle.trim() || 'All 3: QA + DILR + VARC',
+      description: editDayDescription.trim(),
+      badgeLabel: editDayBadgeLabel.trim() || 'All 3',
+      badgeClass: editDayBadgeClass || 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
+      targetHours: editDayTargetHours.trim() || '3.0',
+      notes: editDayNotes.trim(),
+      quantTopic: editDayQuantTopic.trim() || undefined,
+      quantTargetMinutes: editDayQuantMinutes || 45,
+      dilrTopic: editDayDilrTopic.trim() || undefined,
+      dilrTargetMinutes: editDayDilrMinutes || 45,
+      varcTopic: editDayVarcTopic.trim() || undefined,
+      varcTargetMinutes: editDayVarcMinutes || 35
+    };
+
     const updatedGrid = {
       ...currentGrid,
-      [editingDayIdx]: {
-        title: editDayTitle.trim() || 'Custom Focus',
-        description: editDayDescription.trim(),
-        badgeLabel: editDayBadgeLabel.trim() || 'Focus',
-        badgeClass: editDayBadgeClass || 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20',
-        targetHours: editDayTargetHours.trim() || '2.5',
-        notes: editDayNotes.trim()
-      }
+      [editingDayIdx]: updatedAlloc
     };
     updateWeeklyPlan(selectedPlan.id, { dailyGrid: updatedGrid });
+
+    const dayDate = addDays(parseISO(selectedPlan.startDate || '2026-11-16'), editingDayIdx);
+    const targetDateStr = format(dayDate, 'yyyy-MM-dd');
+
+    // Synchronize topics directly into daily goals for this day!
+    syncDayGridGoals(targetDateStr, updatedAlloc);
 
     const todayDayIdx = (new Date().getDay() + 6) % 7;
     const isToday = editingDayIdx === todayDayIdx && selectedPlan.weekNumber === stats.currentWeek;
     if (isToday) {
-      toast.success(`Updated ${daysOfWeek[editingDayIdx]} 7-Day Grid! Today's scheduled targets updated.`);
+      toast.success(`Updated ${daysOfWeek[editingDayIdx]} 7-Day Grid! Today's goals updated with your custom topics.`);
     } else {
-      toast.success(`Updated ${daysOfWeek[editingDayIdx]} schedule for Week ${selectedPlan.weekNumber}!`);
+      toast.success(`Updated ${daysOfWeek[editingDayIdx]} schedule! Saved topics for ${format(dayDate, 'MMM d')}.`);
     }
     setEditingDayIdx(null);
   };
@@ -1486,25 +1522,69 @@ export const WeeklyPlannerPage: React.FC = () => {
                   <div className="space-y-2 flex-1 flex flex-col justify-between">
                     <div className="space-y-2">
 
-                      {/* Clickable Allocation Tile */}
+                      {/* Clickable Allocation Tile with 3 Distinct Sections: Quants, DILR, VARC */}
                       <div
                         onClick={() => handleOpenEditDay(idx)}
-                        className="p-2 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/40 hover:border-blue-400 dark:hover:border-blue-500 text-[11px] leading-tight space-y-1 cursor-pointer transition-all group/card relative"
-                        title="Click to edit day schedule"
+                        className="p-2.5 rounded-xl bg-slate-500/5 dark:bg-white/5 border border-border/40 hover:border-blue-400 dark:hover:border-blue-500 text-[11px] leading-tight space-y-2 cursor-pointer transition-all group/card relative"
+                        title="Click to edit day schedule & section topics"
                       >
-                        <div className="flex items-start justify-between gap-1">
-                          <p className="font-bold text-foreground group-hover/card:text-blue-600 transition-colors">
+                        <div className="flex items-center justify-between gap-1 pb-1 border-b border-border/30">
+                          <span className="font-bold text-foreground text-[11px] group-hover/card:text-blue-600 transition-colors">
                             {allocation.title}
-                          </p>
-                          <Edit2 className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/card:opacity-100 shrink-0 mt-0.5" />
+                          </span>
+                          <Edit2 className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/card:opacity-100 shrink-0" />
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-normal line-clamp-3">
-                          {allocation.description}
-                        </p>
-                        {allocation.targetHours && (
-                          <p className="text-[9px] font-mono text-blue-600 dark:text-blue-400 pt-0.5">
-                            Target: {allocation.targetHours} hrs
+
+                        {/* Section 1: Quants */}
+                        <div className="p-1.5 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/50 dark:border-blue-800/40 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                              Quants
+                            </span>
+                            <span className="text-[9px] font-mono text-blue-600/80 dark:text-blue-400/80">
+                              {allocation.quantTargetMinutes || 45}m
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-semibold text-blue-950 dark:text-blue-100 truncate" title={allocation.quantTopic || 'Arithmetic & Core Drills'}>
+                            {allocation.quantTopic || 'Arithmetic & Core Drills'}
                           </p>
+                        </div>
+
+                        {/* Section 2: DILR */}
+                        <div className="p-1.5 rounded-lg bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/50 dark:border-teal-800/40 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                              DILR
+                            </span>
+                            <span className="text-[9px] font-mono text-teal-600/80 dark:text-teal-400/80">
+                              {allocation.dilrTargetMinutes || 45}m
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-semibold text-teal-950 dark:text-teal-100 truncate" title={allocation.dilrTopic || 'Logic Reasoning & Caselets'}>
+                            {allocation.dilrTopic || 'Logic Reasoning & Caselets'}
+                          </p>
+                        </div>
+
+                        {/* Section 3: VARC */}
+                        <div className="p-1.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-800/40 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                              VARC
+                            </span>
+                            <span className="text-[9px] font-mono text-amber-600/80 dark:text-amber-400/80">
+                              {allocation.varcTargetMinutes || 35}m
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-semibold text-amber-950 dark:text-amber-100 truncate" title={allocation.varcTopic || 'Reading Comprehension (2 Passages)'}>
+                            {allocation.varcTopic || 'Reading Comprehension (2 Passages)'}
+                          </p>
+                        </div>
+
+                        {allocation.targetHours && (
+                          <div className="flex items-center justify-between pt-0.5 text-[9px] font-mono text-muted-foreground">
+                            <span>Target Hours:</span>
+                            <span className="font-semibold text-foreground">{allocation.targetHours}h</span>
+                          </div>
                         )}
                       </div>
 
@@ -2342,14 +2422,14 @@ export const WeeklyPlannerPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL 6: EDIT 7-DAY GRID DAY SCHEDULE */}
+      {/* MODAL 6: EDIT 7-DAY GRID DAY SCHEDULE (QUANTS, DILR, VARC) */}
       <Dialog open={editingDayIdx !== null} onOpenChange={(open) => !open && setEditingDayIdx(null)}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold text-foreground">
               <CalendarIcon className="h-4 w-4 text-blue-600" />
               <span>
-                Edit {editingDayIdx !== null ? daysOfWeek[editingDayIdx] : ''} Schedule
+                Edit {editingDayIdx !== null ? daysOfWeek[editingDayIdx] : ''} 7-Day Grid Focus
               </span>
               <span className="text-xs font-mono font-normal text-muted-foreground">
                 (Week {selectedPlan.weekNumber})
@@ -2368,86 +2448,200 @@ export const WeeklyPlannerPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Quick Preset Badges */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">Focus Category Preset</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {PRESET_DAY_BADGES.map((b) => (
-                    <button
-                      key={b.label}
-                      type="button"
-                      onClick={() => {
-                        setEditDayBadgeLabel(b.label);
-                        setEditDayBadgeClass(b.class);
-                      }}
-                      className={cn(
-                        'text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer',
-                        b.class,
-                        editDayBadgeLabel === b.label ? 'ring-2 ring-blue-500 font-bold scale-105' : 'opacity-80 hover:opacity-100'
-                      )}
-                    >
-                      {b.label}
-                    </button>
-                  ))}
-                </div>
+              {/* Informative Guidance Banner */}
+              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-900 dark:text-blue-200 space-y-1">
+                <p className="font-semibold">
+                  🎯 Three-Section Daily Syllabus Topics:
+                </p>
+                <p className="text-[10px] text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+                  Enter your planned topics for <strong>Quants</strong>, <strong>DILR</strong>, and <strong>VARC</strong>. When this day arrives, these topics will automatically update in <strong>Today's Goals</strong> alongside your 4 default daily goals.
+                </p>
               </div>
 
-              {/* Title & Badge Label */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* SECTION 1: QUANTS TOPIC */}
+              <div className="p-3 rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span>1. Quants Topic & Target</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Target:</span>
+                    <Input
+                      type="number"
+                      min={10}
+                      max={180}
+                      value={editDayQuantMinutes}
+                      onChange={(e) => setEditDayQuantMinutes(parseInt(e.target.value, 10) || 45)}
+                      className="w-14 h-6 text-[10px] font-mono text-center p-0.5 rounded-md"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground">m</span>
+                  </div>
+                </div>
+                <Input
+                  required
+                  value={editDayQuantTopic}
+                  onChange={(e) => setEditDayQuantTopic(e.target.value)}
+                  placeholder="e.g. Arithmetic - Percentages & Profit/Loss"
+                  className="text-xs bg-background"
+                />
+                {/* Syllabus topic suggestions for Quant */}
+                {assignedTopics.filter((t) => t.section === 'Quant').length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    <span className="text-[10px] text-muted-foreground">Quick pick:</span>
+                    {assignedTopics
+                      .filter((t) => t.section === 'Quant')
+                      .slice(0, 3)
+                      .map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setEditDayQuantTopic(t.topicName)}
+                          className="text-[10px] px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 hover:bg-blue-100 transition-colors cursor-pointer"
+                        >
+                          + {t.topicName}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: DILR TOPIC */}
+              <div className="p-3 rounded-2xl border border-teal-200/80 dark:border-teal-900/40 bg-teal-50/30 dark:bg-teal-950/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-teal-600"></span>
+                    <span>2. DILR Topic & Target</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Target:</span>
+                    <Input
+                      type="number"
+                      min={10}
+                      max={180}
+                      value={editDayDilrMinutes}
+                      onChange={(e) => setEditDayDilrMinutes(parseInt(e.target.value, 10) || 45)}
+                      className="w-14 h-6 text-[10px] font-mono text-center p-0.5 rounded-md"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground">m</span>
+                  </div>
+                </div>
+                <Input
+                  required
+                  value={editDayDilrTopic}
+                  onChange={(e) => setEditDayDilrTopic(e.target.value)}
+                  placeholder="e.g. Linear & Circular Arrangements, Distribution"
+                  className="text-xs bg-background"
+                />
+                {/* Syllabus topic suggestions for DILR */}
+                {assignedTopics.filter((t) => t.section === 'DILR').length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    <span className="text-[10px] text-muted-foreground">Quick pick:</span>
+                    {assignedTopics
+                      .filter((t) => t.section === 'DILR')
+                      .slice(0, 3)
+                      .map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setEditDayDilrTopic(t.topicName)}
+                          className="text-[10px] px-2 py-0.5 rounded-md border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 hover:bg-teal-100 transition-colors cursor-pointer"
+                        >
+                          + {t.topicName}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 3: VARC TOPIC */}
+              <div className="p-3 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+                    <span>3. VARC Topic & Target</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Target:</span>
+                    <Input
+                      type="number"
+                      min={10}
+                      max={180}
+                      value={editDayVarcMinutes}
+                      onChange={(e) => setEditDayVarcMinutes(parseInt(e.target.value, 10) || 35)}
+                      className="w-14 h-6 text-[10px] font-mono text-center p-0.5 rounded-md"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground">m</span>
+                  </div>
+                </div>
+                <Input
+                  required
+                  value={editDayVarcTopic}
+                  onChange={(e) => setEditDayVarcTopic(e.target.value)}
+                  placeholder="e.g. Reading Comprehension - 2 Passages & Tone Analysis"
+                  className="text-xs bg-background"
+                />
+                {/* Syllabus topic suggestions for VARC */}
+                {assignedTopics.filter((t) => t.section === 'VARC').length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    <span className="text-[10px] text-muted-foreground">Quick pick:</span>
+                    {assignedTopics
+                      .filter((t) => t.section === 'VARC')
+                      .slice(0, 3)
+                      .map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setEditDayVarcTopic(t.topicName)}
+                          className="text-[10px] px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-colors cursor-pointer"
+                        >
+                          + {t.topicName}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Title & Badge & Hours */}
+              <div className="grid grid-cols-3 gap-2.5 pt-1">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-foreground">Focus Title *</label>
+                  <label className="text-[11px] font-semibold text-foreground">Day Title</label>
                   <Input
-                    required
                     value={editDayTitle}
                     onChange={(e) => setEditDayTitle(e.target.value)}
-                    placeholder="e.g. VARC + QA"
+                    placeholder="All 3: QA + DILR + VARC"
                     className="text-xs"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-foreground">Badge Label *</label>
+                  <label className="text-[11px] font-semibold text-foreground">Badge Label</label>
                   <Input
-                    required
                     value={editDayBadgeLabel}
                     onChange={(e) => setEditDayBadgeLabel(e.target.value)}
-                    placeholder="e.g. Quant"
+                    placeholder="All 3"
                     className="text-xs"
                   />
                 </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-foreground">Planned Activities / Description</label>
-                <textarea
-                  rows={3}
-                  value={editDayDescription}
-                  onChange={(e) => setEditDayDescription(e.target.value)}
-                  placeholder="Detail the topics, practice drills, and reading goals for this day..."
-                  className="w-full text-xs rounded-xl border border-input bg-background p-2.5 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-
-              {/* Target Hours & Notes */}
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-foreground">Target Hours</label>
+                  <label className="text-[11px] font-semibold text-foreground">Target Hours</label>
                   <Input
                     value={editDayTargetHours}
                     onChange={(e) => setEditDayTargetHours(e.target.value)}
-                    placeholder="e.g. 2.5 hrs"
+                    placeholder="3.0"
                     className="text-xs font-mono"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-foreground">Optional Notes</label>
-                  <Input
-                    value={editDayNotes}
-                    onChange={(e) => setEditDayNotes(e.target.value)}
-                    placeholder="e.g. Evening study block"
-                    className="text-xs"
-                  />
-                </div>
+              </div>
+
+              {/* Optional Notes */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-foreground">Optional Study Notes</label>
+                <Input
+                  value={editDayNotes}
+                  onChange={(e) => setEditDayNotes(e.target.value)}
+                  placeholder="e.g. Focus on accuracy during evening study block"
+                  className="text-xs"
+                />
               </div>
 
               {/* Action Buttons */}

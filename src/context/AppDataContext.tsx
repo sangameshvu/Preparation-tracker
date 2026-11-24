@@ -20,6 +20,7 @@ import {
   DailyGoalItem,
   AeonHabitState,
   DailyPracticeHabitState,
+  DayScheduleAllocation,
   SectionType
 } from '../types';
 import { initialPhases } from '../data/phases';
@@ -142,6 +143,7 @@ interface AppDataContextType {
   ) => void;
   toggleDailyGoal: (id: string) => void;
   deleteDailyGoal: (id: string) => void;
+  syncDayGridGoals: (dateStr: string, allocation: DayScheduleAllocation) => void;
   aeonHabit: AeonHabitState;
   toggleAeonDate: (dateStr: string, title?: string) => void;
   markYesterdayAeonDone: (title?: string) => void;
@@ -212,7 +214,11 @@ export function ensureUniqueTaskIds(items: StudyTask[]): StudyTask[] {
   });
 }
 
-export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: string): DailyGoalItem[] {
+export function ensureDefaultGoalsForDate(
+  goals: DailyGoalItem[],
+  dateStr: string,
+  activePlan?: WeeklyPlanItem
+): DailyGoalItem[] {
   // First, migrate any legacy goals:
   // "AONSA" -> "VARC: 1 Aeon Essay"
   // "VARC: 5 root words" / "5 root words" -> "VARC: Vocabulary Practice"
@@ -236,6 +242,7 @@ export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: strin
   const existing = migratedGoals.filter((g) => g.date === dateStr);
   const toAdd: DailyGoalItem[] = [];
 
+  // 1. Ensure the 4 mandatory default goals
   DEFAULT_DAILY_GOALS_LIST.forEach((tmpl, i) => {
     const alreadyExists = existing.some(
       (g) => g.title.trim().toLowerCase() === tmpl.title.trim().toLowerCase() ||
@@ -252,6 +259,61 @@ export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: strin
       });
     }
   });
+
+  // 2. Ensure the 3 grid-derived goals (Quant, DILR, VARC) if activePlan is available
+  if (activePlan) {
+    const d = new Date(dateStr);
+    const dayIdx = (d.getDay() + 6) % 7; // 0 = Mon, 1 = Tue, ..., 6 = Sun
+    const alloc = activePlan.dailyGrid?.[dayIdx];
+
+    // Quant
+    const hasQuantGoal = existing.some(
+      (g) => g.section === 'Quant' && !g.title.toLowerCase().includes('vedic') && !g.title.toLowerCase().includes('speed math')
+    );
+    if (!hasQuantGoal) {
+      const qTopic = alloc?.quantTopic || (dayIdx < 5 ? (activePlan.quantPlan ? activePlan.quantPlan.slice(0, 45) : 'Arithmetic & Core Quant Drills') : (dayIdx === 5 ? 'QA Weekly Problem Consolidation' : 'Quant Mock Mistake Audit'));
+      toAdd.push({
+        id: `goal-grid-${dateStr}-quant-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        date: dateStr,
+        title: `Quant: ${qTopic}`,
+        section: 'Quant',
+        targetMinutes: alloc?.quantTargetMinutes || 45,
+        completed: false
+      });
+    }
+
+    // DILR
+    const hasDilrGoal = existing.some(
+      (g) => g.section === 'DILR' && !g.title.toLowerCase().includes('puzzle')
+    );
+    if (!hasDilrGoal) {
+      const dTopic = alloc?.dilrTopic || (dayIdx < 5 ? (activePlan.dilrPlan ? activePlan.dilrPlan.slice(0, 45) : 'Logic Reasoning & Caselets') : (dayIdx === 5 ? 'DILR Re-solve Weak Problem Sets' : 'DILR Timed Sectional Drill'));
+      toAdd.push({
+        id: `goal-grid-${dateStr}-dilr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        date: dateStr,
+        title: `DILR: ${dTopic}`,
+        section: 'DILR',
+        targetMinutes: alloc?.dilrTargetMinutes || 45,
+        completed: false
+      });
+    }
+
+    // VARC
+    const hasVarcGoal = existing.some(
+      (g) => g.section === 'VARC' && !g.title.toLowerCase().includes('aeon') && !g.title.toLowerCase().includes('vocab') && !g.title.toLowerCase().includes('root words')
+    );
+    if (!hasVarcGoal) {
+      const vTopic = alloc?.varcTopic || (dayIdx < 5 ? (activePlan.varcPlan ? activePlan.varcPlan.slice(0, 45) : 'Reading Comprehension (2 Passages)') : (dayIdx === 5 ? 'VARC Reading Notes & Speed Drill Review' : 'VARC Mock Passage Review & Analysis'));
+      toAdd.push({
+        id: `goal-grid-${dateStr}-varc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        date: dateStr,
+        title: `VARC: ${vTopic}`,
+        section: 'VARC',
+        targetMinutes: alloc?.varcTargetMinutes || 35,
+        completed: false
+      });
+    }
+  }
 
   if (toAdd.length === 0) return migratedGoals;
   return [...migratedGoals, ...toAdd];
@@ -1064,6 +1126,86 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const deleteDailyGoal = (id: string) => {
     setDailyGoals((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  const syncDayGridGoals = (dateStr: string, allocation: DayScheduleAllocation) => {
+    setDailyGoals((prev) => {
+      let updated = [...prev];
+
+      // 1. Quant sync
+      if (allocation.quantTopic && allocation.quantTopic.trim()) {
+        const fullQuantTitle = `Quant: ${allocation.quantTopic.trim()}`;
+        const existingIdx = updated.findIndex(
+          (g) => g.date === dateStr && g.section === 'Quant' && !g.title.toLowerCase().includes('vedic') && !g.title.toLowerCase().includes('speed math')
+        );
+        if (existingIdx >= 0) {
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            title: fullQuantTitle,
+            targetMinutes: allocation.quantTargetMinutes || updated[existingIdx].targetMinutes || 45
+          };
+        } else {
+          updated.push({
+            id: `goal-grid-${dateStr}-quant-${Date.now()}`,
+            date: dateStr,
+            title: fullQuantTitle,
+            section: 'Quant',
+            targetMinutes: allocation.quantTargetMinutes || 45,
+            completed: false
+          });
+        }
+      }
+
+      // 2. DILR sync
+      if (allocation.dilrTopic && allocation.dilrTopic.trim()) {
+        const fullDilrTitle = `DILR: ${allocation.dilrTopic.trim()}`;
+        const existingIdx = updated.findIndex(
+          (g) => g.date === dateStr && g.section === 'DILR' && !g.title.toLowerCase().includes('puzzle')
+        );
+        if (existingIdx >= 0) {
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            title: fullDilrTitle,
+            targetMinutes: allocation.dilrTargetMinutes || updated[existingIdx].targetMinutes || 45
+          };
+        } else {
+          updated.push({
+            id: `goal-grid-${dateStr}-dilr-${Date.now()}`,
+            date: dateStr,
+            title: fullDilrTitle,
+            section: 'DILR',
+            targetMinutes: allocation.dilrTargetMinutes || 45,
+            completed: false
+          });
+        }
+      }
+
+      // 3. VARC sync
+      if (allocation.varcTopic && allocation.varcTopic.trim()) {
+        const fullVarcTitle = `VARC: ${allocation.varcTopic.trim()}`;
+        const existingIdx = updated.findIndex(
+          (g) => g.date === dateStr && g.section === 'VARC' && !g.title.toLowerCase().includes('aeon') && !g.title.toLowerCase().includes('vocab') && !g.title.toLowerCase().includes('root words')
+        );
+        if (existingIdx >= 0) {
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            title: fullVarcTitle,
+            targetMinutes: allocation.varcTargetMinutes || updated[existingIdx].targetMinutes || 35
+          };
+        } else {
+          updated.push({
+            id: `goal-grid-${dateStr}-varc-${Date.now()}`,
+            date: dateStr,
+            title: fullVarcTitle,
+            section: 'VARC',
+            targetMinutes: allocation.varcTargetMinutes || 35,
+            completed: false
+          });
+        }
+      }
+
+      return updated;
+    });
   };
 
   const toggleAeonDate = (dateStr: string, title?: string) => {
@@ -2162,6 +2304,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         addMultipleDailyGoals,
         toggleDailyGoal,
         deleteDailyGoal,
+        syncDayGridGoals,
         aeonHabit,
         toggleAeonDate,
         markYesterdayAeonDone,

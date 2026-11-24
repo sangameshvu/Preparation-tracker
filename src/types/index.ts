@@ -59,6 +59,13 @@ export interface DayScheduleAllocation {
   badgeClass?: string;
   targetHours?: string;
   notes?: string;
+  // Three separate sections in each day's grid
+  quantTopic?: string;
+  quantTargetMinutes?: number;
+  dilrTopic?: string;
+  dilrTargetMinutes?: number;
+  varcTopic?: string;
+  varcTargetMinutes?: number;
 }
 
 export interface WeeklyPlanItem {

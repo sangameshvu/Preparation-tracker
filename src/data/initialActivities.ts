@@ -108,6 +108,31 @@ export const initialDailyGoals: DailyGoalItem[] = [
     targetMinutes: 20,
     completed: false
   },
+  // Today's 3 Grid Scheduled Section Targets (Quants, DILR, VARC)
+  {
+    id: 'goal-today-grid-quant',
+    date: today,
+    title: 'Quant: Arithmetic & Core Quant Drills',
+    section: 'Quant',
+    targetMinutes: 45,
+    completed: false
+  },
+  {
+    id: 'goal-today-grid-dilr',
+    date: today,
+    title: 'DILR: Logic Reasoning & Caselets',
+    section: 'DILR',
+    targetMinutes: 45,
+    completed: false
+  },
+  {
+    id: 'goal-today-grid-varc',
+    date: today,
+    title: 'VARC: Reading Comprehension (2 Passages)',
+    section: 'VARC',
+    targetMinutes: 35,
+    completed: false
+  },
   // Yesterday's Completed Seed Goals (Demonstrates calendar history & streak)
   {
     id: 'goal-yesterday-1',
