@@ -78,9 +78,10 @@ export const WeeklyPlannerPage: React.FC = () => {
   } = useAppData();
 
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
+  const currentActivePlan = weeklyPlans.find((w) => w.weekNumber === stats.currentWeek) || weeklyPlans[0];
   const todaySchedule = useMemo(() => {
-    return getDailyScheduleFocus(new Date(), stats.currentWeek);
-  }, [stats.currentWeek]);
+    return getDailyScheduleFocus(new Date(), stats.currentWeek, currentActivePlan);
+  }, [stats.currentWeek, currentActivePlan]);
 
   const [selectedWeekNum, setSelectedWeekNum] = useState<number>(stats.currentWeek);
   const [viewMode, setViewMode] = useState<'weekly' | 'calendar' | 'kanban' | 'table'>('weekly');
@@ -535,7 +536,14 @@ export const WeeklyPlannerPage: React.FC = () => {
       }
     };
     updateWeeklyPlan(selectedPlan.id, { dailyGrid: updatedGrid });
-    toast.success(`Updated ${daysOfWeek[editingDayIdx]} schedule for Week ${selectedPlan.weekNumber}!`);
+
+    const todayDayIdx = (new Date().getDay() + 6) % 7;
+    const isToday = editingDayIdx === todayDayIdx && selectedPlan.weekNumber === stats.currentWeek;
+    if (isToday) {
+      toast.success(`Updated ${daysOfWeek[editingDayIdx]} 7-Day Grid! Today's scheduled targets updated.`);
+    } else {
+      toast.success(`Updated ${daysOfWeek[editingDayIdx]} schedule for Week ${selectedPlan.weekNumber}!`);
+    }
     setEditingDayIdx(null);
   };
 
@@ -745,75 +753,101 @@ export const WeeklyPlannerPage: React.FC = () => {
 
       {/* Daily Goals Vertical List & Intake Prompt */}
         <div className="flex flex-col gap-2.5 pt-4">
-          {todayGoals.length === 0 ? (
-            <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-white/70 dark:bg-slate-900/40 p-4 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-xs font-bold text-foreground">
-                    What are your targets for today?
-                  </h4>
-                  <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">
-                    ({todaySchedule.formattedDate})
-                  </span>
-                </div>
+          {/* 7-Day Grid Scheduled Targets & Quick Add Bar */}
+          <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/40 bg-white/70 dark:bg-slate-900/40 p-3.5 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  7-Day Grid Focus ({todaySchedule.dayName}):
+                </span>
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                  {todaySchedule.primarySubjects}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  ({todaySchedule.formattedDate})
+                </span>
+              </div>
+              {todaySchedule.suggestedGoals.some(
+                (sg) => !todayGoals.some((g) => g.title.toLowerCase() === sg.title.toLowerCase())
+              ) && (
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => addMultipleDailyGoals(todaySchedule.suggestedGoals)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg h-8 px-3 shrink-0 self-start sm:self-auto flex items-center gap-1.5"
+                  onClick={() => {
+                    const toAdd = todaySchedule.suggestedGoals.filter(
+                      (sg) => !todayGoals.some((g) => g.title.toLowerCase() === sg.title.toLowerCase())
+                    );
+                    if (toAdd.length > 0) addMultipleDailyGoals(toAdd);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg h-7 px-3 shrink-0 self-start sm:self-auto flex items-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="h-3 w-3 text-amber-300" />
-                  <span>Add All Scheduled Targets</span>
+                  <span>Add Scheduled Grid Targets</span>
                 </Button>
-              </div>
+              )}
+            </div>
 
-              {/* Quick Add Pills */}
-              <div className="flex items-center gap-2 flex-wrap pt-0.5">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
-                  Quick Add:
-                </span>
-                {todaySchedule.suggestedGoals.map((sg, idx) => {
-                  const chipClass =
-                    sg.section === 'Quant'
-                      ? 'chip-quant'
-                      : sg.section === 'DILR'
-                      ? 'chip-dilr'
-                      : sg.section === 'VARC'
-                      ? 'chip-varc'
-                      : 'chip-general';
+            {/* Quick Add Pills */}
+            <div className="flex items-center gap-2 flex-wrap pt-0.5">
+              <span className="text-[11px] font-semibold text-muted-foreground mr-1">
+                Scheduled Targets:
+              </span>
+              {todaySchedule.suggestedGoals.map((sg, idx) => {
+                const isAlreadyAdded = todayGoals.some(
+                  (g) => g.title.toLowerCase() === sg.title.toLowerCase()
+                );
+                const chipClass =
+                  sg.section === 'Quant'
+                    ? 'chip-quant'
+                    : sg.section === 'DILR'
+                    ? 'chip-dilr'
+                    : sg.section === 'VARC'
+                    ? 'chip-varc'
+                    : 'chip-general';
 
-                  return (
-                    <RadixTooltip key={idx}>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            addDailyGoal({
-                              date: todayDateStr,
-                              title: sg.title,
-                              section: sg.section,
-                              targetMinutes: sg.targetMinutes,
-                              completed: false
-                            })
-                          }
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95',
-                            chipClass
-                          )}
-                        >
-                          <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-                          <span>{sg.shortTitle || sg.section}</span>
-                          <span className="opacity-70 font-mono text-[10px] font-semibold">({sg.targetMinutes}m)</span>
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
-                        <p className="font-semibold text-foreground">{sg.title}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Click to add target ({sg.targetMinutes}m in {sg.section})</p>
-                      </TooltipContent>
-                    </RadixTooltip>
-                  );
-                })}
-              </div>
+                return (
+                  <RadixTooltip key={idx}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={isAlreadyAdded}
+                        onClick={() =>
+                          addDailyGoal({
+                            date: todayDateStr,
+                            title: sg.title,
+                            section: sg.section,
+                            targetMinutes: sg.targetMinutes,
+                            completed: false
+                          })
+                        }
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all shadow-2xs',
+                          isAlreadyAdded
+                            ? 'opacity-60 cursor-not-allowed border-slate-300 bg-slate-100 dark:border-slate-800 dark:bg-slate-900 text-slate-500'
+                            : `${chipClass} cursor-pointer hover:scale-105 active:scale-95`
+                        )}
+                      >
+                        {isAlreadyAdded ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3 stroke-[2.5]" />}
+                        <span>{sg.shortTitle || sg.section}</span>
+                        <span className="opacity-70 font-mono text-[10px] font-semibold">({sg.targetMinutes}m)</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-xs p-2.5 leading-relaxed">
+                      <p className="font-semibold text-foreground">{sg.title}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {isAlreadyAdded ? 'Already added to today’s goals' : `Click to add target (${sg.targetMinutes}m in ${sg.section})`}
+                      </p>
+                    </TooltipContent>
+                  </RadixTooltip>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Daily Goals Cards List */}
+          {todayGoals.length === 0 ? (
+            <div className="text-center py-6 text-xs text-muted-foreground border border-dashed rounded-xl">
+              No daily goals scheduled for today. Click any target pill above or "+ Add Goal" to add one!
             </div>
           ) : (
             todayGoals.map((goal) => {

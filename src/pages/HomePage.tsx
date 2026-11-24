@@ -79,10 +79,13 @@ export const HomePage: React.FC = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  // Current alternating study schedule focus (e.g. VARC + DILR, VARC + QA, Revision)
+  // Current active plan
+  const activePlan = weeklyPlans.find((p) => p.weekNumber === stats.currentWeek) || weeklyPlans[0];
+
+  // Current alternating study schedule focus (e.g. VARC + DILR, VARC + QA, Revision, or from 7-Day Grid)
   const todaySchedule = useMemo(() => {
-    return getDailyScheduleFocus(new Date(), stats.currentWeek);
-  }, [stats.currentWeek]);
+    return getDailyScheduleFocus(new Date(), stats.currentWeek, activePlan);
+  }, [stats.currentWeek, activePlan]);
 
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
 
@@ -94,9 +97,6 @@ export const HomePage: React.FC = () => {
   const [newGoalMinutes, setNewGoalMinutes] = useState(45);
   const [recentActivityExpanded, setRecentActivityExpanded] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
-
-  // Current active plan
-  const activePlan = weeklyPlans.find((p) => p.weekNumber === stats.currentWeek) || weeklyPlans[0];
 
   // Weak topics (confidence <= 2)
   const weakTopics = useMemo(() => {

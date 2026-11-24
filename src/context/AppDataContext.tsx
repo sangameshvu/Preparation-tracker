@@ -19,6 +19,7 @@ import {
   StudyActivityItem,
   DailyGoalItem,
   AeonHabitState,
+  DailyPracticeHabitState,
   SectionType
 } from '../types';
 import { initialPhases } from '../data/phases';
@@ -29,7 +30,7 @@ import { initialRoutines } from '../data/routines';
 import { initialGuideSections } from '../data/guideSections';
 import { initialStudyNotes } from '../data/initialNotes';
 import { initialMockTests, initialMistakes } from '../data/initialMockAndMistake';
-import { initialActivities, initialDailyGoals, initialAeonCompletedDates } from '../data/initialActivities';
+import { initialActivities, initialDailyGoals, initialAeonCompletedDates, initialPuzzleCompletedDates, initialSpeedMathCompletedDates } from '../data/initialActivities';
 import { addDays, subDays, differenceInCalendarDays, parseISO, format, startOfWeek, differenceInCalendarWeeks } from 'date-fns';
 import { calculateStreak } from '../utils/streakCalculator';
 import { loadUserVocabProgress, saveUserVocabProgress } from '../services/vocabStorage';
@@ -145,6 +146,14 @@ interface AppDataContextType {
   toggleAeonDate: (dateStr: string, title?: string) => void;
   markYesterdayAeonDone: (title?: string) => void;
   markTodayAeonDone: (title?: string) => void;
+  puzzleHabit: DailyPracticeHabitState;
+  togglePuzzleDate: (dateStr: string, title?: string) => void;
+  markYesterdayPuzzleDone: (title?: string) => void;
+  markTodayPuzzleDone: (title?: string) => void;
+  speedMathHabit: DailyPracticeHabitState;
+  toggleSpeedMathDate: (dateStr: string, title?: string) => void;
+  markYesterdaySpeedMathDone: (title?: string) => void;
+  markTodaySpeedMathDone: (title?: string) => void;
   stats: DashboardStats;
   resetAllData: () => void;
 }
@@ -174,9 +183,19 @@ export const DEFAULT_DAILY_GOALS_LIST: Array<{
     targetMinutes: 35
   },
   {
-    title: 'VARC: 5 root words',
+    title: 'VARC: Vocabulary Practice', // Renamed from 'VARC: 5 root words'
     section: 'VARC',
-    targetMinutes: 15
+    targetMinutes: 20
+  },
+  {
+    title: 'Quant: Vedic Math / Speed Math',
+    section: 'Quant',
+    targetMinutes: 20
+  },
+  {
+    title: 'DILR: Daily Puzzle',
+    section: 'DILR',
+    targetMinutes: 20
   }
 ];
 
@@ -194,12 +213,21 @@ export function ensureUniqueTaskIds(items: StudyTask[]): StudyTask[] {
 }
 
 export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: string): DailyGoalItem[] {
-  // First, migrate any legacy "AONSA" goals to "VARC: 1 Aeon Essay"
+  // First, migrate any legacy goals:
+  // "AONSA" -> "VARC: 1 Aeon Essay"
+  // "VARC: 5 root words" / "5 root words" -> "VARC: Vocabulary Practice"
   const migratedGoals = goals.map((g) => {
-    if (g.title.trim().toLowerCase().includes('aonsa')) {
+    const lower = g.title.trim().toLowerCase();
+    if (lower.includes('aonsa')) {
       return {
         ...g,
         title: 'VARC: 1 Aeon Essay'
+      };
+    }
+    if (lower.includes('root words') || lower.includes('5 root words')) {
+      return {
+        ...g,
+        title: 'VARC: Vocabulary Practice'
       };
     }
     return g;
@@ -210,7 +238,8 @@ export function ensureDefaultGoalsForDate(goals: DailyGoalItem[], dateStr: strin
 
   DEFAULT_DAILY_GOALS_LIST.forEach((tmpl, i) => {
     const alreadyExists = existing.some(
-      (g) => g.title.trim().toLowerCase() === tmpl.title.trim().toLowerCase()
+      (g) => g.title.trim().toLowerCase() === tmpl.title.trim().toLowerCase() ||
+        (tmpl.title.includes('Vocabulary') && g.title.toLowerCase().includes('root words'))
     );
     if (!alreadyExists) {
       toAdd.push({
@@ -459,6 +488,78 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [aeonCompletedDates, aeonHabit]);
 
+  // Daily Puzzle Habit State (BrainBashers DILR Workout)
+  const [puzzleCompletedDates, setPuzzleCompletedDates] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('cat2027_puzzle_dates');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading cat2027_puzzle_dates from storage', e);
+    }
+    return initialPuzzleCompletedDates;
+  });
+
+  const puzzleStreakData = useMemo(() => calculateStreak(puzzleCompletedDates), [puzzleCompletedDates]);
+
+  const puzzleHabit: DailyPracticeHabitState = useMemo(() => ({
+    completedDates: puzzleCompletedDates,
+    streak: puzzleStreakData.currentStreak,
+    bestStreak: puzzleStreakData.bestStreak,
+    totalCompleted: puzzleCompletedDates.length,
+    lastCompletedDate: puzzleStreakData.lastActiveDate,
+    isYesterdayDone: puzzleStreakData.isYesterdayDone,
+    isTodayDone: puzzleStreakData.isTodayDone,
+    streakAtRisk: puzzleStreakData.streakAtRisk,
+    previousStreakLength: puzzleStreakData.previousStreakLength
+  }), [puzzleCompletedDates, puzzleStreakData]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cat2027_puzzle_dates', JSON.stringify(puzzleCompletedDates));
+    } catch (e) {
+      console.error('Error saving cat2027_puzzle_dates to storage', e);
+    }
+  }, [puzzleCompletedDates]);
+
+  // Vedic Math & Speed Calculation Habit State (Quant Calculation Drills)
+  const [speedMathCompletedDates, setSpeedMathCompletedDates] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('cat2027_speed_math_dates');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Error loading cat2027_speed_math_dates from storage', e);
+    }
+    return initialSpeedMathCompletedDates;
+  });
+
+  const speedMathStreakData = useMemo(() => calculateStreak(speedMathCompletedDates), [speedMathCompletedDates]);
+
+  const speedMathHabit: DailyPracticeHabitState = useMemo(() => ({
+    completedDates: speedMathCompletedDates,
+    streak: speedMathStreakData.currentStreak,
+    bestStreak: speedMathStreakData.bestStreak,
+    totalCompleted: speedMathCompletedDates.length,
+    lastCompletedDate: speedMathStreakData.lastActiveDate,
+    isYesterdayDone: speedMathStreakData.isYesterdayDone,
+    isTodayDone: speedMathStreakData.isTodayDone,
+    streakAtRisk: speedMathStreakData.streakAtRisk,
+    previousStreakLength: speedMathStreakData.previousStreakLength
+  }), [speedMathCompletedDates, speedMathStreakData]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cat2027_speed_math_dates', JSON.stringify(speedMathCompletedDates));
+    } catch (e) {
+      console.error('Error saving cat2027_speed_math_dates to storage', e);
+    }
+  }, [speedMathCompletedDates]);
+
   const todayDateStr = format(new Date(), 'yyyy-MM-dd');
   const todayGoals = useMemo(() => {
     return dailyGoals.filter((g) => g.date === todayDateStr);
@@ -602,6 +703,20 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         totalRead: aeonCompletedDates.length,
         lastReadDate: aeonHabit.lastReadDate
       },
+      puzzleHabit: {
+        completedDates: puzzleCompletedDates,
+        streak: puzzleHabit.streak,
+        bestStreak: puzzleHabit.bestStreak,
+        totalCompleted: puzzleCompletedDates.length,
+        lastCompletedDate: puzzleHabit.lastCompletedDate
+      },
+      speedMathHabit: {
+        completedDates: speedMathCompletedDates,
+        streak: speedMathHabit.streak,
+        bestStreak: speedMathHabit.bestStreak,
+        totalCompleted: speedMathCompletedDates.length,
+        lastCompletedDate: speedMathHabit.lastCompletedDate
+      },
       vocabProgress: loadUserVocabProgress(profile.id)
     };
   }, [
@@ -620,7 +735,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     activities,
     dailyGoals,
     aeonCompletedDates,
-    aeonHabit
+    aeonHabit,
+    puzzleCompletedDates,
+    puzzleHabit,
+    speedMathCompletedDates,
+    speedMathHabit
   ]);
 
   const hydrateFromVault = useCallback((data: any) => {
@@ -651,6 +770,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
       if (data.aeonHabit && data.aeonHabit.completedDates) {
         setAeonCompletedDates(data.aeonHabit.completedDates);
+      }
+      if (data.puzzleHabit && data.puzzleHabit.completedDates) {
+        setPuzzleCompletedDates(data.puzzleHabit.completedDates);
+      }
+      if (data.speedMathHabit && data.speedMathHabit.completedDates) {
+        setSpeedMathCompletedDates(data.speedMathHabit.completedDates);
       }
       if (data.vocabProgress) {
         saveUserVocabProgress(data.vocabProgress);
@@ -887,16 +1012,47 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       prev.map((g) => {
         if (g.id !== id) return g;
         const nowCompleted = !g.completed;
+        const goalDate = g.date || format(new Date(), 'yyyy-MM-dd');
+
         if (nowCompleted) {
           addActivity({
-            date: g.date || format(new Date(), 'yyyy-MM-dd'),
+            date: goalDate,
             category: 'goal',
             title: `Completed Goal: ${g.title}`,
             details: `Daily target achieved: ${g.targetMinutes}m (${g.section}).`,
             section: g.section,
             durationMinutes: g.targetMinutes
           });
+
+          // Synchronize habit streaks when goals are completed
+          if (g.title.toLowerCase().includes('aeon')) {
+            if (!aeonCompletedDates.includes(goalDate)) {
+              setAeonCompletedDates((d) => [...d, goalDate]);
+            }
+          }
+          if (g.title.toLowerCase().includes('puzzle')) {
+            if (!puzzleCompletedDates.includes(goalDate)) {
+              setPuzzleCompletedDates((d) => [...d, goalDate]);
+            }
+          }
+          if (g.title.toLowerCase().includes('vedic') || g.title.toLowerCase().includes('speed math')) {
+            if (!speedMathCompletedDates.includes(goalDate)) {
+              setSpeedMathCompletedDates((d) => [...d, goalDate]);
+            }
+          }
+        } else {
+          // Deselecting habit dates
+          if (g.title.toLowerCase().includes('aeon')) {
+            setAeonCompletedDates((d) => d.filter((x) => x !== goalDate));
+          }
+          if (g.title.toLowerCase().includes('puzzle')) {
+            setPuzzleCompletedDates((d) => d.filter((x) => x !== goalDate));
+          }
+          if (g.title.toLowerCase().includes('vedic') || g.title.toLowerCase().includes('speed math')) {
+            setSpeedMathCompletedDates((d) => d.filter((x) => x !== goalDate));
+          }
         }
+
         return {
           ...g,
           completed: nowCompleted,
@@ -983,6 +1139,170 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const simulatedDates = [...aeonCompletedDates, todayStr];
     const newStreak = calculateStreak(simulatedDates).currentStreak;
     toast.success(`🎉 Great job! Today's Aeon essay completed! Current streak: ${newStreak} days.`);
+  };
+
+  const togglePuzzleDate = (dateStr: string, title?: string) => {
+    const isAlreadyDone = puzzleCompletedDates.includes(dateStr);
+    const updatedDates = isAlreadyDone
+      ? puzzleCompletedDates.filter((d) => d !== dateStr)
+      : [...puzzleCompletedDates, dateStr];
+
+    setPuzzleCompletedDates(updatedDates);
+
+    if (!isAlreadyDone) {
+      addActivity({
+        date: dateStr,
+        category: 'goal',
+        title: title || 'Completed Goal: Daily DILR Puzzle (BrainBashers)',
+        details: 'Daily target achieved: 20m in DILR (Lateral Thinking & Grid Deductions).',
+        section: 'DILR',
+        durationMinutes: 20
+      });
+
+      setDailyGoals((prev) => {
+        const hasGoal = prev.some(
+          (g) => g.date === dateStr && g.section === 'DILR' && g.title.toLowerCase().includes('puzzle')
+        );
+        if (!hasGoal) {
+          const newGoal: DailyGoalItem = {
+            id: `goal-puzzle-${dateStr}-${Date.now()}`,
+            date: dateStr,
+            title: 'DILR: Daily Puzzle',
+            section: 'DILR',
+            targetMinutes: 20,
+            completed: true,
+            completedAt: new Date().toISOString()
+          };
+          return [newGoal, ...prev];
+        }
+        return prev.map((g) => {
+          if (g.date === dateStr && g.section === 'DILR' && g.title.toLowerCase().includes('puzzle')) {
+            return { ...g, completed: true, completedAt: new Date().toISOString() };
+          }
+          return g;
+        });
+      });
+    } else {
+      setDailyGoals((prev) =>
+        prev.map((g) =>
+          g.date === dateStr && g.section === 'DILR' && g.title.toLowerCase().includes('puzzle')
+            ? { ...g, completed: false, completedAt: undefined }
+            : g
+        )
+      );
+    }
+  };
+
+  const markYesterdayPuzzleDone = (title?: string) => {
+    const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    if (puzzleCompletedDates.includes(yesterdayStr)) {
+      toast.info("Yesterday's DILR puzzle is already marked as done!");
+      return;
+    }
+    togglePuzzleDate(
+      yesterdayStr,
+      title || "Completed Goal: Yesterday's DILR Puzzle (Streak Protected)"
+    );
+    const simulatedDates = [...puzzleCompletedDates, yesterdayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🔥 Streak Protected! Yesterday's puzzle marked done. Current streak: ${newStreak} days!`);
+  };
+
+  const markTodayPuzzleDone = (title?: string) => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    if (puzzleCompletedDates.includes(todayStr)) {
+      toast.info("Today's DILR puzzle is already marked as done!");
+      return;
+    }
+    togglePuzzleDate(
+      todayStr,
+      title || "Completed Goal: Today's DILR Puzzle"
+    );
+    const simulatedDates = [...puzzleCompletedDates, todayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🎉 Great job! Today's DILR puzzle completed! Current streak: ${newStreak} days.`);
+  };
+
+  const toggleSpeedMathDate = (dateStr: string, title?: string) => {
+    const isAlreadyDone = speedMathCompletedDates.includes(dateStr);
+    const updatedDates = isAlreadyDone
+      ? speedMathCompletedDates.filter((d) => d !== dateStr)
+      : [...speedMathCompletedDates, dateStr];
+
+    setSpeedMathCompletedDates(updatedDates);
+
+    if (!isAlreadyDone) {
+      addActivity({
+        date: dateStr,
+        category: 'goal',
+        title: title || 'Completed Goal: Vedic Math & Speed Calculation',
+        details: 'Daily target achieved: 20m in Quant (Fast Arithmetic & Reciprocals).',
+        section: 'Quant',
+        durationMinutes: 20
+      });
+
+      setDailyGoals((prev) => {
+        const hasGoal = prev.some(
+          (g) => g.date === dateStr && g.section === 'Quant' && (g.title.toLowerCase().includes('vedic') || g.title.toLowerCase().includes('speed math'))
+        );
+        if (!hasGoal) {
+          const newGoal: DailyGoalItem = {
+            id: `goal-speedmath-${dateStr}-${Date.now()}`,
+            date: dateStr,
+            title: 'Quant: Vedic Math / Speed Math',
+            section: 'Quant',
+            targetMinutes: 20,
+            completed: true,
+            completedAt: new Date().toISOString()
+          };
+          return [newGoal, ...prev];
+        }
+        return prev.map((g) => {
+          if (g.date === dateStr && g.section === 'Quant' && (g.title.toLowerCase().includes('vedic') || g.title.toLowerCase().includes('speed math'))) {
+            return { ...g, completed: true, completedAt: new Date().toISOString() };
+          }
+          return g;
+        });
+      });
+    } else {
+      setDailyGoals((prev) =>
+        prev.map((g) =>
+          g.date === dateStr && g.section === 'Quant' && (g.title.toLowerCase().includes('vedic') || g.title.toLowerCase().includes('speed math'))
+            ? { ...g, completed: false, completedAt: undefined }
+            : g
+        )
+      );
+    }
+  };
+
+  const markYesterdaySpeedMathDone = (title?: string) => {
+    const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    if (speedMathCompletedDates.includes(yesterdayStr)) {
+      toast.info("Yesterday's speed math drill is already marked as done!");
+      return;
+    }
+    toggleSpeedMathDate(
+      yesterdayStr,
+      title || "Completed Goal: Yesterday's Vedic Math (Streak Protected)"
+    );
+    const simulatedDates = [...speedMathCompletedDates, yesterdayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🔥 Streak Protected! Yesterday's speed math marked done. Current streak: ${newStreak} days!`);
+  };
+
+  const markTodaySpeedMathDone = (title?: string) => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    if (speedMathCompletedDates.includes(todayStr)) {
+      toast.info("Today's speed math drill is already marked as done!");
+      return;
+    }
+    toggleSpeedMathDate(
+      todayStr,
+      title || "Completed Goal: Today's Vedic Math"
+    );
+    const simulatedDates = [...speedMathCompletedDates, todayStr];
+    const newStreak = calculateStreak(simulatedDates).currentStreak;
+    toast.success(`🎉 Great job! Today's Vedic math completed! Current streak: ${newStreak} days.`);
   };
 
   const updateProfile = (updates: Partial<UserProfile>) => {
@@ -1746,6 +2066,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       (m) => !m.reSolved && m.revisitDate < todayStr
     ).length;
 
+    const overallCurrentStreak = Math.max(aeonHabit.streak, puzzleHabit.streak, speedMathHabit.streak);
+    const overallBestStreak = Math.max(aeonHabit.bestStreak, puzzleHabit.bestStreak, speedMathHabit.bestStreak);
+    const isTodayAnyDone = aeonHabit.isTodayDone || puzzleHabit.isTodayDone || speedMathHabit.isTodayDone;
+    const isYesterdayAnyDone = aeonHabit.isYesterdayDone || puzzleHabit.isYesterdayDone || speedMathHabit.isYesterdayDone;
+
     return {
       daysRemaining,
       currentWeek,
@@ -1761,13 +2086,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       averageMockScore,
       pendingMistakesCount,
       overdueMistakesCount,
-      currentStreak: aeonHabit.streak,
-      bestStreak: aeonHabit.bestStreak,
-      isYesterdayDone: aeonHabit.isYesterdayDone,
-      isTodayDone: aeonHabit.isTodayDone,
-      streakAtRisk: aeonHabit.streakAtRisk
+      currentStreak: overallCurrentStreak,
+      bestStreak: overallBestStreak,
+      isYesterdayDone: isYesterdayAnyDone,
+      isTodayDone: isTodayAnyDone,
+      streakAtRisk: aeonHabit.streakAtRisk && puzzleHabit.streakAtRisk && speedMathHabit.streakAtRisk
     };
-  }, [profile, topicProgress, mockTests, mistakes, aeonHabit]);
+  }, [profile, topicProgress, mockTests, mistakes, aeonHabit, puzzleHabit, speedMathHabit]);
 
   return (
     <AppDataContext.Provider
@@ -1841,6 +2166,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         toggleAeonDate,
         markYesterdayAeonDone,
         markTodayAeonDone,
+        puzzleHabit,
+        togglePuzzleDate,
+        markYesterdayPuzzleDone,
+        markTodayPuzzleDone,
+        speedMathHabit,
+        toggleSpeedMathDate,
+        markYesterdaySpeedMathDone,
+        markTodaySpeedMathDone,
         stats,
         resetAllData
       }}

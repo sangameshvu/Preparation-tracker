@@ -1,13 +1,13 @@
 import { format, parseISO, differenceInCalendarDays, getDay } from 'date-fns';
-import { SectionType } from '../types';
+import { SectionType, WeeklyPlanItem, DayScheduleAllocation } from '../types';
 
 export interface DailyScheduleFocus {
   dayName: string;
   dateString: string; // 'yyyy-MM-dd'
   formattedDate: string; // 'Friday, Nov 20'
-  primarySubjects: 'VARC + DILR' | 'VARC + QA' | 'Weekly Revision' | 'Weekly Revision & Mock';
+  primarySubjects: string;
   shortBadge: string;
-  focusType: 'dilr' | 'qa' | 'revision';
+  focusType: 'dilr' | 'qa' | 'revision' | 'custom';
   subjectTitle: string;
   description: string;
   alternatingSubject: SectionType;
@@ -20,25 +20,118 @@ export interface DailyScheduleFocus {
 }
 
 /**
- * Computes today's alternating study focus according to the rule:
- * - Daily Core: VARC every single day (Editorial / Aeon essay + RC)
- * - Weekdays (Mon-Fri): Alternating between Quant (QA) and DI (DILR)
- *   Odd Weeks: Mon (QA), Tue (DI), Wed (QA), Thu (DI), Fri (QA)
- *   Even Weeks: Mon (DI), Tue (QA), Wed (DI), Thu (QA), Fri (DI)
- * - Weekends (Sat-Sun): Dedicated to comprehensive revision
- *   Sat: Weekly Revision (Consolidate QA, DI, VARC)
- *   Sun: Weekly Revision & Mock Review (Mistake log audit + test recap)
+ * Computes today's study focus based on the active week's 7-Day Grid allocation:
+ * - If the 7-day grid has a customized allocation for today (Mon-Sun), it dynamically
+ *   derives the subject targets for VARC, DILR, and Quant directly from that day's entry.
+ * - Otherwise falls back to the canonical alternating schedule:
+ *   - Daily Core: VARC every single day (Editorial / Aeon essay + RC)
+ *   - Weekdays: Alternating between Quant (QA) and DI (DILR) based on Odd/Even week cycle
+ *   - Weekends: Saturday Consolidation & Sunday Mock/Mistake review
  */
 export function getDailyScheduleFocus(
   targetDate: Date = new Date(),
-  currentWeekNumber: number = 1
+  currentWeekNumber: number = 1,
+  activePlan?: WeeklyPlanItem
 ): DailyScheduleFocus {
   const dateString = format(targetDate, 'yyyy-MM-dd');
   const dayName = format(targetDate, 'EEEE');
   const formattedDate = format(targetDate, 'EEEE, MMM d');
   const dayOfWeek = getDay(targetDate); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const dayIdx = (dayOfWeek + 6) % 7; // Monday-based index: 0 = Mon, 1 = Tue, ..., 6 = Sun
   const isOddWeek = currentWeekNumber % 2 !== 0;
 
+  // 1. Check if the active plan has a customized 7-Day Grid allocation for today
+  const gridAlloc: DayScheduleAllocation | undefined = activePlan?.dailyGrid?.[dayIdx];
+
+  if (gridAlloc) {
+    const title = gridAlloc.title || '';
+    const desc = gridAlloc.description || '';
+    const badge = gridAlloc.badgeLabel || '';
+    const notes = gridAlloc.notes || '';
+    const targetHoursNum = parseFloat(gridAlloc.targetHours || '2.5') || 2.5;
+
+    const combinedText = `${title} ${desc} ${badge} ${notes}`.toLowerCase();
+    const hasVarc = combinedText.includes('varc') || combinedText.includes('rc') || combinedText.includes('verbal') || combinedText.includes('reading') || combinedText.includes('va');
+    const hasDilr = combinedText.includes('dilr') || combinedText.includes('di') || combinedText.includes('lr') || combinedText.includes('caselet') || combinedText.includes('puzzle') || combinedText.includes('arrangement');
+    const hasQuant = combinedText.includes('quant') || combinedText.includes('qa') || combinedText.includes('math') || combinedText.includes('arithmetic') || combinedText.includes('algebra') || combinedText.includes('geometry') || combinedText.includes('number');
+    const isRevision = combinedText.includes('revision') || combinedText.includes('review') || combinedText.includes('mock');
+
+    const suggestedGoals: Array<{
+      title: string;
+      shortTitle?: string;
+      section: SectionType;
+      targetMinutes: number;
+    }> = [];
+
+    // Extract custom notes excerpt if user wrote specific topic tasks in notes
+    const cleanNotes = notes.trim();
+
+    if (hasQuant) {
+      const qTitle = cleanNotes && (cleanNotes.toLowerCase().includes('quant') || cleanNotes.toLowerCase().includes('qa') || cleanNotes.toLowerCase().includes('math') || cleanNotes.toLowerCase().includes('percent') || cleanNotes.toLowerCase().includes('number'))
+        ? `Quant: ${cleanNotes.slice(0, 50)}`
+        : `Quant: Concept Problem Solving & Core Drills`;
+      suggestedGoals.push({
+        title: qTitle,
+        shortTitle: 'Quant Drills',
+        section: 'Quant',
+        targetMinutes: Math.round(targetHoursNum * 30) || 60
+      });
+    }
+
+    if (hasDilr) {
+      const dTitle = cleanNotes && (cleanNotes.toLowerCase().includes('di') || cleanNotes.toLowerCase().includes('lr') || cleanNotes.toLowerCase().includes('caselet') || cleanNotes.toLowerCase().includes('arrangement'))
+        ? `DILR: ${cleanNotes.slice(0, 50)}`
+        : `DILR: Solve Practice Caselets & Reasoning Sets`;
+      suggestedGoals.push({
+        title: dTitle,
+        shortTitle: 'DILR Sets',
+        section: 'DILR',
+        targetMinutes: Math.round(targetHoursNum * 25) || 50
+      });
+    }
+
+    if (hasVarc) {
+      suggestedGoals.push({
+        title: `VARC: Reading Comprehension Practice (2 Passages)`,
+        shortTitle: 'VARC RC',
+        section: 'VARC',
+        targetMinutes: 45
+      });
+    }
+
+    if (isRevision && suggestedGoals.length === 0) {
+      suggestedGoals.push({
+        title: 'Weekly Revision: Consolidate QA, DILR & VARC Problem Sets',
+        shortTitle: 'Weekly Revision',
+        section: 'General',
+        targetMinutes: 60
+      });
+    }
+
+    const primarySection: SectionType = hasQuant ? 'Quant' : hasDilr ? 'DILR' : hasVarc ? 'VARC' : 'General';
+
+    return {
+      dayName,
+      dateString,
+      formattedDate,
+      primarySubjects: title || (badge ? `Focus: ${badge}` : '7-Day Grid Focus'),
+      shortBadge: badge || 'Grid Plan',
+      focusType: hasDilr ? 'dilr' : hasQuant ? 'qa' : isRevision ? 'revision' : 'custom',
+      subjectTitle: title || `7-Day Grid: ${dayName} Focus`,
+      description: desc || notes || `Today's targets set according to your 7-Day Grid (${badge || dayName}).`,
+      alternatingSubject: primarySection,
+      suggestedGoals: suggestedGoals.length > 0 ? suggestedGoals : [
+        {
+          title: `${title || 'Daily Targets'}: Core Problem Sets (${badge || 'Study'})`,
+          shortTitle: badge || 'Grid Targets',
+          section: primarySection,
+          targetMinutes: 60
+        }
+      ]
+    };
+  }
+
+  // 2. Canonical Alternating & Weekend Fallback if not customized in 7-Day Grid
   // Weekend: Saturday
   if (dayOfWeek === 6) {
     return {
@@ -219,4 +312,3 @@ export function isTopicInWeek(planWeek: string | undefined | null, targetWeek: n
 
   return false;
 }
-

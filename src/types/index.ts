@@ -316,6 +316,18 @@ export interface AeonHabitState {
   previousStreakLength: number; // The streak length that can be preserved if yesterday is marked done
 }
 
+export interface DailyPracticeHabitState {
+  completedDates: string[];
+  streak: number;
+  bestStreak: number;
+  totalCompleted: number;
+  lastCompletedDate?: string;
+  isYesterdayDone: boolean;
+  isTodayDone: boolean;
+  streakAtRisk: boolean;
+  previousStreakLength: number;
+}
+
 export interface DashboardStats {
   daysRemaining: number;
   currentWeek: number;

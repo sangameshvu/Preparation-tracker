@@ -11,7 +11,24 @@ export const initialAeonCompletedDates: string[] = [
   fiveDaysAgo,
   fourDaysAgo,
   threeDaysAgo,
-  twoDaysAgo
+  twoDaysAgo,
+  yesterday
+];
+
+export const initialPuzzleCompletedDates: string[] = [
+  fiveDaysAgo,
+  fourDaysAgo,
+  threeDaysAgo,
+  twoDaysAgo,
+  yesterday
+];
+
+export const initialSpeedMathCompletedDates: string[] = [
+  fiveDaysAgo,
+  fourDaysAgo,
+  threeDaysAgo,
+  twoDaysAgo,
+  yesterday
 ];
 
 export const initialActivities: StudyActivityItem[] = [
@@ -58,6 +75,7 @@ export const initialActivities: StudyActivityItem[] = [
 ];
 
 export const initialDailyGoals: DailyGoalItem[] = [
+  // Today's 4 Mandatory Goals (Pending by default)
   {
     id: 'goal-today-default-1',
     date: today,
@@ -69,61 +87,67 @@ export const initialDailyGoals: DailyGoalItem[] = [
   {
     id: 'goal-today-default-2',
     date: today,
-    title: 'VARC: 5 root words',
+    title: 'VARC: Vocabulary Practice', // Formerly 'VARC: 5 root words'
     section: 'VARC',
-    targetMinutes: 15,
+    targetMinutes: 20,
     completed: false
   },
   {
-    id: 'goal-seed-1',
-    date: yesterday,
-    title: 'Diagnostic Fraction to % Drills (1/2 to 1/20)',
+    id: 'goal-today-default-3',
+    date: today,
+    title: 'Quant: Vedic Math / Speed Math',
     section: 'Quant',
-    targetMinutes: 45,
-    completed: true,
-    completedAt: new Date(Date.now() - 86400000).toISOString()
+    targetMinutes: 20,
+    completed: false
   },
   {
-    id: 'goal-seed-2',
+    id: 'goal-today-default-4',
+    date: today,
+    title: 'DILR: Daily Puzzle',
+    section: 'DILR',
+    targetMinutes: 20,
+    completed: false
+  },
+  // Yesterday's Completed Seed Goals (Demonstrates calendar history & streak)
+  {
+    id: 'goal-yesterday-1',
     date: yesterday,
-    title: 'Aeon Essay: Daily Long-form Reading & Main Idea Note',
+    title: 'VARC: 1 Aeon Essay',
     section: 'VARC',
     targetMinutes: 35,
-    completed: true,
-    completedAt: new Date(Date.now() - 86400000).toISOString()
+    completed: true
   },
   {
-    id: 'goal-seed-3',
+    id: 'goal-yesterday-2',
     date: yesterday,
-    title: '2 Practice Sets on Circular Seating Arrangements',
-    section: 'DILR',
-    targetMinutes: 40,
-    completed: false
+    title: 'Quant: Diagnostic Fraction to % Drills',
+    section: 'Quant',
+    targetMinutes: 45,
+    completed: true
   },
   {
-    id: 'goal-seed-4',
+    id: 'goal-yesterday-3',
+    date: yesterday,
+    title: 'DILR: Daily Puzzle',
+    section: 'DILR',
+    targetMinutes: 20,
+    completed: true
+  },
+  // Two Days Ago Completed Seed Goals
+  {
+    id: 'goal-two-days-ago-1',
     date: twoDaysAgo,
-    title: 'Daily Reading: The Philosophy of Time',
+    title: 'VARC: 1 Aeon Essay',
     section: 'VARC',
     targetMinutes: 35,
-    completed: true,
-    completedAt: new Date(Date.now() - 172800000).toISOString()
+    completed: true
   },
   {
-    id: 'goal-seed-5',
+    id: 'goal-two-days-ago-2',
     date: twoDaysAgo,
-    title: 'Multiplication Tables & Square Shortcuts 1-30',
+    title: 'Quant: Vedic Math / Speed Math',
     section: 'Quant',
-    targetMinutes: 30,
-    completed: true,
-    completedAt: new Date(Date.now() - 172800000).toISOString()
-  },
-  {
-    id: 'goal-seed-6',
-    date: twoDaysAgo,
-    title: 'Matrix Arrangement Caselet Analysis',
-    section: 'DILR',
-    targetMinutes: 45,
-    completed: false
+    targetMinutes: 20,
+    completed: true
   }
 ];

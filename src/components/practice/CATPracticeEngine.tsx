@@ -20,7 +20,9 @@ import {
   BookOpen,
   ExternalLink,
   Flame,
-  Info
+  Info,
+  Puzzle,
+  Zap
 } from 'lucide-react';
 import { Tooltip as RadixTooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { initialTopics } from '../../data/topics';
@@ -48,8 +50,24 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
     aeonHabit,
     toggleAeonDate,
     markYesterdayAeonDone,
-    markTodayAeonDone
+    markTodayAeonDone,
+    puzzleHabit,
+    togglePuzzleDate,
+    markYesterdayPuzzleDone,
+    markTodayPuzzleDone,
+    speedMathHabit,
+    toggleSpeedMathDate,
+    markYesterdaySpeedMathDone,
+    markTodaySpeedMathDone
   } = useAppData();
+
+  const puzzleRecentDays = useMemo(() => {
+    return getRecentHabitDays(puzzleHabit.completedDates, 7);
+  }, [puzzleHabit.completedDates]);
+
+  const speedMathRecentDays = useMemo(() => {
+    return getRecentHabitDays(speedMathHabit.completedDates, 7);
+  }, [speedMathHabit.completedDates]);
 
   // Daily Vocabulary Status
   const vocabTodayStr = getTodayDateStr();
@@ -840,6 +858,226 @@ export const CATPracticeEngine: React.FC<CATPracticeEngineProps> = ({ onSwitchTo
               <span>Open Full Daily Vocabulary Center & SRS</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
+          </div>
+        </div>
+
+        {/* DEDICATED CARD FOR DAILY DILR PUZZLE (BRAINBASHERS) */}
+        <div className="rounded-3xl border border-teal-200/90 bg-gradient-to-br from-teal-50/80 via-white to-emerald-50/50 p-6 shadow-sm dark:border-teal-900/40 dark:from-teal-950/20 dark:via-[#121826] dark:to-emerald-950/20 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500/15 text-teal-700 dark:bg-teal-500/25 dark:text-teal-300 font-bold shrink-0 mt-0.5">
+                <Puzzle className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Daily DILR Logic Puzzle
+                  </h3>
+                  <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-[10px] font-bold text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                    BrainBashers · 1 Puzzle / Day
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Train non-linear deductive reasoning, grid mapping, and lateral logic sets essential for CAT DILR.
+                </p>
+              </div>
+            </div>
+
+            {/* Streak & Status Badges */}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
+                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>{puzzleHabit.streak} Day Streak</span>
+              </div>
+              <div className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-2xs ${
+                puzzleHabit.isTodayDone
+                  ? 'border-emerald-300/80 bg-emerald-100/60 text-emerald-900 dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-200'
+                  : 'border-slate-300/80 bg-slate-100/60 text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300'
+              }`}>
+                <CheckCircle2 className={`h-4 w-4 ${puzzleHabit.isTodayDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+                <span>{puzzleHabit.isTodayDone ? "Today's Puzzle Solved" : "1 Puzzle Pending"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Row & External Link */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-teal-200/70 dark:border-teal-900/50 bg-white/80 dark:bg-slate-900/60">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-teal-900 dark:text-teal-200">
+                Today's Daily Puzzle on BrainBashers
+              </span>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Complete today's featured puzzle (logic grids, number blocks, or deduction puzzles) to sharpen analytical stamina.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href="https://www.brainbashers.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-all shadow-xs"
+              >
+                <span>Open BrainBashers</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => togglePuzzleDate(getTodayDateStr())}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  puzzleHabit.isTodayDone
+                    ? 'border-emerald-500/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border-teal-300 bg-teal-50 text-teal-800 hover:bg-teal-100 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-200'
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{puzzleHabit.isTodayDone ? 'Completed' : 'Mark Done'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 7-Day Habit Tracker & Streak Saver */}
+          <div className="pt-2 border-t border-teal-200/60 dark:border-teal-900/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 dark:text-slate-400 font-semibold mr-1">7-Day Habit:</span>
+              <div className="flex items-center gap-1.5">
+                {puzzleRecentDays.map((d, i) => (
+                  <div
+                    key={i}
+                    title={`${d.dayName} (${d.label}): ${d.completed ? 'Puzzle Solved' : 'Missed'}`}
+                    className={`flex flex-col items-center justify-center w-7 h-7 rounded-lg text-[10px] font-bold border transition-all ${
+                      d.completed
+                        ? 'border-teal-500/40 bg-teal-500/20 text-teal-800 dark:text-teal-200'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-400'
+                    }`}
+                  >
+                    <span>{d.dayName[0]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {puzzleHabit.streakAtRisk && (
+              <button
+                type="button"
+                onClick={() => markYesterdayPuzzleDone()}
+                className="text-amber-700 dark:text-amber-400 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+              >
+                <Flame className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span>Missed yesterday? Save Streak</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* DEDICATED CARD FOR VEDIC MATH & SPEED CALCULATION (QUANT) */}
+        <div className="rounded-3xl border border-amber-200/90 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50 p-6 shadow-sm dark:border-amber-900/40 dark:from-amber-950/20 dark:via-[#121826] dark:to-orange-950/20 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 font-bold shrink-0 mt-0.5">
+                <Zap className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Vedic Math & Speed Calculation Drills
+                  </h3>
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Quant & DI Calculation Stamina
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Master reciprocal fractions, cross-multiplications, squares, and fast mental arithmetic to save critical time in QA & DI.
+                </p>
+              </div>
+            </div>
+
+            {/* Streak & Status Badges */}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              <div className="flex items-center gap-1.5 rounded-xl border border-amber-300/80 bg-amber-100/60 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-200 shadow-2xs">
+                <Flame className="h-4 w-4 text-amber-600 dark:text-amber-400 fill-amber-500" />
+                <span>{speedMathHabit.streak} Day Streak</span>
+              </div>
+              <div className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold shadow-2xs ${
+                speedMathHabit.isTodayDone
+                  ? 'border-emerald-300/80 bg-emerald-100/60 text-emerald-900 dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-200'
+                  : 'border-slate-300/80 bg-slate-100/60 text-slate-700 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300'
+              }`}>
+                <CheckCircle2 className={`h-4 w-4 ${speedMathHabit.isTodayDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+                <span>{speedMathHabit.isTodayDone ? "Speed Math Done Today" : "20m Drill Pending"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Row & External Link */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-amber-200/70 dark:border-amber-900/50 bg-white/80 dark:bg-slate-900/60">
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                Curated Vedic Math Video Series
+              </span>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Practice daily short-cut techniques: base multiplication, squaring tricks, fraction-to-percentage conversions, and cube roots.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href="https://youtube.com/playlist?list=PL4t_secZTPn6mwWFEdXaIExhGOe88NkNj&si=0LP36z_JfpCxwWYF"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs"
+              >
+                <span>Watch Playlist</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => toggleSpeedMathDate(getTodayDateStr())}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  speedMathHabit.isTodayDone
+                    ? 'border-emerald-500/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    : 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200'
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{speedMathHabit.isTodayDone ? 'Completed' : 'Mark Done'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 7-Day Habit Tracker & Streak Saver */}
+          <div className="pt-2 border-t border-amber-200/60 dark:border-amber-900/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 dark:text-slate-400 font-semibold mr-1">7-Day Habit:</span>
+              <div className="flex items-center gap-1.5">
+                {speedMathRecentDays.map((d, i) => (
+                  <div
+                    key={i}
+                    title={`${d.dayName} (${d.label}): ${d.completed ? 'Speed Math Done' : 'Missed'}`}
+                    className={`flex flex-col items-center justify-center w-7 h-7 rounded-lg text-[10px] font-bold border transition-all ${
+                      d.completed
+                        ? 'border-amber-500/40 bg-amber-500/20 text-amber-800 dark:text-amber-200'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-400'
+                    }`}
+                  >
+                    <span>{d.dayName[0]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {speedMathHabit.streakAtRisk && (
+              <button
+                type="button"
+                onClick={() => markYesterdaySpeedMathDone()}
+                className="text-amber-700 dark:text-amber-400 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+              >
+                <Flame className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span>Missed yesterday? Save Streak</span>
+              </button>
+            )}
           </div>
         </div>
 
